@@ -494,6 +494,7 @@ wWinMain(
                 LoadString(hInstance, IDS_SETUPFAIL, szText, _countof(szText));
                 MessageBox(NULL, szText, TEXT("MZ-IME"), MB_ICONERROR);
             }
+            break;
         default:
             break;
         }
