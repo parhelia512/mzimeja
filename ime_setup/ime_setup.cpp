@@ -485,6 +485,7 @@ wWinMain(
                 LoadString(hInstance, IDS_SETUPFAIL, szText, _countof(szText));
                 MessageBox(NULL, szText, TEXT("MZ-IME"), MB_ICONERROR);
             }
+            break;
         case rad2:
             if (DoUninstall() == 0) {
                 LoadString(hInstance, IDS_SETUPOK, szText, _countof(szText));
