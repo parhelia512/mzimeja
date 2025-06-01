@@ -1,4 +1,4 @@
-set VERSION=0.9.9.1
+set VERSION=0.9.9.2
 set DEST_DIR=mzimeja-%VERSION%-low-level-setup
 set OUTPUT=mzimeja-%VERSION%-low-level-setup.exe
 if not exist "%DEST_DIR%" mkdir "%DEST_DIR%"
