@@ -101,8 +101,8 @@ void OnDestroy(HWND hWnd)
             ::DestroyWindow(lpUIExtra->hwndDefComp);
 
         for (INT i = 0; i < MAXCOMPWND; i++) {
-            if (::IsWindow(lpUIExtra->hwndComp[i]))
-                ::DestroyWindow(lpUIExtra->hwndComp[i]);
+            if (::IsWindow(ARRAY_AT(lpUIExtra->hwndComp, i)))
+                ::DestroyWindow(ARRAY_AT(lpUIExtra->hwndComp, i));
         }
 
         if (::IsWindow(lpUIExtra->hwndGuide))
@@ -548,7 +548,7 @@ LONG ControlCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
         case IMC_GETCANDIDATEPOS: // 候補の位置が取得される。
             DPRINTA("IMC_GETCANDIDATEPOS\n");
             if (IsWindow(lpUIExtra->hwndCand)) { // 候補ウィンドウが生きていれば
-                *(LPCANDIDATEFORM)lParam = lpIMC->cfCandForm[0]; // 入力コンテキストから取得。
+                *(LPCANDIDATEFORM)lParam = ARRAY_AT(lpIMC->cfCandForm, 0); // 入力コンテキストから取得。
                 ret = 0;
             }
             break;

@@ -56,7 +56,7 @@ std::wstring translateString(const std::wstring& str)
 
     std::wstring ret = str;
     for (size_t ich = 0; ich < ret.size(); ++ich) {
-        WCHAR& ch = ret[ich];
+        wchar_t& ch = ARRAY_AT(ret, ich);
         ch = translateChar(ch, bCommaPeriod, bNoZenkakuAscii);
     }
     return ret;
@@ -1204,10 +1204,10 @@ std::wstring hiragana_to_roman(std::wstring hiragana)
         found = false;
         if (!found) {
             for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-                if (hiragana[k] == sokuon_table[i].value[0]) {
-                    if (hiragana.find(sokuon_table[i].value, k) == k) {
-                        k += wcslen(sokuon_table[i].value);
-                        roman += sokuon_table[i].key;
+                if (ARRAY_AT(hiragana, k) == ARRAY_AT(sokuon_table, i).value[0]) {
+                    if (hiragana.find(ARRAY_AT(sokuon_table, i).value, k) == k) {
+                        k += wcslen(ARRAY_AT(sokuon_table, i).value);
+                        roman += ARRAY_AT(sokuon_table, i).key;
                         found = true;
                         break;
                     }
@@ -1216,11 +1216,11 @@ std::wstring hiragana_to_roman(std::wstring hiragana)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(reverse_roman_table); ++i) {
-                if (reverse_roman_table[i].extra) continue;
-                if (hiragana[k] == reverse_roman_table[i].key[0]) {
-                    if (hiragana.find(reverse_roman_table[i].key, k) == k) {
-                        k += wcslen(reverse_roman_table[i].key);
-                        roman += reverse_roman_table[i].value;
+                if (ARRAY_AT(reverse_roman_table, i).extra) continue;
+                if (ARRAY_AT(hiragana, k) == ARRAY_AT(reverse_roman_table, i).key[0]) {
+                    if (hiragana.find(ARRAY_AT(reverse_roman_table, i).key, k) == k) {
+                        k += wcslen(ARRAY_AT(reverse_roman_table, i).key);
+                        roman += ARRAY_AT(reverse_roman_table, i).value;
                         found = true;
                         break;
                     }
@@ -1229,18 +1229,21 @@ std::wstring hiragana_to_roman(std::wstring hiragana)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-                if (normal_roman_table[i].extra) continue;
-                if (hiragana[k] == normal_roman_table[i].value[0]) {
-                    if (hiragana.find(normal_roman_table[i].value, k) == k) {
-                        k += wcslen(normal_roman_table[i].value);
-                        roman += normal_roman_table[i].key;
+                if (ARRAY_AT(normal_roman_table, i).extra) continue;
+                if (ARRAY_AT(hiragana, k) == ARRAY_AT(normal_roman_table, i).value[0]) {
+                    if (hiragana.find(ARRAY_AT(normal_roman_table, i).value, k) == k) {
+                        k += wcslen(ARRAY_AT(normal_roman_table, i).value);
+                        roman += ARRAY_AT(normal_roman_table, i).key;
                         found = true;
                         break;
                     }
                 }
             }
         }
-        if (!found) roman += hiragana[k++];
+        if (!found) {
+            roman += ARRAY_AT(hiragana, k);
+            k++;
+        }
     }
     return roman;
 } // hiragana_to_roman
@@ -1254,10 +1257,10 @@ std::wstring roman_to_hiragana(std::wstring roman)
         bool found = false;
         if (!found) {
             for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-                if (roman[k] == sokuon_table[i].key[0]) {
-                    if (roman.find(sokuon_table[i].key, k) == k) {
-                        k += wcslen(sokuon_table[i].key);
-                        hiragana += sokuon_table[i].value;
+                if (ARRAY_AT(roman, k) == ARRAY_AT(sokuon_table, i).key[0]) {
+                    if (roman.find(ARRAY_AT(sokuon_table, i).key, k) == k) {
+                        k += wcslen(ARRAY_AT(sokuon_table, i).key);
+                        hiragana += ARRAY_AT(sokuon_table, i).value;
                         found = true;
                         break;
                     }
@@ -1266,21 +1269,21 @@ std::wstring roman_to_hiragana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-                if (normal_roman_table[i].extra) {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            roman.insert(k, normal_roman_table[i].extra);
-                            k += wcslen(normal_roman_table[i].key);
-                            hiragana += normal_roman_table[i].value;
+                if (ARRAY_AT(normal_roman_table, i).extra) {
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            roman.insert(k, ARRAY_AT(normal_roman_table, i).extra);
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            hiragana += ARRAY_AT(normal_roman_table, i).value;
                             found = true;
                             break;
                         }
                     }
                 } else {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            k += wcslen(normal_roman_table[i].key);
-                            hiragana += normal_roman_table[i].value;
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            hiragana += ARRAY_AT(normal_roman_table, i).value;
                             found = true;
                             break;
                         }
@@ -1290,8 +1293,8 @@ std::wstring roman_to_hiragana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(kigou_table); ++i) {
-                if (roman[k] == kigou_table[i].key[0]) {
-                    hiragana += kigou_table[i].value;
+                if (ARRAY_AT(roman, k) == ARRAY_AT(kigou_table, i).key[0]) {
+                    hiragana += ARRAY_AT(kigou_table, i).value;
                     k += 1;
                     found = true;
                     break;
@@ -1299,7 +1302,7 @@ std::wstring roman_to_hiragana(std::wstring roman)
             }
         }
         if (!found) {
-            if (roman[k] == L',') {
+            if (ARRAY_AT(roman, k) == L',') {
                 if (Config_GetDWORD(L"bCommaPeriod", FALSE))
                     hiragana += L'，';
                 else
@@ -1307,7 +1310,7 @@ std::wstring roman_to_hiragana(std::wstring roman)
                 k += 1;
                 found = true;
             }
-            else if (roman[k] == L'.') {
+            else if (ARRAY_AT(roman, k) == L'.') {
                 if (Config_GetDWORD(L"bCommaPeriod", FALSE))
                     hiragana += L'．';
                 else
@@ -1316,7 +1319,10 @@ std::wstring roman_to_hiragana(std::wstring roman)
                 found = true;
             }
         }
-        if (!found) hiragana += roman[k++];
+        if (!found) {
+            hiragana += ARRAY_AT(roman, k);
+            k++;
+        }
     }
     return hiragana;
 } // roman_to_hiragana
@@ -1329,10 +1335,10 @@ std::wstring roman_to_katakana(std::wstring roman)
         bool found = false;
         if (!found) {
             for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-                if (roman[k] == sokuon_table[i].key[0]) {
-                    if (roman.find(sokuon_table[i].key, k) == k) {
-                        k += wcslen(sokuon_table[i].key);
-                        katakana += lcmap(sokuon_table[i].value, LCMAP_KATAKANA);
+                if (ARRAY_AT(roman, k) == ARRAY_AT(sokuon_table, i).key[0]) {
+                    if (roman.find(ARRAY_AT(sokuon_table, i).key, k) == k) {
+                        k += wcslen(ARRAY_AT(sokuon_table, i).key);
+                        katakana += lcmap(ARRAY_AT(sokuon_table, i).value, LCMAP_KATAKANA);
                         found = true;
                         break;
                     }
@@ -1341,21 +1347,21 @@ std::wstring roman_to_katakana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-                if (normal_roman_table[i].extra) {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            roman.insert(k, normal_roman_table[i].extra);
-                            k += wcslen(normal_roman_table[i].key);
-                            katakana += lcmap(normal_roman_table[i].value, LCMAP_KATAKANA);
+                if (ARRAY_AT(normal_roman_table, i).extra) {
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            roman.insert(k, ARRAY_AT(normal_roman_table, i).extra);
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            katakana += lcmap(ARRAY_AT(normal_roman_table, i).value, LCMAP_KATAKANA);
                             found = true;
                             break;
                         }
                     }
                 } else {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            k += wcslen(normal_roman_table[i].key);
-                            katakana += lcmap(normal_roman_table[i].value, LCMAP_KATAKANA);
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            katakana += lcmap(ARRAY_AT(normal_roman_table, i).value, LCMAP_KATAKANA);
                             found = true;
                             break;
                         }
@@ -1365,8 +1371,8 @@ std::wstring roman_to_katakana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(kigou_table); ++i) {
-                if (roman[k] == kigou_table[i].key[0]) {
-                    katakana += kigou_table[i].value;
+                if (ARRAY_AT(roman, k) == ARRAY_AT(kigou_table, i).key[0]) {
+                    katakana += ARRAY_AT(kigou_table, i).value;
                     k += 1;
                     found = true;
                     break;
@@ -1374,7 +1380,7 @@ std::wstring roman_to_katakana(std::wstring roman)
             }
         }
         if (!found) {
-            if (roman[k] == L',') {
+            if (ARRAY_AT(roman, k) == L',') {
                 if (Config_GetDWORD(L"bCommaPeriod", FALSE))
                     katakana += L'，';
                 else
@@ -1382,7 +1388,7 @@ std::wstring roman_to_katakana(std::wstring roman)
                 k += 1;
                 found = true;
             }
-            else if (roman[k] == L'.') {
+            else if (ARRAY_AT(roman, k) == L'.') {
                 if (Config_GetDWORD(L"bCommaPeriod", FALSE))
                     katakana += L'．';
                 else
@@ -1391,7 +1397,10 @@ std::wstring roman_to_katakana(std::wstring roman)
                 found = true;
             }
         }
-        if (!found) katakana += roman[k++];
+        if (!found) {
+            katakana += ARRAY_AT(roman, k);
+            k++;
+        }
     }
     return katakana;
 } // roman_to_katakana
@@ -1405,10 +1414,10 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman)
         bool found = false;
         if (!found) {
             for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-                if (roman[k] == sokuon_table[i].key[0]) {
-                    if (roman.find(sokuon_table[i].key, k) == k) {
-                        k += wcslen(sokuon_table[i].key);
-                        katakana += lcmap(sokuon_table[i].value,
+                if (ARRAY_AT(roman, k) == ARRAY_AT(sokuon_table, i).key[0]) {
+                    if (roman.find(ARRAY_AT(sokuon_table, i).key, k) == k) {
+                        k += wcslen(ARRAY_AT(sokuon_table, i).key);
+                        katakana += lcmap(ARRAY_AT(sokuon_table, i).value,
                                           LCMAP_HALFWIDTH | LCMAP_KATAKANA);
                         found = true;
                         break;
@@ -1418,22 +1427,22 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-                if (normal_roman_table[i].extra) {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            roman.insert(k, normal_roman_table[i].extra);
-                            k += wcslen(normal_roman_table[i].key);
-                            katakana += lcmap(normal_roman_table[i].value,
+                if (ARRAY_AT(normal_roman_table, i).extra) {
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            roman.insert(k, ARRAY_AT(normal_roman_table, i).extra);
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            katakana += lcmap(ARRAY_AT(normal_roman_table, i).value,
                                               LCMAP_HALFWIDTH | LCMAP_KATAKANA);
                             found = true;
                             break;
                         }
                     }
                 } else {
-                    if (roman[k] == normal_roman_table[i].key[0]) {
-                        if (roman.find(normal_roman_table[i].key, k) == k) {
-                            k += wcslen(normal_roman_table[i].key);
-                            katakana += lcmap(normal_roman_table[i].value,
+                    if (ARRAY_AT(roman, k) == ARRAY_AT(normal_roman_table, i).key[0]) {
+                        if (roman.find(ARRAY_AT(normal_roman_table, i).key, k) == k) {
+                            k += wcslen(ARRAY_AT(normal_roman_table, i).key);
+                            katakana += lcmap(ARRAY_AT(normal_roman_table, i).value,
                                               LCMAP_HALFWIDTH | LCMAP_KATAKANA);
                             found = true;
                             break;
@@ -1444,8 +1453,8 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman)
         }
         if (!found) {
             for (size_t i = 0; i < _countof(kigou_table); ++i) {
-                if (roman[k] == kigou_table[i].key[0]) {
-                    katakana += lcmap(kigou_table[i].value,
+                if (ARRAY_AT(roman, k) == ARRAY_AT(kigou_table, i).key[0]) {
+                    katakana += lcmap(ARRAY_AT(kigou_table, i).value,
                                       LCMAP_HALFWIDTH | LCMAP_KATAKANA);
                     k += 1;
                     found = true;
@@ -1453,7 +1462,11 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman)
                 }
             }
         }
-        if (!found) katakana += roman[k++];
+        if (!found)
+        {
+            katakana += ARRAY_AT(roman, k);
+            k++;
+        };
     }
     //DPRINTW(L"roman_to_halfwidth_katakana: %s\n", katakana.c_str());
     return katakana;
@@ -1465,38 +1478,38 @@ std::wstring roman_to_hiragana(std::wstring roman, size_t ichTarget)
     std::wstring str, key, value, extra;
     size_t key_len = 0;
     for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-        str = sokuon_table[i].key;
+        str = ARRAY_AT(sokuon_table, i).key;
         key_len = str.size();
         if (key_len <= ichTarget) {
             if (roman.substr(ichTarget - key_len, key_len) == str) {
                 if (key_len > key.size()) {
                     key = str;
-                    value = sokuon_table[i].value;
+                    value = ARRAY_AT(sokuon_table, i).value;
                 }
             }
         }
     }
     for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-        if (normal_roman_table[i].extra) {
-            str = normal_roman_table[i].key;
+        if (ARRAY_AT(normal_roman_table, i).extra) {
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
-                        extra = normal_roman_table[i].extra;
+                        value = ARRAY_AT(normal_roman_table, i).value;
+                        extra = ARRAY_AT(normal_roman_table, i).extra;
                     }
                 }
             }
         } else {
-            str = normal_roman_table[i].key;
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
+                        value = ARRAY_AT(normal_roman_table, i).value;
                         extra.clear();
                     }
                 }
@@ -1505,10 +1518,10 @@ std::wstring roman_to_hiragana(std::wstring roman, size_t ichTarget)
     }
     for (size_t i = 0; i < _countof(kigou_table); ++i) {
         key_len = 1;
-        if (roman[ichTarget - key_len] == kigou_table[i].key[0]) {
+        if (ARRAY_AT(roman, ichTarget - key_len) == ARRAY_AT(kigou_table, i).key[0]) {
             if (key_len <= ichTarget) {
-                key = kigou_table[i].key;
-                value = kigou_table[i].value;
+                key = ARRAY_AT(kigou_table, i).key;
+                value = ARRAY_AT(kigou_table, i).value;
             }
         }
     }
@@ -1524,38 +1537,38 @@ std::wstring roman_to_katakana(std::wstring roman, size_t ichTarget)
     std::wstring str, key, value, extra;
     size_t key_len = 0;
     for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-        str = sokuon_table[i].key;
+        str = ARRAY_AT(sokuon_table, i).key;
         key_len = str.size();
         if (key_len <= ichTarget) {
             if (roman.substr(ichTarget - key_len, key_len) == str) {
                 if (key_len > key.size()) {
                     key = str;
-                    value = sokuon_table[i].value;
+                    value = ARRAY_AT(sokuon_table, i).value;
                 }
             }
         }
     }
     for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-        if (normal_roman_table[i].extra) {
-            str = normal_roman_table[i].key;
+        if (ARRAY_AT(normal_roman_table, i).extra) {
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
-                        extra = normal_roman_table[i].extra;
+                        value = ARRAY_AT(normal_roman_table, i).value;
+                        extra = ARRAY_AT(normal_roman_table, i).extra;
                     }
                 }
             }
         } else {
-            str = normal_roman_table[i].key;
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
+                        value = ARRAY_AT(normal_roman_table, i).value;
                         extra.clear();
                     }
                 }
@@ -1564,10 +1577,10 @@ std::wstring roman_to_katakana(std::wstring roman, size_t ichTarget)
     }
     for (size_t i = 0; i < _countof(kigou_table); ++i) {
         key_len = 1;
-        if (roman[ichTarget - key_len] == kigou_table[i].key[0]) {
+        if (ARRAY_AT(roman, ichTarget - key_len) == ARRAY_AT(kigou_table, i).key[0]) {
             if (key_len <= ichTarget) {
-                key = kigou_table[i].key;
-                value = kigou_table[i].value;
+                key = ARRAY_AT(kigou_table, i).key;
+                value = ARRAY_AT(kigou_table, i).value;
             }
         }
     }
@@ -1585,38 +1598,38 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman, size_t ichTarget)
     std::wstring str, key, value, extra;
     size_t key_len = 0;
     for (size_t i = 0; i < _countof(sokuon_table); ++i) {
-        str = sokuon_table[i].key;
+        str = ARRAY_AT(sokuon_table, i).key;
         key_len = str.size();
         if (key_len <= ichTarget) {
             if (roman.substr(ichTarget - key_len, key_len) == str) {
                 if (key_len > key.size()) {
                     key = str;
-                    value = sokuon_table[i].value;
+                    value = ARRAY_AT(sokuon_table, i).value;
                 }
             }
         }
     }
     for (size_t i = 0; i < _countof(normal_roman_table); ++i) {
-        if (normal_roman_table[i].extra) {
-            str = normal_roman_table[i].key;
+        if (ARRAY_AT(normal_roman_table, i).extra) {
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
-                        extra = normal_roman_table[i].extra;
+                        value = ARRAY_AT(normal_roman_table, i).value;
+                        extra = ARRAY_AT(normal_roman_table, i).extra;
                     }
                 }
             }
         } else {
-            str = normal_roman_table[i].key;
+            str = ARRAY_AT(normal_roman_table, i).key;
             key_len = str.size();
             if (key_len <= ichTarget) {
                 if (roman.substr(ichTarget - key_len, key_len) == str) {
                     if (key_len > key.size()) {
                         key = str;
-                        value = normal_roman_table[i].value;
+                        value = ARRAY_AT(normal_roman_table, i).value;
                         extra.clear();
                     }
                 }
@@ -1625,10 +1638,10 @@ std::wstring roman_to_halfwidth_katakana(std::wstring roman, size_t ichTarget)
     }
     for (size_t i = 0; i < _countof(kigou_table); ++i) {
         key_len = 1;
-        if (roman[ichTarget - key_len] == kigou_table[i].key[0]) {
+        if (ARRAY_AT(roman, ichTarget - key_len) == ARRAY_AT(kigou_table, i).key[0]) {
             if (key_len <= ichTarget) {
-                key = kigou_table[i].key;
-                value = kigou_table[i].value;
+                key = ARRAY_AT(kigou_table, i).key;
+                value = ARRAY_AT(kigou_table, i).value;
             }
         }
     }
@@ -1648,15 +1661,18 @@ std::wstring hiragana_to_typing(std::wstring hiragana)
         bool found = false;
         if (!found) {
             for (size_t i = 0; i < _countof(kana2type_table); ++i) {
-                if (hiragana[k] == kana2type_table[i].key[0]) {
-                    hiragana += kana2type_table[i].value;
+                if (ARRAY_AT(hiragana, k) == ARRAY_AT(kana2type_table, i).key[0]) {
+                    hiragana += ARRAY_AT(kana2type_table, i).value;
                     k += 1;
                     found = true;
                     break;
                 }
             }
         }
-        if (!found) typing += hiragana[k++];
+        if (!found) {
+            typing += ARRAY_AT(hiragana, k);
+            k++;
+        }
     }
     return typing;
 } // hiragana_to_typing
@@ -1867,9 +1883,9 @@ BOOL is_fullwidth_ascii(WCHAR ch)
 BOOL are_all_chars_numeric(const std::wstring& str)
 {
     for (size_t i = 0; i < str.size(); ++i) {
-        if (L'0' <= str[i] && str[i] <= L'9') {
+        if (L'0' <= ARRAY_AT(str, i) && ARRAY_AT(str, i) <= L'9') {
             ;
-        } else if (L'０' <= str[i] && str[i] <= L'９') {
+        } else if (L'０' <= ARRAY_AT(str, i) && ARRAY_AT(str, i) <= L'９') {
             ;
         } else {
             return FALSE;
@@ -1887,10 +1903,10 @@ std::wstring convert_to_kansuuji_1(wchar_t ch, size_t digit_level)
     std::wstring ret;
     if (ch == L'0') return ret;
     ASSERT(ch - L'0' < 10);
-    ret += s_szKanjiDigits[ch - L'0'];
+    ret += ARRAY_AT(s_szKanjiDigits, ch - L'0');
     if (digit_level > 0) {
         ASSERT(digit_level < 4);
-        ret += s_szKanjiDigitLevels[digit_level];
+        ret += ARRAY_AT(s_szKanjiDigitLevels, digit_level);
     }
     return ret;
 }
@@ -1905,7 +1921,7 @@ std::wstring convert_to_kansuuji_4(const std::wstring& halfwidth)
     size_t level = 0;
     for (size_t i = length; i > 0; ) {
         --i;
-        ret = convert_to_kansuuji_1(halfwidth[i], level) + ret;
+        ret = convert_to_kansuuji_1(ARRAY_AT(halfwidth, i), level) + ret;
         ++level;
     }
     return ret;
@@ -1929,7 +1945,7 @@ std::wstring convert_to_kansuuji(const std::wstring& str)
         }
         group = convert_to_kansuuji_4(group);
         if (group.size() && iGroup > 0) {
-            ret = group + s_szKanjiGroupLevels[iGroup] + ret;
+            ret = group + ARRAY_AT(s_szKanjiGroupLevels, iGroup) + ret;
         } else {
             ret = group + ret;
         }
@@ -1953,12 +1969,12 @@ std::wstring convert_to_kansuuji_brief(const std::wstring& str)
     std::wstring halfwidth = lcmap(str, LCMAP_HALFWIDTH);
     std::wstring ret;
     for (size_t i = 0; i < halfwidth.size(); ++i) {
-        if (L'0' <= halfwidth[i] && halfwidth[i] <= L'9')
-            ret += s_szKanjiDigits[halfwidth[i] - L'0'];
-        else if (L'０' <= halfwidth[i] && halfwidth[i] <= L'９')
-            ret += s_szKanjiDigits[halfwidth[i] - L'０'];
+        if (L'0' <= ARRAY_AT(halfwidth, i) && ARRAY_AT(halfwidth, i) <= L'9')
+            ret += ARRAY_AT(s_szKanjiDigits, ARRAY_AT(halfwidth, i) - L'0');
+        else if (L'０' <= ARRAY_AT(halfwidth, i) && ARRAY_AT(halfwidth, i) <= L'９')
+            ret += ARRAY_AT(s_szKanjiDigits, ARRAY_AT(halfwidth, i) - L'０');
         else
-            ret += halfwidth[i];
+            ret += ARRAY_AT(halfwidth, i);
     }
     return ret;
 }
@@ -2068,7 +2084,7 @@ std::wstring fullwidth_ascii_to_halfwidth(const std::wstring& str)
     const size_t count = str.size();
     wchar_t ch;
     for (size_t i = 0; i < count; ++i) {
-        ch = str[i];
+        ch = ARRAY_AT(str, i);
         if (L'ａ' <= ch && ch <= L'ｚ') {
             ch += L'a' - L'ａ';
         } else if (L'Ａ' <= ch && ch <= L'Ｚ') {

@@ -379,7 +379,7 @@ void CandWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
     }
 
     // 初期化されてないか？
-    if (lpIMC->cfCandForm[0].dwIndex == (DWORD)-1) {
+    if (ARRAY_AT(lpIMC->cfCandForm, 0).dwIndex == (DWORD)-1) {
         lpIMC->DumpCandInfo();
         lpUIExtra->ptCand.x = pt.x;
         lpUIExtra->ptCand.y = pt.y;
@@ -402,14 +402,14 @@ void CandWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
     }
 
     // スタイルをチェックする。
-    DWORD dwStyle = lpIMC->cfCandForm[0].dwStyle;
+    DWORD dwStyle = ARRAY_AT(lpIMC->cfCandForm, 0).dwStyle;
     if (dwStyle == CFS_EXCLUDE) {
         DPRINTA("CFS_EXCLUDE\n");
     } else if (dwStyle == CFS_CANDIDATEPOS) {
         DPRINTA("CFS_CANDIDATEPOS\n");
         // 位置情報を取得する。
-        pt.x = lpIMC->cfCandForm[0].ptCurrentPos.x;
-        pt.y = lpIMC->cfCandForm[0].ptCurrentPos.y;
+        pt.x = ARRAY_AT(lpIMC->cfCandForm, 0).ptCurrentPos.x;
+        pt.y = ARRAY_AT(lpIMC->cfCandForm, 0).ptCurrentPos.y;
         ::ClientToScreen(lpIMC->hWnd, &pt);
     } else {
         DPRINTA("dwStyle: 0x%08lX\n", dwStyle);

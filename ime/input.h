@@ -284,7 +284,7 @@ struct LogCandInfo {
 // 候補リストの物理データ。
 struct CandList : public CANDIDATELIST {
     BYTE *GetBytes()                { return (BYTE *)this; }
-    WCHAR *GetCandString(DWORD i)   { return LPTSTR(GetBytes() + dwOffset[i]); }
+    WCHAR *GetCandString(DWORD i)   { return (LPWSTR)(GetBytes() + dwOffset[i]); }
     WCHAR *GetCurString()           { return GetCandString(dwSelection); }
     DWORD  GetPageEnd() const;
     void GetLog(LogCandList& log);

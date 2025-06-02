@@ -11,10 +11,10 @@ DWORD LogCompStrExtra::GetTotalSize() const
 {
     DWORD total = sizeof(COMPSTREXTRA);
     for (size_t i = 0; i < hiragana_clauses.size(); ++i) {
-        total += DWORD((hiragana_clauses[i].size() + 1) * sizeof(WCHAR));
+        total += DWORD((ARRAY_AT(hiragana_clauses, i).size() + 1) * sizeof(WCHAR));
     }
     for (size_t i = 0; i < typing_clauses.size(); ++i) {
-        total += DWORD((typing_clauses[i].size() + 1) * sizeof(WCHAR));
+        total += DWORD((ARRAY_AT(typing_clauses, i).size() + 1) * sizeof(WCHAR));
     }
     return total;
 }
@@ -90,8 +90,8 @@ DWORD COMPSTREXTRA::Store(const LogCompStrExtra *log)
     dwHiraganaClauseOffset = (DWORD)(pb - GetBytes());
     dwHiraganaClauseCount = 0;
     for (size_t i = 0; i < log->hiragana_clauses.size(); ++i) {
-        size = DWORD((log->hiragana_clauses[i].size() + 1) * sizeof(WCHAR));
-        memcpy(pb, &log->hiragana_clauses[i][0], size);
+        size = DWORD((ARRAY_AT(log->hiragana_clauses, i).size() + 1) * sizeof(WCHAR));
+        memcpy(pb, &ARRAY_AT_AT(log->hiragana_clauses, i, 0), size);
         ++dwHiraganaClauseCount;
         pb += size;
     }
@@ -99,8 +99,8 @@ DWORD COMPSTREXTRA::Store(const LogCompStrExtra *log)
     dwTypingClauseOffset = (DWORD)(pb - GetBytes());
     dwTypingClauseCount = 0;
     for (size_t i = 0; i < log->typing_clauses.size(); ++i) {
-        size = DWORD((log->typing_clauses[i].size() + 1) * sizeof(WCHAR));
-        memcpy(pb, &log->typing_clauses[i][0], size);
+        size = DWORD((ARRAY_AT(log->typing_clauses, i).size() + 1) * sizeof(WCHAR));
+        memcpy(pb, &ARRAY_AT_AT(log->typing_clauses, i, 0), size);
         ++dwTypingClauseCount;
         pb += size;
     }
@@ -200,7 +200,7 @@ DWORD LogCompStr::GetTotalSize() const
 BOOL LogCompStr::IsBeingConverted()
 {
     for (size_t i = 0; i < comp_attr.size(); ++i) {
-        if (comp_attr[i] != ATTR_INPUT) return TRUE;
+        if (ARRAY_AT(comp_attr, i) != ATTR_INPUT) return TRUE;
     }
     return FALSE;
 }
@@ -216,12 +216,12 @@ BOOL LogCompStr::CompCharInClause(
         DWORD iCompChar, DWORD iClause, BOOL bExcludeEnd /* = FALSE */) const {
     if (bExcludeEnd) {
         return (iClause < GetClauseCount() &&
-                comp_clause[iClause] <= iCompChar &&
-                iCompChar < comp_clause[iClause + 1]);
+                ARRAY_AT(comp_clause, iClause) <= iCompChar &&
+                iCompChar < ARRAY_AT(comp_clause, iClause + 1));
     } else {
         return (iClause < GetClauseCount() &&
-                comp_clause[iClause] <= iCompChar &&
-                iCompChar <= comp_clause[iClause + 1]);
+                ARRAY_AT(comp_clause, iClause) <= iCompChar &&
+                iCompChar <= ARRAY_AT(comp_clause, iClause + 1));
     }
 }
 
@@ -240,11 +240,11 @@ BYTE LogCompStr::GetClauseAttr(DWORD dwClauseIndex) const
 void LogCompStr::SetClauseAttr(DWORD dwClauseIndex, BYTE attr)
 {
     if (dwClauseIndex < GetClauseCount()) {
-        DWORD ich0 = comp_clause[dwClauseIndex];
-        DWORD ich1 = comp_clause[dwClauseIndex + 1];
+        DWORD ich0 = ARRAY_AT(comp_clause, dwClauseIndex);
+        DWORD ich1 = ARRAY_AT(comp_clause, dwClauseIndex + 1);
         for (DWORD i = ich0; i < ich1; ++i) {
             if (i < comp_attr.size()) {
-                comp_attr[i] = attr;
+                ARRAY_AT(comp_attr, i) = attr;
             }
         }
     }
@@ -273,7 +273,7 @@ BYTE LogCompStr::GetCompCharAttr(DWORD ich) const
 {
     BYTE ret = ATTR_INPUT;
     if (ich < (DWORD)comp_attr.size()) {
-        ret = comp_attr[ich];
+        ret = ARRAY_AT(comp_attr, ich);
     }
     return ret;
 }
@@ -288,7 +288,7 @@ DWORD LogCompStr::GetCompCharCount() const
 DWORD LogCompStr::ClauseToCompChar(DWORD dwClauseIndex) const
 {
     if (dwClauseIndex >= GetClauseCount()) return GetCompCharCount();
-    return comp_clause[dwClauseIndex];
+    return ARRAY_AT(comp_clause, dwClauseIndex);
 }
 
 // 文字位置から文節インデックスを返す。
@@ -297,7 +297,7 @@ DWORD LogCompStr::CompCharToClause(DWORD iCompChar) const
     DWORD dwClauseIndex = 0;
     const DWORD cClause = GetClauseCount();
     for (DWORD iClause = 0; iClause <= cClause; ++iClause) {
-        if (comp_clause[iClause] <= iCompChar) {
+        if (ARRAY_AT(comp_clause, iClause) <= iCompChar) {
             dwClauseIndex = iClause;
         } else {
             break;
@@ -311,8 +311,8 @@ std::wstring LogCompStr::GetClauseCompString(DWORD dwClauseIndex) const
 {
     std::wstring ret;
     if (dwClauseIndex + 1 <= GetClauseCount()) {
-        DWORD ich0 = comp_clause[dwClauseIndex];
-        DWORD ich1 = comp_clause[dwClauseIndex + 1];
+        DWORD ich0 = ARRAY_AT(comp_clause, dwClauseIndex);
+        DWORD ich1 = ARRAY_AT(comp_clause, dwClauseIndex + 1);
         ret = comp_str.substr(ich0, ich1 - ich0);
     }
     return ret;
@@ -321,7 +321,7 @@ std::wstring LogCompStr::GetClauseCompString(DWORD dwClauseIndex) const
 // 文字列を合併する。
 void LogCompStr::MergeAt(std::vector<std::wstring>& strs, DWORD istr)
 {
-    strs[istr - 1] += strs[istr];
+    ARRAY_AT(strs, istr - 1) += ARRAY_AT(strs, istr);
     strs.erase(strs.begin() + istr);
 }
 
@@ -330,7 +330,7 @@ WCHAR LogCompStr::PrevCharInClause() const
 {
     if (dwCursorPos > 0) {
         if (CompCharInClause(dwCursorPos - 1, extra.iClause)) {
-            return comp_str[dwCursorPos - 1];
+            return ARRAY_AT(comp_str, dwCursorPos - 1);
         }
     }
     return 0;
@@ -340,18 +340,18 @@ WCHAR LogCompStr::PrevCharInClause() const
 void LogCompStr::UpdateExtraClause(DWORD iClause, DWORD dwConversion)
 {
     BOOL bRoman = (dwConversion & IME_CMODE_ROMAN);
-    std::wstring str = extra.comp_str_clauses[iClause];
+    std::wstring str = ARRAY_AT(extra.comp_str_clauses, iClause);
     str = lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
     if (bRoman) {
-        extra.typing_clauses[iClause] =
+        ARRAY_AT(extra.typing_clauses, iClause) =
                 lcmap(hiragana_to_roman(str), LCMAP_HALFWIDTH);
         str = fullwidth_ascii_to_halfwidth(str);
         str = roman_to_hiragana(str);
         str = translateString(str);
-        extra.hiragana_clauses[iClause] = str;
+        ARRAY_AT(extra.hiragana_clauses, iClause) = str;
     } else {
-        extra.hiragana_clauses[iClause] = str;
-        extra.typing_clauses[iClause] =
+        ARRAY_AT(extra.hiragana_clauses, iClause) = str;
+        ARRAY_AT(extra.typing_clauses, iClause) =
                 lcmap(hiragana_to_typing(str), LCMAP_HALFWIDTH);
     }
 } // LogCompStr::UpdateExtraClause
@@ -364,12 +364,12 @@ void LogCompStr::UpdateCompStr()
     size_t count = extra.comp_str_clauses.size();
     comp_clause.resize(count + 1);
     for (size_t i = 0; i < count; ++i) {
-        comp_clause[i] = (DWORD)ich;
-        str += extra.comp_str_clauses[i];
-        ich += extra.comp_str_clauses[i].size();
+        ARRAY_AT(comp_clause, i) = (DWORD)ich;
+        str += ARRAY_AT(extra.comp_str_clauses, i);
+        ich += ARRAY_AT(extra.comp_str_clauses, i).size();
     }
     comp_str = str;
-    comp_clause[count] = (DWORD)ich;
+    ARRAY_AT(comp_clause, count) = (DWORD)ich;
 }
 
 // 余剰情報から未確定文字列を更新する。
@@ -379,13 +379,13 @@ void LogCompStr::UpdateFromExtra(BOOL bRoman)
     extra.typing_clauses.resize(extra.hiragana_clauses.size());
     if (bRoman) {
         for (DWORD i = 0; i < GetClauseCount(); ++i) {
-            std::wstring& hira = extra.hiragana_clauses[i];
-            extra.typing_clauses[i] = lcmap(hiragana_to_typing(hira), LCMAP_HALFWIDTH);
+            std::wstring& hira = ARRAY_AT(extra.hiragana_clauses, i);
+            ARRAY_AT(extra.typing_clauses, i) = lcmap(hiragana_to_typing(hira), LCMAP_HALFWIDTH);
         }
     } else {
         for (DWORD i = 0; i < GetClauseCount(); ++i) {
-            std::wstring& hira = extra.hiragana_clauses[i];
-            extra.typing_clauses[i] = lcmap(hiragana_to_roman(hira), LCMAP_HALFWIDTH);
+            std::wstring& hira = ARRAY_AT(extra.hiragana_clauses, i);
+            ARRAY_AT(extra.typing_clauses, i) = lcmap(hiragana_to_roman(hira), LCMAP_HALFWIDTH);
         }
     }
     comp_attr.assign(comp_str.size(), ATTR_CONVERTED);
@@ -395,7 +395,7 @@ void LogCompStr::UpdateFromExtra(BOOL bRoman)
 void LogCompStr::MakeHiragana()
 {
     std::wstring str =
-            lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_HIRAGANA);
+            lcmap(ARRAY_AT(extra.hiragana_clauses, extra.iClause), LCMAP_HIRAGANA);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -404,7 +404,7 @@ void LogCompStr::MakeHiragana()
 void LogCompStr::MakeKatakana()
 {
     std::wstring str =
-            lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_KATAKANA);
+            lcmap(ARRAY_AT(extra.hiragana_clauses, extra.iClause), LCMAP_KATAKANA);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -413,7 +413,7 @@ void LogCompStr::MakeKatakana()
 void LogCompStr::MakeHankaku()
 {
     std::wstring str = lcmap(
-            extra.hiragana_clauses[extra.iClause],
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause),
             LCMAP_HALFWIDTH | LCMAP_KATAKANA);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
@@ -423,7 +423,7 @@ void LogCompStr::MakeHankaku()
 void LogCompStr::MakeZenEisuu()
 {
     std::wstring str =
-            lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
+            lcmap(ARRAY_AT(extra.typing_clauses, extra.iClause), LCMAP_FULLWIDTH);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -432,7 +432,7 @@ void LogCompStr::MakeZenEisuu()
 void LogCompStr::MakeHanEisuu()
 {
     std::wstring str =
-            lcmap(extra.typing_clauses[extra.iClause], LCMAP_HALFWIDTH);
+            lcmap(ARRAY_AT(extra.typing_clauses, extra.iClause), LCMAP_HALFWIDTH);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -447,7 +447,7 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     // カタカナはひらがなに直す。
     if (is_fullwidth_katakana(chTranslated)) {
         translated = lcmap(translated, LCMAP_HIRAGANA);
-        chTranslated = translated[0];
+        chTranslated = ARRAY_AT(translated, 0);
     }
     int len = 0;
     INPUT_MODE imode = InputModeFromConversionMode(TRUE, dwConv);
@@ -457,145 +457,145 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
             // set comp str and get delta length
             len = 1;
             chTranslated = translateChar(chTranslated);
-            extra.comp_str_clauses[extra.iClause] += chTranslated;
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) += chTranslated;
             // set hiragana
             chTranslated = translateChar(chTranslated);
-            extra.hiragana_clauses[extra.iClause] += chTranslated;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
                     translated = fullwidth_ascii_to_halfwidth(translated);
                     translated = translateString(translated);
                     translated = hiragana_to_roman(translated);
-                    extra.typing_clauses[extra.iClause] += translated;
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) += translated;
                 } else {
                     translated = hiragana_to_typing(translated);
-                    extra.typing_clauses[extra.iClause] += translated;
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) += translated;
                 }
             } else {
-                extra.typing_clauses[extra.iClause] += chTyped;
+                ARRAY_AT(extra.typing_clauses, extra.iClause) += chTyped;
             }
         } else {
             // set comp str and get delta length
-            str = extra.comp_str_clauses[extra.iClause];
+            str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
             len = (int)str.size();
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_hiragana(str, str.size());
             str = translateString(str);
-            extra.comp_str_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
             len = (int)str.size() - len;
             // set hiragana
-            str = extra.hiragana_clauses[extra.iClause];
+            str = ARRAY_AT(extra.hiragana_clauses, extra.iClause);
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_hiragana(str, str.size());
             str = translateString(str);
-            extra.hiragana_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) = str;
             // set typing
             chTyped = translateChar(chTyped);
-            extra.typing_clauses[extra.iClause] += chTyped;
+            ARRAY_AT(extra.typing_clauses, extra.iClause) += chTyped;
         }
         break;
     case IMODE_FULL_KATAKANA:
         if (is_hiragana(chTranslated)) {
             // set comp str and get delta length
             len = 1;
-            extra.comp_str_clauses[extra.iClause] += lcmap(translated, LCMAP_KATAKANA);
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) += lcmap(translated, LCMAP_KATAKANA);
             // set hiragana
-            extra.hiragana_clauses[extra.iClause] += chTranslated;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
                     translated = fullwidth_ascii_to_halfwidth(translated);
                     translated = hiragana_to_roman(translated);
                     translated = translateString(translated);
-                    extra.typing_clauses[extra.iClause] += translated;
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) += translated;
                 } else {
                     translated = hiragana_to_typing(translated);
                     translated = translateString(translated);
-                    extra.typing_clauses[extra.iClause] += translated;
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) += translated;
                 }
             } else {
-                extra.typing_clauses[extra.iClause] += typed;
+                ARRAY_AT(extra.typing_clauses, extra.iClause) += typed;
             }
         } else {
             // set comp str and get delta length
-            str = extra.comp_str_clauses[extra.iClause];
+            str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
             len = (int)str.size();
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_katakana(str, str.size());
             str = translateString(str);
-            extra.comp_str_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
             len = (int)str.size() - len;
             // set hiragana
-            str = extra.hiragana_clauses[extra.iClause];
+            str = ARRAY_AT(extra.hiragana_clauses, extra.iClause);
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_hiragana(str, str.size());
             str = translateString(str);
-            extra.hiragana_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) = str;
             // set typing
             chTyped = translateChar(chTyped);
-            extra.typing_clauses[extra.iClause] += chTyped;
+            ARRAY_AT(extra.typing_clauses, extra.iClause) += chTyped;
         }
         break;
     case IMODE_FULL_ASCII:
         // set comp str and get delta length
-        str = extra.comp_str_clauses[extra.iClause];
+        str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
         len = (int)str.size();
         str += chTyped;
         str = lcmap(str, LCMAP_FULLWIDTH);
-        extra.comp_str_clauses[extra.iClause] = str;
+        ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
         len = (int)str.size() - len;
         // set hiragana
-        str = extra.hiragana_clauses[extra.iClause];
+        str = ARRAY_AT(extra.hiragana_clauses, extra.iClause);
         str += chTyped;
         str = fullwidth_ascii_to_halfwidth(str);
         str = roman_to_hiragana(str);
-        extra.hiragana_clauses[extra.iClause] = str;
+        ARRAY_AT(extra.hiragana_clauses, extra.iClause) = str;
         // set typing
-        extra.typing_clauses[extra.iClause] += chTyped;
+        ARRAY_AT(extra.typing_clauses, extra.iClause) += chTyped;
         break;
     case IMODE_HALF_KANA:
         if (is_hiragana(chTranslated)) {
             // set comp str and get delta length
             len = (int)translated.size();
-            extra.comp_str_clauses[extra.iClause] +=
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) +=
                     lcmap(translated, LCMAP_KATAKANA | LCMAP_HALFWIDTH);
             // set hiragana
-            extra.hiragana_clauses[extra.iClause] += chTranslated;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
-                    extra.typing_clauses[extra.iClause] +=
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) +=
                             hiragana_to_roman(fullwidth_ascii_to_halfwidth(translated));
                 } else {
-                    extra.typing_clauses[extra.iClause] +=
+                    ARRAY_AT(extra.typing_clauses, extra.iClause) +=
                             hiragana_to_typing(translated);
                 }
             } else {
-                extra.typing_clauses[extra.iClause] +=
+                ARRAY_AT(extra.typing_clauses, extra.iClause) +=
                         hiragana_to_typing(translated);
             }
         } else {
             // set comp str and get delta length
-            str = extra.comp_str_clauses[extra.iClause];
+            str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
             len = (int)str.size();
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_halfwidth_katakana(str, str.size());
-            extra.comp_str_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
             len = (int)str.size() - len;
             // set hiragana
-            str = extra.hiragana_clauses[extra.iClause];
+            str = ARRAY_AT(extra.hiragana_clauses, extra.iClause);
             str += chTyped;
             str = fullwidth_ascii_to_halfwidth(str);
             str = roman_to_hiragana(str, str.size());
-            extra.hiragana_clauses[extra.iClause] = str;
+            ARRAY_AT(extra.hiragana_clauses, extra.iClause) = str;
             // set typing
-            extra.typing_clauses[extra.iClause] += chTyped;
+            ARRAY_AT(extra.typing_clauses, extra.iClause) += chTyped;
         }
         break;
     case IMODE_HALF_ASCII:
@@ -616,10 +616,10 @@ void LogCompStr::InsertChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     // カタカナはひらがなに直す。
     if (is_fullwidth_katakana(chTranslated)) {
         translated = lcmap(translated, LCMAP_HIRAGANA);
-        chTranslated = translated[0];
+        chTranslated = ARRAY_AT(translated, 0);
     }
     int len = 0;
-    std::wstring str = extra.comp_str_clauses[extra.iClause];
+    std::wstring str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
     INPUT_MODE imode = InputModeFromConversionMode(TRUE, dwConv);
     switch (imode) {
     case IMODE_FULL_HIRAGANA:
@@ -672,7 +672,7 @@ void LogCompStr::InsertChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     case IMODE_DISABLED:
         break;
     }
-    extra.comp_str_clauses[extra.iClause] = str;
+    ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
     dwCursorPos += len;
     UpdateCompStr();
     UpdateExtraClause(extra.iClause, dwConv);
@@ -682,11 +682,11 @@ void
 LogCompStr::AddDakuonChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
 {
     DWORD dwIndexInClause = dwCursorPos - ClauseToCompChar(extra.iClause);
-    std::wstring str = extra.comp_str_clauses[extra.iClause];
+    std::wstring str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
     if (dwIndexInClause - 1 < str.size()) {
-        str[dwIndexInClause - 1] = chTranslated;
+        ARRAY_AT(str, dwIndexInClause - 1) = chTranslated;
     }
-    extra.comp_str_clauses[extra.iClause] = str;
+    ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
     UpdateCompStr();
     UpdateExtraClause(extra.iClause, dwConv);
 }
@@ -722,8 +722,8 @@ void LogCompStr::DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv)
     // is the current clause being converted?
     if (IsClauseConverted()) { // being converted
         // set hiragana string to current clause
-        extra.comp_str_clauses[extra.iClause] =
-                extra.hiragana_clauses[extra.iClause];
+        ARRAY_AT(extra.comp_str_clauses, extra.iClause) =
+                ARRAY_AT(extra.hiragana_clauses, extra.iClause);
         UpdateCompStr();
         SetClauseAttr(extra.iClause, ATTR_INPUT);
         dwCursorPos = ClauseToCompChar(extra.iClause + 1);
@@ -744,7 +744,7 @@ void LogCompStr::DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv)
             // erase the character
             DWORD ich = ClauseToCompChar(extra.iClause);
             DWORD delta = dwCursorPos - ich;
-            extra.comp_str_clauses[extra.iClause].erase(delta, 1);
+            ARRAY_AT(extra.comp_str_clauses, extra.iClause).erase(delta, 1);
             // update extra clause
             UpdateExtraClause(extra.iClause, dwConv);
             // update composition string
@@ -778,8 +778,8 @@ void LogCompStr::RevertText()
             }
         }
         // compare old and new string
-        std::wstring old_str = extra.comp_str_clauses[extra.iClause];
-        std::wstring str = lcmap(extra.hiragana_clauses[extra.iClause],
+        std::wstring old_str = ARRAY_AT(extra.comp_str_clauses, extra.iClause);
+        std::wstring str = lcmap(ARRAY_AT(extra.hiragana_clauses, extra.iClause),
                                  LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
         DWORD ich = ClauseToCompChar(extra.iClause);
         if (old_str.size() < str.size()) {
@@ -793,7 +793,7 @@ void LogCompStr::RevertText()
                     comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
         }
         // update composition string
-        extra.comp_str_clauses[extra.iClause] = str;
+        ARRAY_AT(extra.comp_str_clauses, extra.iClause) = str;
         UpdateCompStr();
         // set cursor position
         dwCursorPos = ClauseToCompChar(extra.iClause + 1);
@@ -811,11 +811,11 @@ void LogCompStr::MakeResult()
     const size_t count = extra.hiragana_clauses.size();
     result_read_clause.resize(count + 1);
     for (size_t i = 0; i < count; ++i) {
-        result_read_clause[i] = DWORD(result_read_str.size());
+        ARRAY_AT(result_read_clause, i) = DWORD(result_read_str.size());
         result_read_str +=
-                lcmap(extra.hiragana_clauses[i], LCMAP_HALFWIDTH | LCMAP_KATAKANA);
+                lcmap(ARRAY_AT(extra.hiragana_clauses, i), LCMAP_HALFWIDTH | LCMAP_KATAKANA);
     }
-    result_read_clause[count] = DWORD(result_read_str.size());
+    ARRAY_AT(result_read_clause, count) = DWORD(result_read_str.size());
 
     result_clause = comp_clause;
     result_str = comp_str;
@@ -948,14 +948,14 @@ BOOL LogCompStr::MoveEnd()
 
 DWORD LogCompStr::GetClauseCompStrLen(DWORD dwClauseIndex) const
 {
-    return (DWORD)extra.comp_str_clauses[dwClauseIndex].size();
+    return (DWORD)ARRAY_AT(extra.comp_str_clauses, dwClauseIndex).size();
 }
 
 void LogCompStr::SetClauseCompString(DWORD iClause, std::wstring& str)
 {
     if (iClause < GetClauseCount()) {
         // fix comp_attr
-        std::wstring old_str = extra.comp_str_clauses[iClause];
+        std::wstring old_str = ARRAY_AT(extra.comp_str_clauses, iClause);
         DWORD ich = ClauseToCompChar(iClause);
         if (old_str.size() < str.size()) {
             size_t diff = str.size() - old_str.size();
@@ -968,7 +968,7 @@ void LogCompStr::SetClauseCompString(DWORD iClause, std::wstring& str)
                     comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
         }
         // update comp str
-        extra.comp_str_clauses[iClause] = str;
+        ARRAY_AT(extra.comp_str_clauses, iClause) = str;
         UpdateCompStr();
         // untarget
         SetClauseAttr(extra.iClause, ATTR_CONVERTED);
@@ -984,7 +984,7 @@ void LogCompStr::SetClauseCompString(DWORD iClause, std::wstring& str)
 void LogCompStr::SetClauseCompHiragana(DWORD iClause, std::wstring& str)
 {
     if (iClause < GetClauseCount()) {
-        extra.hiragana_clauses[iClause] = str;
+        ARRAY_AT(extra.hiragana_clauses, iClause) = str;
     }
 }
 
@@ -994,10 +994,10 @@ void LogCompStr::SetClauseCompHiragana(
 {
     if (iClause < GetClauseCount()) {
         if (bRoman) {
-            extra.typing_clauses[iClause] =
+            ARRAY_AT(extra.typing_clauses, iClause) =
                     hiragana_to_roman(fullwidth_ascii_to_halfwidth(str));
         } else {
-            extra.typing_clauses[iClause] = hiragana_to_typing(str);
+            ARRAY_AT(extra.typing_clauses, iClause) = hiragana_to_typing(str);
         }
     }
 }
@@ -1017,19 +1017,19 @@ DWORD CompStr::Store(const LogCompStr *log)
 
 #define ADD_BYTES(member) \
     if (log->member.size()) { \
-        memcpy(pb, &log->member[0], log->member.size() * sizeof(BYTE)); \
+        memcpy(pb, &ARRAY_AT(log->member, 0), log->member.size() * sizeof(BYTE)); \
         pb += log->member.size() * sizeof(BYTE); \
     }
 
 #define ADD_DWORDS(member) \
     if (log->member.size()) { \
-        memcpy(pb, &log->member[0], log->member.size() * sizeof(DWORD)); \
+        memcpy(pb, &ARRAY_AT(log->member, 0), log->member.size() * sizeof(DWORD)); \
         pb += log->member.size() * sizeof(DWORD); \
     }
 
 #define ADD_STRING(member) \
     if (log->member.size()) { \
-        memcpy(pb, &log->member[0], log->member.size() * sizeof(WCHAR)); \
+        memcpy(pb, &ARRAY_AT(log->member, 0), log->member.size() * sizeof(WCHAR)); \
         pb += log->member.size() * sizeof(WCHAR); \
     }
 
@@ -1161,11 +1161,11 @@ void LogCompStr::AssertValid()
         }
     }
     if (comp_clause.size()) {
-        if (comp_clause[0] != 0) {
+        if (ARRAY_AT(comp_clause, 0) != 0) {
             Dump();
             ASSERT(0);
         }
-        if (comp_clause[comp_clause.size() - 1] != GetCompCharCount()) {
+        if (ARRAY_AT(comp_clause, comp_clause.size() - 1) != GetCompCharCount()) {
             Dump();
             ASSERT(0);
         }
@@ -1174,43 +1174,43 @@ void LogCompStr::AssertValid()
             ASSERT(0);
         }
         for (size_t i = 1; i < comp_clause.size(); ++i) {
-            if (comp_clause[i] > GetCompCharCount()) {
+            if (ARRAY_AT(comp_clause, i) > GetCompCharCount()) {
                 Dump();
                 ASSERT(0);
             }
-            if (comp_clause[i - 1] > comp_clause[i]) {
+            if (ARRAY_AT(comp_clause, i - 1) > ARRAY_AT(comp_clause, i)) {
                 Dump();
                 ASSERT(0);
             }
         }
     }
     if (result_read_clause.size()) {
-        if (result_read_clause[0] != 0) {
+        if (ARRAY_AT(result_read_clause, 0) != 0) {
             Dump();
             ASSERT(0);
         }
         for (size_t i = 1; i < result_read_clause.size(); ++i) {
-            if (result_read_clause[i] > (DWORD)result_read_str.size()) {
+            if (ARRAY_AT(result_read_clause, i) > (DWORD)result_read_str.size()) {
                 Dump();
                 ASSERT(0);
             }
-            if (result_read_clause[i - 1] > result_read_clause[i]) {
+            if (ARRAY_AT(result_read_clause, i - 1) > ARRAY_AT(result_read_clause, i)) {
                 Dump();
                 ASSERT(0);
             }
         }
     }
     if (result_clause.size()) {
-        if (result_clause[0] != 0) {
+        if (ARRAY_AT(result_clause, 0) != 0) {
             Dump();
             ASSERT(0);
         }
         for (size_t i = 1; i < result_clause.size(); ++i) {
-            if (result_clause[i] > (DWORD)result_str.size()) {
+            if (ARRAY_AT(result_clause, i) > (DWORD)result_str.size()) {
                 Dump();
                 ASSERT(0);
             }
-            if (result_clause[i - 1] > result_clause[i]) {
+            if (ARRAY_AT(result_clause, i - 1) > ARRAY_AT(result_clause, i)) {
                 Dump();
                 ASSERT(0);
             }
@@ -1311,26 +1311,26 @@ void LogCompStr::Dump()
 
     DPRINTA("+ comp_read_attr: ");
     for (size_t i = 0; i < comp_read_attr.size(); ++i) {
-        DPRINTA("%02X ", comp_read_attr[i]);
+        DPRINTA("%02X ", ARRAY_AT(comp_read_attr, i));
     }
     DPRINTA("\n");
 
     DPRINTA("+ comp_read_clause: ");
     for (size_t i = 0; i < comp_read_clause.size(); ++i) {
-        DPRINTA("%08X ", comp_read_clause[i]);
+        DPRINTA("%08X ", ARRAY_AT(comp_read_clause, i));
     }
     DPRINTA("\n");
 
     DPRINTA("+ comp_read_str: %ls\n", comp_read_str.c_str());
     DPRINTA("+ comp_attr: ");
     for (size_t i = 0; i < comp_attr.size(); ++i) {
-        DPRINTA("%02X ", comp_attr[i]);
+        DPRINTA("%02X ", ARRAY_AT(comp_attr, i));
     }
     DPRINTA("\n");
 
     DPRINTA("+ comp_clause: ");
     for (size_t i = 0; i < comp_clause.size(); ++i) {
-        DPRINTA("%08X ", comp_clause[i]);
+        DPRINTA("%08X ", ARRAY_AT(comp_clause, i));
     }
     DPRINTA("\n");
 
@@ -1338,7 +1338,7 @@ void LogCompStr::Dump()
 
     DPRINTA("+ result_read_clause: ");
     for (size_t i = 0; i < result_read_clause.size(); ++i) {
-        DPRINTA("%08X ", result_read_clause[i]);
+        DPRINTA("%08X ", ARRAY_AT(result_read_clause, i));
     }
     DPRINTA("\n");
 
@@ -1346,7 +1346,7 @@ void LogCompStr::Dump()
 
     DPRINTA("+ result_clause: ");
     for (size_t i = 0; i < result_clause.size(); ++i) {
-        DPRINTA("%08X ", result_clause[i]);
+        DPRINTA("%08X ", ARRAY_AT(result_clause, i));
     }
     DPRINTA("\n");
 
@@ -1356,13 +1356,13 @@ void LogCompStr::Dump()
 
     DPRINTA("+ extra.hiragana_clauses: ");
     for (size_t i = 0; i < extra.hiragana_clauses.size(); ++i) {
-        DPRINTA("%ls ", extra.hiragana_clauses[i].c_str());
+        DPRINTA("%ls ", ARRAY_AT(extra.hiragana_clauses, i).c_str());
     }
     DPRINTA("\n");
 
     DPRINTA("+ extra.typing_clauses: ");
     for (size_t i = 0; i < extra.typing_clauses.size(); ++i) {
-        DPRINTA("%ls ", extra.typing_clauses[i].c_str());
+        DPRINTA("%ls ", ARRAY_AT(extra.typing_clauses, i).c_str());
     }
     DPRINTA("\n");
 } // LogCompStr::Dump

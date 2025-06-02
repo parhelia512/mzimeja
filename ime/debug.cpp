@@ -5,6 +5,7 @@
 #include <shlobj.h>
 #include <strsafe.h>
 #include <stdio.h>
+#include <dbghelp.h>
 #include "resource.h"
 
 extern "C"

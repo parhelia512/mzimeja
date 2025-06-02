@@ -55,7 +55,7 @@ BOOL WINAPI ImeRegisterWord(LPCTSTR lpRead, DWORD dw, LPCTSTR lpStr)
     LCMapString(0, LCMAP_HIRAGANA | LCMAP_FULLWIDTH, lpRead, -1, szRead, _countof(szRead));
     StrTrimW(szRead, L" \t\r\n\x3000");
     StrTrimW(szStr, L" \t\r\n\x3000");
-    if (!szRead[0] || !szStr[0]) {
+    if (!ARRAY_AT(szRead, 0) || !ARRAY_AT(szStr, 0)) {
         DPRINTA("'%ls', '%ls'\n", szRead, szStr);
         return FALSE;
     }
@@ -155,7 +155,7 @@ BOOL WINAPI ImeUnregisterWord(LPCTSTR lpRead, DWORD dw, LPCTSTR lpStr)
     StringCchCopy(szStr, _countof(szStr), lpStr);
     StrTrimW(szRead, L" \t\r\n\x3000");
     StrTrimW(szStr, L" \t\r\n\x3000");
-    if (!szRead[0] || !szStr[0]) {
+    if (!ARRAY_AT(szRead, 0) || !ARRAY_AT(szStr, 0)) {
         DPRINTA("'%ls', '%ls'\n", szRead, szStr);
         return FALSE;
     }

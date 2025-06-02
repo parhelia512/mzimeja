@@ -26,7 +26,7 @@ DWORD LogCandList::GetTotalSize() const
     DWORD total = sizeof(CANDIDATELIST);
     total += DWORD(cand_strs.size() * sizeof(DWORD));
     for (size_t iCand = 0; iCand < cand_strs.size(); ++iCand) {
-        total += DWORD((cand_strs[iCand].size() + 1) * sizeof(WCHAR));
+        total += DWORD((ARRAY_AT(cand_strs, iCand).size() + 1) * sizeof(WCHAR));
     }
     return total;
 }
@@ -97,7 +97,7 @@ void LogCandList::MoveEnd()
 // 候補の文字列を取得する。
 std::wstring LogCandList::GetString(DWORD iCand) const
 {
-    return cand_strs[iCand];
+    return ARRAY_AT(cand_strs, iCand);
 }
 
 // 候補の文字列を取得する。
@@ -131,9 +131,9 @@ DWORD LogCandInfo::GetClauseCount() const
 // 候補を選択する。
 BOOL LogCandInfo::SelectCand(UINT uCandIndex)
 {
-    DWORD dwPageStart = cand_lists[iClause].dwPageStart;
-    if (dwPageStart + uCandIndex < cand_lists[iClause].dwPageSize) {
-        cand_lists[iClause].dwSelection = dwPageStart + uCandIndex;
+    DWORD dwPageStart = ARRAY_AT(cand_lists, iClause).dwPageStart;
+    if (dwPageStart + uCandIndex < ARRAY_AT(cand_lists, iClause).dwPageSize) {
+        ARRAY_AT(cand_lists, iClause).dwSelection = dwPageStart + uCandIndex;
         return TRUE;
     }
     return FALSE;
@@ -142,49 +142,49 @@ BOOL LogCandInfo::SelectCand(UINT uCandIndex)
 // 次の候補へ移動。
 void LogCandInfo::MoveNext()
 {
-    cand_lists[iClause].MoveNext();
+    ARRAY_AT(cand_lists, iClause).MoveNext();
 }
 
 // 前の候補へ移動。
 void LogCandInfo::MovePrev()
 {
-    cand_lists[iClause].MovePrev();
+    ARRAY_AT(cand_lists, iClause).MovePrev();
 }
 
 // キーボードのHomeキーの処理。
 void LogCandInfo::MoveHome()
 {
-    cand_lists[iClause].MoveHome();
+    ARRAY_AT(cand_lists, iClause).MoveHome();
 }
 
 // キーボードのEndキーの処理。
 void LogCandInfo::MoveEnd()
 {
-    cand_lists[iClause].MoveEnd();
+    ARRAY_AT(cand_lists, iClause).MoveEnd();
 }
 
 // キーボードのPageUpキーの処理。
 void LogCandInfo::PageUp()
 {
-    cand_lists[iClause].PageUp();
+    ARRAY_AT(cand_lists, iClause).PageUp();
 }
 
 // キーボードのPageDownキーの処理。
 void LogCandInfo::PageDown()
 {
-    cand_lists[iClause].PageDown();
+    ARRAY_AT(cand_lists, iClause).PageDown();
 }
 
 // 候補項目の文字列。
 std::wstring LogCandInfo::GetString() const
 {
-    return cand_lists[iClause].GetString(cand_lists[iClause].dwSelection);
+    return ARRAY_AT(cand_lists, iClause).GetString(ARRAY_AT(cand_lists, iClause).dwSelection);
 }
 
 // 候補項目の文字列。
 std::wstring LogCandInfo::GetString(DWORD iCand) const
 {
-    return cand_lists[iClause].GetString(iCand);
+    return ARRAY_AT(cand_lists, iClause).GetString(iCand);
 }
 
 // 候補情報の物理データの合計サイズを計算する。
@@ -192,7 +192,7 @@ DWORD LogCandInfo::GetTotalSize() const
 {
     DWORD total = sizeof(CANDIDATEINFO);
     for (size_t i = 0; i < cand_lists.size(); ++i) {
-        total += cand_lists[i].GetTotalSize();
+        total += ARRAY_AT(cand_lists, i).GetTotalSize();
     }
     total += sizeof(CANDINFOEXTRA);
     return total;
@@ -204,13 +204,13 @@ void LogCandInfo::Dump()
     DPRINTA("LogCandInfo::Dump\n");
     for (size_t i = 0; i < cand_lists.size(); ++i) {
         DPRINTA("### CandList %u ###\n", i);
-        DPRINTA("+ dwStyle: %08X\n", cand_lists[i].dwStyle);
-        DPRINTA("+ dwSelection: %08X\n", cand_lists[i].dwSelection);
-        DPRINTA("+ dwPageStart: %08X\n", cand_lists[i].dwPageStart);
-        DPRINTA("+ dwPageSize: %08X\n", cand_lists[i].dwPageSize);
+        DPRINTA("+ dwStyle: %08X\n", ARRAY_AT(cand_lists, i).dwStyle);
+        DPRINTA("+ dwSelection: %08X\n", ARRAY_AT(cand_lists, i).dwSelection);
+        DPRINTA("+ dwPageStart: %08X\n", ARRAY_AT(cand_lists, i).dwPageStart);
+        DPRINTA("+ dwPageSize: %08X\n", ARRAY_AT(cand_lists, i).dwPageSize);
         DPRINTA("+ cand_strs: ");
-        for (size_t k = 0; k < cand_lists[i].cand_strs.size(); ++k) {
-            DPRINTA("%ls ", cand_lists[i].cand_strs[k].c_str());
+        for (size_t k = 0; k < ARRAY_AT(cand_lists, i).cand_strs.size(); ++k) {
+            DPRINTA("%ls ", ARRAY_AT(ARRAY_AT(cand_lists, i).cand_strs, k).c_str());
         }
         DPRINTA("+ iClause: %u\n", iClause);
     }
@@ -256,10 +256,10 @@ DWORD CandList::Store(const LogCandList *log)
     pb += dwCount * sizeof(DWORD);
 
     for (DWORD iCand = 0; iCand < dwCount; ++iCand) {
-        dwOffset[iCand] = DWORD(pb - GetBytes());
-        const std::wstring& str = log->cand_strs[iCand];
+        ARRAY_AT(dwOffset, iCand) = DWORD(pb - GetBytes());
+        const std::wstring& str = ARRAY_AT(log->cand_strs, iCand);
         DWORD cb = DWORD((str.size() + 1) * sizeof(WCHAR));
-        memcpy(pb, &str[0], cb);
+        memcpy(pb, &str.c_str()[0], cb);
         pb += cb;
     }
 
@@ -274,7 +274,7 @@ DWORD CandList::Store(const LogCandList *log)
 CandList *CandInfo::GetList(DWORD i)
 {
     ASSERT(i < dwCount);
-    return (CandList *)(GetBytes() + dwOffset[i]);
+    return (CandList *)(GetBytes() + ARRAY_AT(dwOffset, i));
 }
 
 // 候補情報の物理データから論理データへ。
@@ -310,9 +310,9 @@ DWORD CandInfo::Store(const LogCandInfo *log)
     pb += sizeof(CANDIDATEINFO);
 
     for (DWORD iList = 0; iList < dwCount; ++iList) {
-        dwOffset[iList] = DWORD(pb - GetBytes());
+        ARRAY_AT(dwOffset, iList) = DWORD(pb - GetBytes());
         CandList *pList = GetList(iList);
-        pb += pList->Store(&log->cand_lists[iList]);
+        pb += pList->Store(&ARRAY_AT(log->cand_lists, iList));
     }
 
     dwPrivateSize = sizeof(CANDINFOEXTRA);
@@ -380,7 +380,7 @@ void CandInfo::Dump()
     DPRINTA("+ dwPrivateOffset: %u\n", dwPrivateOffset);
     for (DWORD i = 0; i < dwCount; ++i) {
         DPRINTA("+ List #%u\n", i);
-        DPRINTA("++ dwOffset: %08X\n", dwOffset[i]);
+        DPRINTA("++ dwOffset: %08X\n", ARRAY_AT(dwOffset, i));
         CandList *list = GetList(i);
         DPRINTA("++ dwSize: %u\n", list->dwSize);
         DPRINTA("++ dwStyle: %08X\n", list->dwStyle);

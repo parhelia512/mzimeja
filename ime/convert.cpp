@@ -150,7 +150,7 @@ BOOL LatticeNode::CanConnectTo(const LatticeNode& other) const
         case MIZEN_KEI:
             if (h1 == HB_JODOUSHI) {
                 if (other.HasTag(L"[未然形に連結]")) {
-                    if (other.pre[0] == L'な' || other.pre == L"う") {
+                    if (ARRAY_AT(other.pre, 0) == L'な' || other.pre == L"う") {
                         return TRUE;
                     }
                 }
@@ -725,11 +725,11 @@ static INT CALLBACK UserDictProc(LPCTSTR lpRead, DWORD dwStyle, LPCTSTR lpStr, L
     }
 
     WStrings fields(NUM_FIELDS);
-    fields[I_FIELD_PRE] = pre;
-    fields[I_FIELD_HINSHI].resize(1);
-    fields[I_FIELD_HINSHI][0] = MAKEWORD(bunrui, gyou);
-    fields[I_FIELD_POST] = post;
-    fields[I_FIELD_TAGS] = L"[ユーザ辞書]";
+    ARRAY_AT(fields, I_FIELD_PRE) = pre;
+    ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+    ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(bunrui, gyou);
+    ARRAY_AT(fields, I_FIELD_POST) = post;
+    ARRAY_AT(fields, I_FIELD_TAGS) = L"[ユーザ辞書]";
 
     std::wstring record;
     std::wstring sep;
@@ -737,83 +737,83 @@ static INT CALLBACK UserDictProc(LPCTSTR lpRead, DWORD dwStyle, LPCTSTR lpStr, L
     sep[0] = FIELD_SEP;
     if (bunrui == HB_SAHEN_DOUSHI) {
         if (gyou == GYOU_ZA) {
-            fields[I_FIELD_PRE] = pre + L"ざ";
-            fields[I_FIELD_POST] = post + L"ざ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"ざ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"ざ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"じ";
-            fields[I_FIELD_POST] = post + L"じ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"じ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"じ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"ぜ";
-            fields[I_FIELD_POST] = post + L"ぜ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"ぜ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"ぜ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"ずる";
-            fields[I_FIELD_POST] = post + L"ずる";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"ずる";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"ずる";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"ずれ";
-            fields[I_FIELD_POST] = post + L"ずれ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"ずれ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"ずれ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"じろ";
-            fields[I_FIELD_POST] = post + L"じろ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"じろ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"じろ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"ぜよ";
-            fields[I_FIELD_POST] = post + L"ぜよ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"ぜよ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"ぜよ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"じよう";
-            fields[I_FIELD_POST] = post + L"じよう";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"じよう";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"じよう";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
         } else {
-            fields[I_FIELD_PRE] = pre + L"さ";
-            fields[I_FIELD_POST] = post + L"さ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"さ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"さ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"し";
-            fields[I_FIELD_POST] = post + L"し";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"し";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"し";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"せ";
-            fields[I_FIELD_POST] = post + L"せ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"せ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"せ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"する";
-            fields[I_FIELD_POST] = post + L"する";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"する";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"する";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"すれ";
-            fields[I_FIELD_POST] = post + L"すれ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"すれ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"すれ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"しろ";
-            fields[I_FIELD_POST] = post + L"しろ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"しろ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"しろ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"せよ";
-            fields[I_FIELD_POST] = post + L"せよ";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"せよ";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"せよ";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
 
-            fields[I_FIELD_PRE] = pre + L"しよう";
-            fields[I_FIELD_POST] = post + L"しよう";
+            ARRAY_AT(fields, I_FIELD_PRE) = pre + L"しよう";
+            ARRAY_AT(fields, I_FIELD_POST) = post + L"しよう";
             record = str_join(fields, sep);
             s_UserDictRecords.push_back(record);
         }
@@ -1120,62 +1120,62 @@ void Lattice::AddExtraNodes()
     // 今日（today）
     if (m_pre == L"きょう") {
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%02u月%02u日", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u/%02u/%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u/%u/%u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u.%02u.%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u.%u.%u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%02u/%02u/%04u", st.wMonth, st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%u/%u/%04u", st.wMonth, st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u",
                          s_weekdays[st.wDayOfWeek], s_months[st.wMonth - 1],
                          st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         return;
@@ -1184,18 +1184,18 @@ void Lattice::AddExtraNodes()
     // 今年（this year）
     if (m_pre == L"ことし") {
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年", st.wYear);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         return;
@@ -1204,28 +1204,28 @@ void Lattice::AddExtraNodes()
     // 今月（this month）
     if (m_pre == L"こんげつ") {
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%u月", st.wYear, st.wMonth);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%02u月", st.wYear, st.wMonth);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         return;
@@ -1234,114 +1234,114 @@ void Lattice::AddExtraNodes()
     // 現在の時刻（current time）
     if (m_pre == L"じこく" || m_pre == L"ただいま") {
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
 
         if (m_pre == L"ただいま") {
-            fields[I_FIELD_POST] = L"ただ今";
+            ARRAY_AT(fields, I_FIELD_POST) = L"ただ今";
             DoFields(0, fields);
-            fields[I_FIELD_POST] = L"只今";
+            ARRAY_AT(fields, I_FIELD_POST) = L"只今";
             DoFields(0, fields);
         }
 
         StringCchPrintfW(sz, _countof(sz), L"%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         if (st.wHour >= 12) {
             StringCchPrintfW(sz, _countof(sz), L"午後%u時%u分%u秒", st.wHour - 12, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
+            ARRAY_AT(fields, I_FIELD_POST) = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
 
             StringCchPrintfW(sz, _countof(sz), L"午後%02u時%02u分%02u秒", st.wHour - 12, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
+            ARRAY_AT(fields, I_FIELD_POST) = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
         } else {
             StringCchPrintfW(sz, _countof(sz), L"午前%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
+            ARRAY_AT(fields, I_FIELD_POST) = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
 
             StringCchPrintfW(sz, _countof(sz), L"午前%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
+            ARRAY_AT(fields, I_FIELD_POST) = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
         }
 
         StringCchPrintfW(sz, _countof(sz), L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
         return;
     }
 
     if (m_pre == L"にちじ") { // date and time
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日%u時%u分%u秒",
                          st.wYear, st.wMonth, st.wDay,
                          st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u年%02u月%02u日%02u時%02u分%02u秒",
                          st.wYear, st.wMonth, st.wDay,
                          st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u %02u:%02u:%02u",
                          st.wYear, st.wMonth, st.wDay,
                          st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
 
         StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u %02u:%02u:%02u",
                          s_weekdays[st.wDayOfWeek], s_months[st.wMonth - 1],
                          st.wDay, st.wYear,
                          st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
+        ARRAY_AT(fields, I_FIELD_POST) = sz;
         DoFields(0, fields);
     }
 
@@ -1349,10 +1349,10 @@ void Lattice::AddExtraNodes()
         DWORD dwSize = _countof(sz);
         if (::GetUserNameW(sz, &dwSize)) {
             WStrings fields(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre;
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-            fields[I_FIELD_POST] = sz;
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
+            ARRAY_AT(fields, I_FIELD_POST) = sz;
             DoFields(0, fields);
         }
         return;
@@ -1364,12 +1364,12 @@ void Lattice::AddExtraNodes()
         str_split(items, TheIME.LoadSTR(IDS_PAREN), std::wstring(L"\t"));
 
         WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+        ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
         for (size_t i = 0; i < items.size(); ++i) {
             std::wstring& item = items[i];
-            fields[I_FIELD_POST] = item;
+            ARRAY_AT(fields, I_FIELD_POST) = item;
             DoFields(0, fields);
         }
         return;
@@ -1415,12 +1415,12 @@ void Lattice::AddExtraNodes()
             WStrings items;
             WCHAR *pch = TheIME.LoadSTR(IDS_SYMBOLS + INT(i));
             WStrings fields(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre;
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre;
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
             int cost = 0;
             while (*pch) {
-                fields[I_FIELD_POST].assign(1, *pch++);
+                ARRAY_AT(fields, I_FIELD_POST).assign(1, *pch++);
                 DoFields(0, fields, cost);
                 ++cost;
             }
@@ -1451,18 +1451,18 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             } while (is_period(m_pre[index]));
 
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_PERIOD, 0);
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(saved, index - saved);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_PERIOD, 0);
             switch (index - saved) {
             case 2:
-                fields[I_FIELD_POST] += L'‥';
+                ARRAY_AT(fields, I_FIELD_POST) += L'‥';
                 break;
             case 3:
-                fields[I_FIELD_POST] += L'…';
+                ARRAY_AT(fields, I_FIELD_POST) += L'…';
                 break;
             default:
-                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+                ARRAY_AT(fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_PRE);
                 break;
             }
             DoFields(saved, fields);
@@ -1478,18 +1478,18 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             } while (m_pre[index] == L'・');
 
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(saved, index - saved);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
             switch (index - saved) {
             case 2:
-                fields[I_FIELD_POST] += L'‥';
+                ARRAY_AT(fields, I_FIELD_POST) += L'‥';
                 break;
             case 3:
-                fields[I_FIELD_POST] += L'…';
+                ARRAY_AT(fields, I_FIELD_POST) += L'…';
                 break;
             default:
-                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+                ARRAY_AT(fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_PRE);
                 break;
             }
             DoFields(saved, fields);
@@ -1505,10 +1505,10 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             } while (is_comma(m_pre[index]));
 
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_COMMA, 0);
-            fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(saved, index - saved);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_COMMA, 0);
+            ARRAY_AT(fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_PRE);
             DoFields(saved, fields);
             --index;
             continue;
@@ -1518,11 +1518,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         if (is_hyphen(m_pre[index]) && (m_pre[index + 1] == L'>' || m_pre[index + 1] == L'＞'))
         {
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-            fields[I_FIELD_POST].resize(1);
-            fields[I_FIELD_POST][0] = L'→';
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(index, 2);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
+            ARRAY_AT(fields, I_FIELD_POST).resize(1);
+            ARRAY_AT(fields, I_FIELD_POST)[0] = L'→';
             DoFields(index, fields);
             ++index;
             continue;
@@ -1532,11 +1532,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         if ((m_pre[index] == L'<' || m_pre[index] == L'＜') && is_hyphen(m_pre[index + 1]))
         {
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-            fields[I_FIELD_POST].resize(1);
-            fields[I_FIELD_POST][0] = L'←';
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(index, 2);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
+            ARRAY_AT(fields, I_FIELD_POST).resize(1);
+            ARRAY_AT(fields, I_FIELD_POST)[0] = L'←';
             DoFields(index, fields);
             ++index;
             continue;
@@ -1559,11 +1559,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             else if (ch1 == L'/' || ch1 == L'／') ch2 = L'・'; // z/
             if (ch2) {
                 fields.resize(NUM_FIELDS);
-                fields[I_FIELD_PRE] = m_pre.substr(index, 2);
-                fields[I_FIELD_HINSHI].resize(1);
-                fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-                fields[I_FIELD_POST].resize(1);
-                fields[I_FIELD_POST][0] = ch2;
+                ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(index, 2);
+                ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+                ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_SYMBOL, 0);
+                ARRAY_AT(fields, I_FIELD_POST).resize(1);
+                ARRAY_AT(fields, I_FIELD_POST)[0] = ch2;
                 DoFields(index, fields, -100);
                 ++index;
                 continue;
@@ -1577,30 +1577,30 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             } while ((!is_hiragana(m_pre[index]) || is_hyphen(m_pre[index])) && m_pre[index]);
 
             fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-            fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+            ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(saved, index - saved);
+            ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+            ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
+            ARRAY_AT(fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_PRE);
             DoMeishi(saved, fields);
 
             // 全部が数字なら特殊な変換を行う。
-            if (are_all_chars_numeric(fields[I_FIELD_PRE])) {
-                fields[I_FIELD_POST] = convert_to_kansuuji(fields[I_FIELD_PRE]);
+            if (are_all_chars_numeric(ARRAY_AT(fields, I_FIELD_PRE))) {
+                ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji(ARRAY_AT(fields, I_FIELD_PRE));
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_brief(fields[I_FIELD_PRE]);
+                ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief(ARRAY_AT(fields, I_FIELD_PRE));
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_formal(fields[I_FIELD_PRE]);
+                ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_formal(ARRAY_AT(fields, I_FIELD_PRE));
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(fields[I_FIELD_PRE]);
+                ARRAY_AT(fields, I_FIELD_POST) = convert_to_kansuuji_brief_formal(ARRAY_AT(fields, I_FIELD_PRE));
                 DoMeishi(saved, fields);
             }
 
             // 郵便番号変換。
-            std::wstring postal = normalize_postal_code(fields[I_FIELD_PRE]);
+            std::wstring postal = normalize_postal_code(ARRAY_AT(fields, I_FIELD_PRE));
             if (postal.size()) {
                 std::wstring addr = convert_postal_code(postal);
                 if (addr.size()) {
-                    fields[I_FIELD_POST] = addr;
+                    ARRAY_AT(fields, I_FIELD_POST) = addr;
                     DoMeishi(saved, fields, -10);
                 }
             }
@@ -1814,13 +1814,13 @@ void Lattice::AddComplement()
 void Lattice::AddComplement(size_t index, size_t min_size, size_t max_size)
 {
     WStrings fields(NUM_FIELDS);
-    fields[I_FIELD_HINSHI].resize(1);
-    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+    ARRAY_AT(fields, I_FIELD_HINSHI).resize(1);
+    ARRAY_AT(fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_MEISHI, 0);
     for (size_t count = min_size; count <= max_size; ++count) {
         if (m_pre.size() < index + count)
             continue;
-        fields[I_FIELD_PRE] = m_pre.substr(index, count);
-        fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+        ARRAY_AT(fields, I_FIELD_PRE) = m_pre.substr(index, count);
+        ARRAY_AT(fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_PRE);
         DoFields(index, fields);
     }
 } // Lattice::AddComplement
@@ -1878,15 +1878,15 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
 
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -1895,7 +1895,7 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_IKEIYOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // い形容詞の未然形。
@@ -1903,8 +1903,8 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail.substr(0, 3) != L"かろう") break;
         node.katsuyou = MIZEN_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"かろう";
-        node.post = fields[I_FIELD_POST] + L"かろう";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"かろう";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"かろう";
         AddNode(index, node);
     } while (0);
 
@@ -1914,8 +1914,8 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 「痛い」→「痛かっ(た)」
     do {
         if (tail.empty() || tail.substr(0, 2) != L"かっ") break;
-        node.pre = fields[I_FIELD_PRE] + L"かっ";
-        node.post = fields[I_FIELD_POST] + L"かっ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"かっ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"かっ";
         node.katsuyou = RENYOU_KEI;
         AddNode(index, node);
 
@@ -1928,8 +1928,8 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 「痛い」→「痛く(て)」、「広い」→「広く(て)」
     do {
         if (tail.empty() || tail[0] != L'く') break;
-        node.pre = fields[I_FIELD_PRE] + L'く';
-        node.post = fields[I_FIELD_POST] + L'く';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'く';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'く';
         AddNode(index, node);
 
         if (tail.size() < 2 || tail[1] != L'て') break;
@@ -1940,15 +1940,15 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 「広い」→「広う(て)」
     do {
         if (tail.empty() || tail[0] != L'う') break;
-        node.pre = fields[I_FIELD_PRE] + L'う';
-        node.post = fields[I_FIELD_POST] + L'う';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'う';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'う';
         AddNode(index, node);
     } while (0);
     // 「美しい」→「美しゅう(て)」
     do {
         if (tail.empty() || tail[0] != L'ゅ' || tail[1] != L'う') break;
-        node.pre = fields[I_FIELD_PRE] + L"ゅう";
-        node.post = fields[I_FIELD_POST] + L"ゅう";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"ゅう";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"ゅう";
         AddNode(index, node);
     } while (0);
     // TODO: 「危ない」→「危のう(て)」
@@ -1958,8 +1958,8 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.katsuyou = SHUUSHI_KEI;
     do {
         if (tail.empty() || tail[0] != L'い') break;
-        node.pre = fields[I_FIELD_PRE] + L'い';
-        node.post = fields[I_FIELD_POST] + L'い';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'い';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'い';
         AddNode(index, node);
         if (tail.size() < 1 ||
             (tail[1] != L'よ' && tail[1] != L'ね' && tail[1] != L'な' && tail[1] != L'ぞ'))
@@ -1974,15 +1974,15 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.katsuyou = RENTAI_KEI;
     do {
         if (tail.empty() || tail[0] != L'い') break;
-        node.pre = fields[I_FIELD_PRE] + L'い';
-        node.post = fields[I_FIELD_POST] + L'い';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'い';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'い';
         AddNode(index, node);
     } while (0);
     // 「痛い」→「痛き(とき)」
     do {
         if (tail.empty() || tail[0] != L'き') break;
-        node.pre = fields[I_FIELD_PRE] + L'き';
-        node.post = fields[I_FIELD_POST] + L'き';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'き';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'き';
         AddNode(index, node);
     } while (0);
 
@@ -1991,13 +1991,13 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail.substr(0, 2) != L"けれ") break;
         node.katsuyou = KATEI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"けれ";
-        node.post = fields[I_FIELD_POST] + L"けれ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"けれ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"けれ";
         AddNode(index, node);
         if (tail.empty() || tail.substr(0, 3) != L"ければ") break;
         node.katsuyou = KATEI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"ければ";
-        node.post = fields[I_FIELD_POST] + L"ければ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"ければ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"ければ";
         AddNode(index, node);
     } while (0);
 
@@ -2008,41 +2008,41 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.bunrui = HB_MEISHI;
     do {
         if (tail.empty() || tail[0] != L'さ') break;
-        node.pre = fields[I_FIELD_PRE] + L'さ';
-        node.post = fields[I_FIELD_POST] + L'さ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'さ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'さ';
         AddNode(index, node);
     } while (0);
     do {
         if (tail.empty() || tail[0] != L'み') break;
-        node.pre = fields[I_FIELD_PRE] + L'み';
-        node.post = fields[I_FIELD_POST] + L'み';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'み';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'み';
         AddNode(index, node);
     } while (0);
     do {
         if (tail.empty() || tail[0] != L'め') break;
-        node.pre = fields[I_FIELD_PRE] + L'め';
-        node.post = fields[I_FIELD_POST] + L'め';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'め';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'め';
         AddNode(index, node);
 
-        node.post = fields[I_FIELD_POST] + L'目';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'目';
         AddNode(index, node);
     } while (0);
 
     // 「痛い(い形容詞)」→「痛そうな(な形容詞)」など。
     if (tail.size() >= 2 && tail[0] == L'そ' && tail[1] == L'う') {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] = fields[I_FIELD_PRE] + L"そう";
-        new_fields[I_FIELD_POST] = fields[I_FIELD_POST] + L"そう";
+        ARRAY_AT(new_fields, I_FIELD_PRE) = ARRAY_AT(fields, I_FIELD_PRE) + L"そう";
+        ARRAY_AT(new_fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_POST) + L"そう";
         DoNakeiyoushi(index, new_fields, deltaCost);
     }
 
     // 「痛い(い形容詞)」→「痛すぎる(一段動詞)」
     if (tail.size() >= 2 && tail[0] == L'す' && tail[1] == L'ぎ') {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] = fields[I_FIELD_PRE] + L"すぎ";
-        new_fields[I_FIELD_POST] = fields[I_FIELD_POST] + L"すぎ";
+        ARRAY_AT(new_fields, I_FIELD_PRE) = ARRAY_AT(fields, I_FIELD_PRE) + L"すぎ";
+        ARRAY_AT(new_fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_POST) + L"すぎ";
         DoIchidanDoushi(index, new_fields, deltaCost);
-        new_fields[I_FIELD_POST] = fields[I_FIELD_POST] + L"過ぎ";
+        ARRAY_AT(new_fields, I_FIELD_POST) = ARRAY_AT(fields, I_FIELD_POST) + L"過ぎ";
         DoIchidanDoushi(index, new_fields, deltaCost);
     }
 
@@ -2063,14 +2063,14 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -2079,7 +2079,7 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_NAKEIYOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // な形容詞の未然形。
@@ -2087,12 +2087,12 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail.substr(0, 3) != L"だろう") break;
         node.katsuyou = MIZEN_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"だろう";
-        node.post = fields[I_FIELD_POST] + L"だろう";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"だろう";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"だろう";
         AddNode(index, node);
         if (tail.empty() || tail.substr(0, 4) != L"だろうに") break;
-        node.pre = fields[I_FIELD_PRE] + L"だろうに";
-        node.post = fields[I_FIELD_POST] + L"だろうに";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"だろうに";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"だろうに";
         node.bunrui = HB_FUKUSHI;
         AddNode(index, node);
         node.bunrui = HB_NAKEIYOUSHI;
@@ -2102,8 +2102,8 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 「巨大な」→「巨大だっ(た)」
     do {
         if (tail.empty() || tail.substr(0, 2) != L"だっ") break;
-        node.pre = fields[I_FIELD_PRE] + L"だっ";
-        node.post = fields[I_FIELD_POST] + L"だっ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"だっ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"だっ";
         node.katsuyou = RENYOU_KEI;
         AddNode(index, node);
 
@@ -2116,14 +2116,14 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.katsuyou = RENYOU_KEI;
     do {
         if (tail.empty() || tail[0] != L'で') break;
-        node.pre = fields[I_FIELD_PRE] + L'で';
-        node.post = fields[I_FIELD_POST] + L'で';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'で';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'で';
         AddNode(index, node);
     } while (0);
     do {
         if (tail.empty() || tail[0] != L'に') break;
-        node.pre = fields[I_FIELD_PRE] + L'に';
-        node.post = fields[I_FIELD_POST] + L'に';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'に';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'に';
         AddNode(index, node);
     } while (0);
 
@@ -2132,8 +2132,8 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail[0] != L'だ') break;
         node.katsuyou = SHUUSHI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L'だ';
-        node.post = fields[I_FIELD_POST] + L'だ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'だ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'だ';
         AddNode(index, node);
 
         if (tail.size() < 1 ||
@@ -2149,8 +2149,8 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail[0] != L'な') break;
         node.katsuyou = RENTAI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L'な';
-        node.post = fields[I_FIELD_POST] + L'な';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'な';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'な';
         AddNode(index, node);
     } while (0);
 
@@ -2159,13 +2159,13 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail.substr(0, 2) != L"なら") break;
         node.katsuyou = KATEI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"なら";
-        node.post = fields[I_FIELD_POST] + L"なら";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"なら";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"なら";
         AddNode(index, node);
         if (tail.empty() || tail.substr(0, 3) != L"ならば") break;
         node.katsuyou = KATEI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L"ならば";
-        node.post = fields[I_FIELD_POST] + L"ならば";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"ならば";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"ならば";
         AddNode(index, node);
     } while (0);
 
@@ -2175,8 +2175,8 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.bunrui = HB_MEISHI;
     do {
         if (tail.empty() || tail[0] != L'さ') break;
-        node.pre = fields[I_FIELD_PRE] + L'さ';
-        node.post = fields[I_FIELD_POST] + L'さ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'さ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'さ';
         AddNode(index, node);
     } while (0);
 
@@ -2197,26 +2197,26 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
     std::wstring tail = m_pre.substr(index + length);
-    DPRINTW(L"DoGodanDoushi: %s, %s\n", fields[I_FIELD_PRE].c_str(), tail.c_str());
+    DPRINTW(L"DoGodanDoushi: %s, %s\n", ARRAY_AT(fields, I_FIELD_PRE).c_str(), tail.c_str());
 
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_GODAN_DOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
-    node.gyou = (Gyou)HIBYTE(fields[I_FIELD_HINSHI][0]);
+    node.gyou = (Gyou)HIBYTE(ARRAY_AT(fields, I_FIELD_HINSHI)[0]);
 
     // 五段動詞の未然形。
     // 「咲く(五段)」→「咲か(ない)」、「食う(五段)」→「食わ(ない)」
@@ -2230,14 +2230,14 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         }
         if (tail.empty() || tail[0] != ch)
             break;
-        node.pre = fields[I_FIELD_PRE] + ch;
-        node.post = fields[I_FIELD_POST] + ch;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
         AddNode(index, node);
 
         // 「咲かせ」「食わせ」～られる
         if (tail.size() >= 2 && tail[1] == L'せ') {
-            node.pre = fields[I_FIELD_PRE] + ch + tail[1];
-            node.post = fields[I_FIELD_POST] + ch + tail[1];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch + tail[1];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch + tail[1];
             AddNode(index, node);
         }
     } while (0);
@@ -2249,8 +2249,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             break;
         }
         node.katsuyou = MIZEN_KEI;
-        node.pre = fields[I_FIELD_PRE] + ch;
-        node.post = fields[I_FIELD_POST] + ch;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
         AddNode(index, node);
     } while (0);
 
@@ -2259,8 +2259,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
     node.katsuyou = RENYOU_KEI;
     WCHAR ch = ARRAY_AT_AT(s_hiragana_table, node.gyou, DAN_I);
     if (tail.size() >= 1 && tail[0] == ch) {
-        node.pre = fields[I_FIELD_PRE] + ch;
-        node.post = fields[I_FIELD_POST] + ch;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
         AddNode(index, node);
     }
 
@@ -2319,31 +2319,31 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         if (tail.size() >= 3 && tail[1] == ch4 && tail[2] == L'も') {
             // 連用形「ても」「でも」
             node.katsuyou = RENYOU_KEI;
-            node.pre = fields[I_FIELD_PRE] + ch2 + tail[1] + tail[2];
-            node.post = fields[I_FIELD_POST] + ch2 + tail[1] + tail[2];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch2 + tail[1] + tail[2];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch2 + tail[1] + tail[2];
             AddNode(index, node);
         } else if (tail.size() >= 2 && tail[1] == ch4) {
             // 連用形「て」「で」
             node.katsuyou = RENYOU_KEI;
-            node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
-            node.post = fields[I_FIELD_POST] + ch2 + tail[1];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch2 + tail[1];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch2 + tail[1];
             AddNode(index, node);
         } else if (tail.size() >= 3 && tail[1] == ch3 && tail[2] == L'り') {
             // 連用形「たり」「だり」
             node.katsuyou = RENYOU_KEI;
-            node.pre = fields[I_FIELD_PRE] + ch2 + tail[1] + tail[2];
-            node.post = fields[I_FIELD_POST] + ch2 + tail[1] + tail[2];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch2 + tail[1] + tail[2];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch2 + tail[1] + tail[2];
             AddNode(index, node);
         } else if (tail.size() >= 2 && tail[1] == ch3) {
             // 終止形「た」「だ」
             node.katsuyou = SHUUSHI_KEI;
-            node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
-            node.post = fields[I_FIELD_POST] + ch2 + tail[1];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch2 + tail[1];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch2 + tail[1];
             AddNode(index, node);
             // 連用形「た」「だ」
             node.katsuyou = RENYOU_KEI;
-            node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
-            node.post = fields[I_FIELD_POST] + ch2 + tail[1];
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch2 + tail[1];
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + ch2 + tail[1];
             AddNode(index, node);
         }
     }
@@ -2356,8 +2356,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             break;
 
         node.katsuyou = SHUUSHI_KEI;
-        node.pre = fields[I_FIELD_PRE] + ch;
-        node.post = fields[I_FIELD_POST] + ch;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
         AddNode(index, node);
 
         node.katsuyou = RENTAI_KEI;
@@ -2381,8 +2381,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         if (tail.size() >= 1) {
             if (tail[0] == ch) {
                 node.katsuyou = KATEI_KEI;
-                node.pre = fields[I_FIELD_PRE] + ch;
-                node.post = fields[I_FIELD_POST] + ch;
+                node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+                node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
                 AddNode(index, node);
 
                 node.katsuyou = MEIREI_KEI;
@@ -2396,13 +2396,13 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             }
             // 「くだされ」→「ください」
             // 「なされ」→「なさい」
-            std::wstring pre = fields[I_FIELD_PRE];
+            std::wstring pre = ARRAY_AT(fields, I_FIELD_PRE);
             if (pre[pre.size() - 1] == L'さ' && ch == L'れ') {
                 ch = L'い';
                 if (tail[0] == ch) {
                     node.katsuyou = MEIREI_KEI;
-                    node.pre = fields[I_FIELD_PRE] + ch;
-                    node.post = fields[I_FIELD_POST] + ch;
+                    node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch;
+                    node.post = ARRAY_AT(fields, I_FIELD_POST) + ch;
                     AddNode(index, node);
                 }
             }
@@ -2415,8 +2415,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         if (tail.size() < 2 || tail[0] != ch || tail[1] != L'う')
             break;
         node.katsuyou = MEIREI_KEI;
-        node.pre = fields[I_FIELD_PRE] + ch + L'う';
-        node.post = fields[I_FIELD_POST] + ch + L'う';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch + L'う';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch + L'う';
         AddNode(index, node);
 
         if (tail.size() < 3 ||
@@ -2435,8 +2435,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
     do {
         if (tail.empty() || tail[0] != ch1)
             break;
-        node.pre = fields[I_FIELD_PRE] + ch1;
-        node.post = fields[I_FIELD_POST] + ch1;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + ch1;
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + ch1;
         node.deltaCost = deltaCost + 40;
         AddNode(index, node);
 
@@ -2454,34 +2454,34 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         // 「動きやすい」「聞き取りやすい」
         if (tail.size() >= 3 && tail.substr(1, 2) == L"やす") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"やす";
-            new_fields[I_FIELD_POST] += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"やす";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"やす";
-            new_fields[I_FIELD_POST] += L"易い";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"易い";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
 
         // 「動きにくい」「聞き取りにくい」
         if (tail.size() >= 3 && tail.substr(1, 2) == L"にく") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"にく";
-            new_fields[I_FIELD_POST] += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"にく";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"にく";
-            new_fields[I_FIELD_POST] += L"難";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"難";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
 
@@ -2489,17 +2489,17 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         // 「動きにくい」「聞き取りにくい」
         if (tail.size() >= 3 && tail.substr(1, 2) == L"づら") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"づら";
-            new_fields[I_FIELD_POST] += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"づら";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += ch;
-            new_fields[I_FIELD_POST] += ch;
-            new_fields[I_FIELD_PRE] += L"づら";
-            new_fields[I_FIELD_POST] += L"辛";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+            ARRAY_AT(new_fields, I_FIELD_POST) += ch;
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"辛";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
     } while (0);
@@ -2511,8 +2511,8 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         if (tail.empty() || tail[0] != ch)
             break;
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += ch;
-        new_fields[I_FIELD_POST] += ch;
+        ARRAY_AT(new_fields, I_FIELD_PRE) += ch;
+        ARRAY_AT(new_fields, I_FIELD_POST) += ch;
         DoIchidanDoushi(index, new_fields, deltaCost + 30);
     } while (0);
 } // Lattice::DoGodanDoushi
@@ -2522,14 +2522,14 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -2538,14 +2538,14 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_ICHIDAN_DOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // 一段動詞の未然形。「寄せる」→「寄せ(ない/よう)」、「見る」→「見(ない/よう)」
     // 一段動詞の連用形。「寄せる」→「寄せ(ます/た/て)」、「見る」→「見(ます/た/て)」
     do {
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = MIZEN_KEI;
         AddNode(index, node);
 
@@ -2585,8 +2585,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             }
             // 「見てた」
             if (tail.size() >= 2 && tail[1] == L'た') {
-                node.pre = fields[I_FIELD_PRE] + L"てた";
-                node.post = fields[I_FIELD_POST] + L"てた";
+                node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"てた";
+                node.post = ARRAY_AT(fields, I_FIELD_POST) + L"てた";
                 node.katsuyou = SHUUSHI_KEI;
                 AddNode(index, node);
                 // 「見てたよ」「見てたな」「見てたね」
@@ -2612,16 +2612,16 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
         }
         // 終止形「見ない」
         if (tail.size() >= 2 && tail.substr(0, 2) == L"ない") {
-            node.pre = fields[I_FIELD_PRE] + L"ない";
-            node.post = fields[I_FIELD_POST] + L"ない";
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"ない";
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + L"ない";
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
         }
         // 終止形「見よう」「見ようね」「見ようや」「見ような」「見ようぞ」
         if (tail.size() >= 2 && tail[0] == L'よ' && tail[1] == L'う') {
             node.katsuyou = SHUUSHI_KEI;
-            node.pre = fields[I_FIELD_PRE] + L"よう";
-            node.post = fields[I_FIELD_POST] + L"よう";
+            node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"よう";
+            node.post = ARRAY_AT(fields, I_FIELD_POST) + L"よう";
             AddNode(index, node);
 
             if (tail.size() >= 3 &&
@@ -2639,37 +2639,37 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
         // 「寄せやすい」
         if (tail.substr(0, 2) == L"やす") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"やす";
-            new_fields[I_FIELD_POST] += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"やす";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"やす";
-            new_fields[I_FIELD_POST] += L"易";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"やす";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"易";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
         // 「寄せにくい」
         if (tail.substr(0, 2) == L"にく") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"にく";
-            new_fields[I_FIELD_POST] += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"にく";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"にく";
-            new_fields[I_FIELD_POST] += L"難";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"にく";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"難";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
         // 「寄せづらい」
         if (tail.substr(0, 2) == L"づら") {
             WStrings new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"づら";
-            new_fields[I_FIELD_POST] += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"づら";
             DoIkeiyoushi(index, new_fields, deltaCost);
 
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += L"づら";
-            new_fields[I_FIELD_POST] += L"辛い";
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L"づら";
+            ARRAY_AT(new_fields, I_FIELD_POST) += L"辛い";
             DoIkeiyoushi(index, new_fields, deltaCost + 10);
         }
     }
@@ -2678,8 +2678,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     // 一段動詞の連体形。「寄せる(とき)」「見る(とき)」
     do {
         if (tail.empty() || tail[0] != L'る') break;
-        node.pre = fields[I_FIELD_PRE] + L'る';
-        node.post = fields[I_FIELD_POST] + L'る';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'る';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'る';
         node.katsuyou = SHUUSHI_KEI;
         AddNode(index, node);
 
@@ -2700,8 +2700,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     do {
         if (tail.empty() || tail[0] != L'れ') break;
         node.katsuyou = KATEI_KEI;
-        node.pre = fields[I_FIELD_PRE] + L'れ';
-        node.post = fields[I_FIELD_POST] + L'れ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'れ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'れ';
         AddNode(index, node);
     } while (0);
 
@@ -2710,8 +2710,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     node.katsuyou = MEIREI_KEI;
     do {
         if (tail.empty() || tail[0] != L'ろ') break;
-        node.pre = fields[I_FIELD_PRE] + L'ろ';
-        node.post = fields[I_FIELD_POST] + L'ろ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'ろ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'ろ';
         AddNode(index, node);
 
         if (tail.size() < 2 || (tail[1] != L'よ' && tail[1] != L'や')) break;
@@ -2722,8 +2722,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     // 「寄せる」→「寄せよ」、「見る」→「見よ」
     do {
         if (tail.empty() || tail[0] != L'よ') break;
-        node.pre = fields[I_FIELD_PRE] + L'よ';
-        node.post = fields[I_FIELD_POST] + L'よ';
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L'よ';
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L'よ';
         AddNode(index, node);
     } while (0);
 
@@ -2731,8 +2731,8 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
     // 「寄せる」→「寄せ」「寄せ方」、「見る」→「見」「見方」
     node.bunrui = HB_MEISHI;
     do {
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         AddNode(index, node);
 
         if (tail.empty() || tail[0] != L'か' || tail[1] != L'た') break;
@@ -2747,14 +2747,14 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -2763,7 +2763,7 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_KAHEN_DOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // 「くる」「こ(ない)」「き(ます)」などと、語幹が一致しないので、
@@ -2772,8 +2772,8 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 終止形と連用形「～来る」
     do {
         if (tail.size() < 2 || tail[0] != L'く' || tail[1] != L'る') break;
-        node.pre = fields[I_FIELD_PRE] + L"くる";
-        node.post = fields[I_FIELD_POST] + L"来る";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"くる";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来る";
         node.katsuyou = SHUUSHI_KEI;
         AddNode(index, node);
 
@@ -2790,9 +2790,9 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
     } while (0);
     do {
-        if (fields[I_FIELD_PRE] != L"くる") break;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        if (ARRAY_AT(fields, I_FIELD_PRE) != L"くる") break;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = SHUUSHI_KEI;
         AddNode(index, node);
 
@@ -2812,8 +2812,8 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 命令形「～こい」「～こいよ」「～こいや」
     do {
         if (tail.size() < 2 || tail[0] != L'こ' || tail[1] != L'い') break;
-        node.pre = fields[I_FIELD_PRE] + L"こい";
-        node.post = fields[I_FIELD_POST] + L"来い";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"こい";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来い";
         node.katsuyou = MEIREI_KEI;
         AddNode(index, node);
 
@@ -2823,9 +2823,9 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
     } while (0);
     do {
-        if (fields[I_FIELD_PRE] != L"こい") break;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        if (ARRAY_AT(fields, I_FIELD_PRE) != L"こい") break;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = MEIREI_KEI;
         AddNode(index, node);
 
@@ -2838,15 +2838,15 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 仮定形「～来れ」
     do {
         if (tail.size() < 2 || tail[0] != L'く' || tail[1] != L'れ') break;
-        node.pre = fields[I_FIELD_PRE] + L"くれ";
-        node.post = fields[I_FIELD_POST] + L"来れ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"くれ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来れ";
         node.katsuyou = KATEI_KEI;
         AddNode(index, node);
     } while (0);
     do {
-        if (fields[I_FIELD_PRE] != L"くれ") break;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        if (ARRAY_AT(fields, I_FIELD_PRE) != L"くれ") break;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = KATEI_KEI;
         AddNode(index, node);
     } while (0);
@@ -2854,39 +2854,39 @@ void Lattice::DoKahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
     // 未然形「～来」（こ）
     do {
         if (tail.size() < 1 || tail[0] != L'こ') break;
-        node.pre = fields[I_FIELD_PRE] + L"こ";
-        node.post = fields[I_FIELD_POST] + L"来";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"こ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来";
         node.katsuyou = MIZEN_KEI;
         AddNode(index, node);
         if (tail.substr(0, 3) != L"こさせ") break;
-        node.pre = fields[I_FIELD_PRE] + L"こさせ";
-        node.post = fields[I_FIELD_POST] + L"来させ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"こさせ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来させ";
         AddNode(index, node);
     } while (0);
     do {
-        if (fields[I_FIELD_PRE] != L"こ") break;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        if (ARRAY_AT(fields, I_FIELD_PRE) != L"こ") break;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = MIZEN_KEI;
         AddNode(index, node);
         if (tail.substr(0, 3) != L"させ") break;
-        node.pre = fields[I_FIELD_PRE] + L"させ";
-        node.post = fields[I_FIELD_POST] + L"させ";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"させ";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"させ";
         AddNode(index, node);
     } while (0);
 
     // 連用形「～来」（き）
     do {
         if (tail.size() < 1 || tail[0] != L'き') break;
-        node.pre = fields[I_FIELD_PRE] + L"き";
-        node.post = fields[I_FIELD_POST] + L"来";
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + L"き";
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + L"来";
         node.katsuyou = RENYOU_KEI;
         AddNode(index, node);
     } while (0);
     do {
-        if (fields[I_FIELD_PRE] != L"き") break;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        if (ARRAY_AT(fields, I_FIELD_PRE) != L"き") break;
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         node.katsuyou = RENYOU_KEI;
         AddNode(index, node);
     } while (0);
@@ -2897,27 +2897,27 @@ void Lattice::DoSahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
-    size_t length = fields[I_FIELD_PRE].size();
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 変換前の語幹。
-    std::wstring pre = fields[I_FIELD_PRE];
+    std::wstring pre = ARRAY_AT(fields, I_FIELD_PRE);
     // 変換後の語幹。
-    std::wstring post = fields[I_FIELD_POST];
+    std::wstring post = ARRAY_AT(fields, I_FIELD_POST);
     // 語幹の後の部分文字列。
     std::wstring tail = m_pre.substr(index + length);
 
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_SAHEN_DOUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.pre = pre;
     node.post = post;
     node.deltaCost = deltaCost;
@@ -3060,15 +3060,15 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
 
-    size_t length = fields[I_FIELD_PRE].size();
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -3077,54 +3077,54 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_MEISHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // 名詞は活用なし。
     if (node.HasTag(L"[動植物]")) {
         // 動植物名は、カタカナでもよい。
-        node.pre = fields[I_FIELD_PRE];
-        node.post = lcmap(fields[I_FIELD_PRE], LCMAP_KATAKANA | LCMAP_FULLWIDTH);
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = lcmap(ARRAY_AT(fields, I_FIELD_PRE), LCMAP_KATAKANA | LCMAP_FULLWIDTH);
         AddNode(index, node);
 
         node.deltaCost += 30;
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         AddNode(index, node);
     } else {
-        node.pre = fields[I_FIELD_PRE];
-        node.post = fields[I_FIELD_POST];
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+        node.post = ARRAY_AT(fields, I_FIELD_POST);
         AddNode(index, node);
     }
 
     // 名詞＋「っぽい」でい形容詞に。
     if (tail.size() >= 2 && tail[0] == L'っ' && tail[1] == L'ぽ') {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += L"っぽ";
-        new_fields[I_FIELD_POST] += L"っぽ";
+        ARRAY_AT(new_fields, I_FIELD_PRE) += L"っぽ";
+        ARRAY_AT(new_fields, I_FIELD_POST) += L"っぽ";
         DoIkeiyoushi(index, new_fields, deltaCost);
     }
 
     // 名詞＋「みたいな」でな形容詞に。
     if (tail.size() >= 3 && tail[0] == L'み' && tail[1] == L'た' && tail[2] == L'い') {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += L"みたい";
-        new_fields[I_FIELD_POST] += L"みたい";
+        ARRAY_AT(new_fields, I_FIELD_PRE) += L"みたい";
+        ARRAY_AT(new_fields, I_FIELD_POST) += L"みたい";
         DoNakeiyoushi(index, new_fields, deltaCost);
     }
     // 名詞＋「みたい」でい形容詞に。
     if (tail.size() >= 2 && tail[0] == L'み' && tail[1] == L'た') {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += L"みた";
-        new_fields[I_FIELD_POST] += L"みた";
+        ARRAY_AT(new_fields, I_FIELD_PRE) += L"みた";
+        ARRAY_AT(new_fields, I_FIELD_POST) += L"みた";
         DoIkeiyoushi(index, new_fields, deltaCost);
     }
 
     // 名詞＋「さ」、名詞＋「し」、名詞＋「せ」でサ変動詞に
     if (tail.size() >= 1 && (tail[0] == L'さ' || tail[0] == L'し' || tail[0] == L'せ')) {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += tail[0];
-        new_fields[I_FIELD_POST] += tail[0];
+        ARRAY_AT(new_fields, I_FIELD_PRE) += tail[0];
+        ARRAY_AT(new_fields, I_FIELD_POST) += tail[0];
         DoSahenDoushi(index, new_fields, deltaCost - 10);
     }
 
@@ -3135,17 +3135,17 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
          tail.substr(tail.size() - 2) == L"せい"))
     {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += tail.substr(tail.size() - 2);
-        new_fields[I_FIELD_POST] += tail.substr(tail.size() - 2);
+        ARRAY_AT(new_fields, I_FIELD_PRE) += tail.substr(tail.size() - 2);
+        ARRAY_AT(new_fields, I_FIELD_POST) += tail.substr(tail.size() - 2);
         DoSahenDoushi(index, new_fields, deltaCost - 60);
         // 「するよ」「するな」「せいよ」「せいな」
         if (tail.substr(tail.size() - 2) == L"する" || tail.substr(tail.size() - 2) == L"せい") {
-            new_fields[I_FIELD_PRE] += L'よ';
-            new_fields[I_FIELD_POST] += L'よ';
+            ARRAY_AT(new_fields, I_FIELD_PRE) += L'よ';
+            ARRAY_AT(new_fields, I_FIELD_POST) += L'よ';
             DoSahenDoushi(index, new_fields, deltaCost - 60);
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += tail.substr(tail.size() - 2) + L'な';
-            new_fields[I_FIELD_POST] += tail.substr(tail.size() - 2) + L'な';
+            ARRAY_AT(new_fields, I_FIELD_PRE) += tail.substr(tail.size() - 2) + L'な';
+            ARRAY_AT(new_fields, I_FIELD_POST) += tail.substr(tail.size() - 2) + L'な';
             DoSahenDoushi(index, new_fields, deltaCost - 60);
         }
     }
@@ -3158,20 +3158,20 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
     // 名詞＋「たる」「たれ」で五段動詞に。
     if (tail.size() >= 2 && tail[0] == L'た' && (tail[1] == L'る' || tail[1] == L'れ')) {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += L'た';
-        new_fields[I_FIELD_POST] += L'た';
-        new_fields[I_FIELD_HINSHI].resize(1);
-        new_fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_GODAN_DOUSHI, GYOU_RA);
+        ARRAY_AT(new_fields, I_FIELD_PRE) += L'た';
+        ARRAY_AT(new_fields, I_FIELD_POST) += L'た';
+        ARRAY_AT(new_fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(new_fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_GODAN_DOUSHI, GYOU_RA);
         DoGodanDoushi(index, new_fields, deltaCost);
     }
 
     // 名詞＋「でき(る)」でな形容詞に。
     if (tail.size() >= 2 && tail.substr(0, 2) == L"でき") {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += L"でき";
-        new_fields[I_FIELD_POST] += L"でき";
-        new_fields[I_FIELD_HINSHI].resize(1);
-        new_fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_ICHIDAN_DOUSHI, GYOU_RA);
+        ARRAY_AT(new_fields, I_FIELD_PRE) += L"でき";
+        ARRAY_AT(new_fields, I_FIELD_POST) += L"でき";
+        ARRAY_AT(new_fields, I_FIELD_HINSHI).resize(1);
+        ARRAY_AT(new_fields, I_FIELD_HINSHI)[0] = MAKEWORD(HB_ICHIDAN_DOUSHI, GYOU_RA);
         DoIchidanDoushi(index, fields, deltaCost - 10);
     }
 } // Lattice::DoMeishi
@@ -3180,15 +3180,15 @@ void Lattice::DoFukushi(size_t index, const WStrings& fields, INT deltaCost)
 {
     FOOTMARK();
     ASSERT(fields.size() == NUM_FIELDS);
-    ASSERT(fields[I_FIELD_PRE].size());
+    ASSERT(ARRAY_AT(fields, I_FIELD_PRE).size());
 
-    size_t length = fields[I_FIELD_PRE].size();
+    size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
     // 語幹の後の部分文字列。
@@ -3197,12 +3197,12 @@ void Lattice::DoFukushi(size_t index, const WStrings& fields, INT deltaCost)
     // ラティスノードの準備。
     LatticeNode node;
     node.bunrui = HB_FUKUSHI;
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // 副詞。活用はない。
-    node.pre = fields[I_FIELD_PRE];
-    node.post = fields[I_FIELD_POST];
+    node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+    node.post = ARRAY_AT(fields, I_FIELD_POST);
     AddNode(index, node);
 
     // 副詞なら最後に「と」「に」を付けてもいい。
@@ -3216,8 +3216,8 @@ void Lattice::DoFukushi(size_t index, const WStrings& fields, INT deltaCost)
     // 副詞なら最後に「っと」「って」を付けてもいい。
     do {
         if (tail.size() < 2 || tail[0] != L'っ' || (tail[1] != L'と' && tail[1] != L'て')) break;
-        node.pre = fields[I_FIELD_PRE] + tail[0] + tail[1];
-        node.post = fields[I_FIELD_POST] + tail[0] + tail[1];
+        node.pre = ARRAY_AT(fields, I_FIELD_PRE) + tail[0] + tail[1];
+        node.post = ARRAY_AT(fields, I_FIELD_POST) + tail[0] + tail[1];
         AddNode(index, node);
     } while (0);
 }
@@ -3226,28 +3226,28 @@ void Lattice::DoFields(size_t index, const WStrings& fields, INT deltaCost)
 {
     ASSERT(fields.size() == NUM_FIELDS);
     if (fields.size() != NUM_FIELDS) {
-        DPRINTW(L"%s, %s\n", fields[I_FIELD_PRE].c_str(), fields[I_FIELD_POST].c_str());
+        DPRINTW(L"%s, %s\n", ARRAY_AT(fields, I_FIELD_PRE).c_str(), ARRAY_AT(fields, I_FIELD_POST).c_str());
         return;
     }
-    const size_t length = fields[I_FIELD_PRE].size();
+    const size_t length = ARRAY_AT(fields, I_FIELD_PRE).size();
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
     }
     // 対象のテキストが語幹と一致するか確かめる。
-    if (m_pre.substr(index, length) != fields[I_FIELD_PRE]) {
+    if (m_pre.substr(index, length) != ARRAY_AT(fields, I_FIELD_PRE)) {
         return;
     }
-    DPRINTW(L"DoFields: %s\n", fields[I_FIELD_PRE].c_str());
+    DPRINTW(L"DoFields: %s\n", ARRAY_AT(fields, I_FIELD_PRE).c_str());
 
     // ラティスノードの準備。
     LatticeNode node;
-    node.pre = fields[I_FIELD_PRE];
-    node.post = fields[I_FIELD_POST];
-    WORD w = fields[I_FIELD_HINSHI][0];
+    node.pre = ARRAY_AT(fields, I_FIELD_PRE);
+    node.post = ARRAY_AT(fields, I_FIELD_POST);
+    WORD w = ARRAY_AT(fields, I_FIELD_HINSHI)[0];
     node.bunrui = (HinshiBunrui)LOBYTE(w);
     node.gyou = (Gyou)HIBYTE(w);
-    node.tags = fields[I_FIELD_TAGS];
+    node.tags = ARRAY_AT(fields, I_FIELD_TAGS);
     node.deltaCost = deltaCost;
 
     // 品詞分類で場合分けする。
@@ -3678,8 +3678,8 @@ void ShowGraphviz(const MzConvResult& result)
                     if (i == 0) {
                         OutputGraphvizEdge(fout, NULL, &cand1);
                     } else {
-                        candidates_t::const_iterator it2, end2 = result.clauses[i - 1].candidates.end();
-                        for (it2 = result.clauses[i - 1].candidates.begin(); it2 != end2; ++it2) {
+                        candidates_t::const_iterator it2, end2 = ARRAY_AT(result.clauses, i - 1).candidates.end();
+                        for (it2 = ARRAY_AT(result.clauses, i - 1).candidates.begin(); it2 != end2; ++it2) {
                             const MzConvCandidate& cand0 = *it2;
                             OutputGraphvizEdge(fout, &cand0, &cand1);
                         }
@@ -3690,8 +3690,8 @@ void ShowGraphviz(const MzConvResult& result)
         }
 
         {
-            candidates_t::const_iterator it, end = result.clauses[i - 1].candidates.end();
-            for (it = result.clauses[i - 1].candidates.begin(); it != end; ++it) {
+            candidates_t::const_iterator it, end = ARRAY_AT(result.clauses, i - 1).candidates.end();
+            for (it = ARRAY_AT(result.clauses, i - 1).candidates.begin(); it != end; ++it) {
                 const MzConvCandidate& cand = *it;
                 OutputGraphvizEdge(fout, &cand, NULL);
             }
@@ -3811,7 +3811,7 @@ BOOL MzIme::StretchClauseLeft(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
     DWORD iClause = comp.extra.iClause; // 現在の文節の位置。
 
     // 現在の文節を取得する。
-    std::wstring str1 = comp.extra.hiragana_clauses[iClause];
+    std::wstring str1 = ARRAY_AT(comp.extra.hiragana_clauses, iClause);
     // 一文字以下の長さなら左に拡張できない。
     if (str1.size() <= 1)
         return FALSE;
@@ -3825,7 +3825,7 @@ BOOL MzIme::StretchClauseLeft(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
     std::wstring str2;
     BOOL bSplitted = FALSE; // 分離したか？
     if (iClause + 1 < comp.GetClauseCount()) {
-        str2 = ch + comp.extra.hiragana_clauses[iClause + 1];
+        str2 = ch + ARRAY_AT(comp.extra.hiragana_clauses, iClause + 1);
     } else {
         str2 += ch;
         bSplitted = TRUE; // 分離した。
@@ -3848,12 +3848,12 @@ BOOL MzIme::StretchClauseLeft(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
     }
 
     // 未確定文字列をセット。
-    MzConvClause& clause1 = result1.clauses[0];
-    MzConvClause& clause2 = result2.clauses[0];
-    comp.extra.hiragana_clauses[iClause] = str1;
-    comp.extra.comp_str_clauses[iClause] = clause1.candidates[0].post;
-    comp.extra.hiragana_clauses[iClause + 1] = str2;
-    comp.extra.comp_str_clauses[iClause + 1] = clause2.candidates[0].post;
+    MzConvClause& clause1 = ARRAY_AT(result1.clauses, 0);
+    MzConvClause& clause2 = ARRAY_AT(result2.clauses, 0);
+    ARRAY_AT(comp.extra.hiragana_clauses, iClause) = str1;
+    ARRAY_AT(comp.extra.comp_str_clauses, iClause) = ARRAY_AT(clause1.candidates, 0).post;
+    ARRAY_AT(comp.extra.hiragana_clauses, iClause + 1) = str2;
+    ARRAY_AT(comp.extra.comp_str_clauses, iClause + 1) = ARRAY_AT(clause2.candidates, 0).post;
 
     // 余剰情報から未確定文字列を更新する。
     comp.UpdateFromExtra(bRoman);
@@ -3866,7 +3866,7 @@ BOOL MzIme::StretchClauseLeft(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
             MzConvCandidate& cand1 = *it;
             cand_list.cand_strs.push_back(cand1.post);
         }
-        cand.cand_lists[iClause] = cand_list;
+        ARRAY_AT(cand.cand_lists, iClause) = cand_list;
     }
     {
         LogCandList cand_list;
@@ -3880,7 +3880,7 @@ BOOL MzIme::StretchClauseLeft(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
         if (bSplitted) {
             cand.cand_lists.push_back(cand_list);
         } else {
-            cand.cand_lists[iClause + 1] = cand_list;
+            ARRAY_AT(cand.cand_lists, iClause + 1) = cand_list;
         }
     }
 
@@ -3900,14 +3900,14 @@ BOOL MzIme::StretchClauseRight(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
     DWORD iClause = comp.extra.iClause; // 現在の文節の位置。
 
     // 現在の文節を取得する。
-    std::wstring str1 = comp.extra.hiragana_clauses[iClause];
+    std::wstring str1 = ARRAY_AT(comp.extra.hiragana_clauses, iClause);
 
     // 右端であれば右には拡張できない。
     if (iClause == comp.GetClauseCount() - 1)
         return FALSE;
 
     // 次の文節を取得する。
-    std::wstring str2 = comp.extra.hiragana_clauses[iClause + 1];
+    std::wstring str2 = ARRAY_AT(comp.extra.hiragana_clauses, iClause + 1);
     // 次の文節が空ならば、右には拡張できない。
     if (str2.empty())
         return FALSE;
@@ -3933,21 +3933,21 @@ BOOL MzIme::StretchClauseRight(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
     }
 
     // 現在の文節。
-    MzConvClause& clause1 = result1.clauses[0];
+    MzConvClause& clause1 = ARRAY_AT(result1.clauses, 0);
 
     if (str2.empty()) { // 次の文節が空になったか？
         // 次の文節を削除する。
         comp.extra.hiragana_clauses.erase(comp.extra.hiragana_clauses.begin() + iClause + 1);
         comp.extra.comp_str_clauses.erase(comp.extra.comp_str_clauses.begin() + iClause + 1);
-        comp.extra.hiragana_clauses[iClause] = str1;
-        comp.extra.comp_str_clauses[iClause] = clause1.candidates[0].post;
+        ARRAY_AT(comp.extra.hiragana_clauses, iClause) = str1;
+        ARRAY_AT(comp.extra.comp_str_clauses, iClause) = ARRAY_AT(clause1.candidates, 0).post;
     } else {
         // ２つの文節情報をセットする。
-        MzConvClause& clause2 = result2.clauses[0];
-        comp.extra.hiragana_clauses[iClause] = str1;
-        comp.extra.comp_str_clauses[iClause] = clause1.candidates[0].post;
-        comp.extra.hiragana_clauses[iClause + 1] = str2;
-        comp.extra.comp_str_clauses[iClause + 1] = clause2.candidates[0].post;
+        MzConvClause& clause2 = ARRAY_AT(result2.clauses, 0);
+        ARRAY_AT(comp.extra.hiragana_clauses, iClause) = str1;
+        ARRAY_AT(comp.extra.comp_str_clauses, iClause) = ARRAY_AT(clause1.candidates, 0).post;
+        ARRAY_AT(comp.extra.hiragana_clauses, iClause + 1) = str2;
+        ARRAY_AT(comp.extra.comp_str_clauses, iClause + 1) = ARRAY_AT(clause2.candidates, 0).post;
     }
 
     // 余剰情報から未確定文字列を更新する。
@@ -3961,17 +3961,17 @@ BOOL MzIme::StretchClauseRight(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
             MzConvCandidate& cand1 = *it;
             cand_list.cand_strs.push_back(cand1.post);
         }
-        cand.cand_lists[iClause] = cand_list;
+        ARRAY_AT(cand.cand_lists, iClause) = cand_list;
     }
     if (str2.size()) {
-        MzConvClause& clause2 = result2.clauses[0];
+        MzConvClause& clause2 = ARRAY_AT(result2.clauses, 0);
         LogCandList cand_list;
         candidates_t::iterator it, end = clause2.candidates.end();
         for (it = clause2.candidates.begin(); it != end; ++it) {
             MzConvCandidate& cand2 = *it;
             cand_list.cand_strs.push_back(cand2.post);
         }
-        cand.cand_lists[iClause + 1] = cand_list;
+        ARRAY_AT(cand.cand_lists, iClause + 1) = cand_list;
     }
 
     // 現在の文節をセットする。

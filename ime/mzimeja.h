@@ -90,6 +90,20 @@
         return array[index];
     }
 
+    /* ArrayAt for std::string and std::wstring */
+    template <typename T_CHAR>
+    const T_CHAR& Array_At(const std::basic_string<T_CHAR>& str, size_t index, const char *file, int line) {
+        if (index > str.size())
+            DebugAssert(file, line, "index > size()");
+        return str[index];
+    }
+    template <typename T_CHAR>
+    T_CHAR& Array_At(std::basic_string<T_CHAR>& str, size_t index, const char *file, int line) {
+        if (index > str.size())
+            DebugAssert(file, line, "index > size()");
+        return str[index];
+    }
+
     #define ARRAY_AT(array, index) \
         Array_At((array), (index), __FILE__, __LINE__)
     #define ARRAY_AT_AT(array, index0, index1) \

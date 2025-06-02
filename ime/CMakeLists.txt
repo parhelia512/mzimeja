@@ -22,7 +22,7 @@ set_target_properties(libime PROPERTIES PREFIX "")
 
 # mzimeja.ime
 add_library(ime SHARED mzimeja.def mzimeja_res.rc)
-target_link_libraries(ime libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
+target_link_libraries(ime libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi dbghelp)
 target_compile_options(ime PRIVATE -DIME_DLL=1)
 set_target_properties(ime PROPERTIES PREFIX "")
 set_target_properties(ime PROPERTIES SUFFIX "")
