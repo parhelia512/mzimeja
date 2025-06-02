@@ -115,34 +115,39 @@ void SetInputMode(HIMC hIMC, INPUT_MODE imode)
     ::ImmGetConversionStatus(hIMC, &dwConversion, &dwSentence);
     switch (imode) {
     case IMODE_FULL_HIRAGANA: // 全角ひらがなモード。
-        ImmSetOpenStatus(hIMC, TRUE);
+        if (!::ImmSetOpenStatus(hIMC, TRUE))
+            DPRINTA("!ImmSetOpenStatus\n");
         dwConversion &= ~IME_CMODE_KATAKANA;
         dwConversion |= IME_CMODE_FULLSHAPE | IME_CMODE_JAPANESE;
         if (hwndIndicator)
             PostMessage(hwndIndicator, INDICM_SETIMEICON, 1, (LPARAM)hKL);
         break;
     case IMODE_FULL_KATAKANA: // 全角カタカナモード。
-        ImmSetOpenStatus(hIMC, TRUE);
+        if (!::ImmSetOpenStatus(hIMC, TRUE))
+            DPRINTA("!ImmSetOpenStatus\n");
         dwConversion |= IME_CMODE_FULLSHAPE | IME_CMODE_JAPANESE | IME_CMODE_KATAKANA;
         if (hwndIndicator)
             PostMessage(hwndIndicator, INDICM_SETIMEICON, 2, (LPARAM)hKL);
         break;
     case IMODE_FULL_ASCII: // 全角英数モード。
-        ImmSetOpenStatus(hIMC, TRUE);
+        if (!::ImmSetOpenStatus(hIMC, TRUE))
+            DPRINTA("!ImmSetOpenStatus\n");
         dwConversion &= ~(IME_CMODE_JAPANESE | IME_CMODE_KATAKANA);
         dwConversion |= IME_CMODE_FULLSHAPE;
         if (hwndIndicator)
             PostMessage(hwndIndicator, INDICM_SETIMEICON, 3, (LPARAM)hKL);
         break;
     case IMODE_HALF_KANA: // 半角カナモード。
-        ImmSetOpenStatus(hIMC, TRUE);
+        if (!::ImmSetOpenStatus(hIMC, TRUE))
+            DPRINTA("!ImmSetOpenStatus\n");
         dwConversion &= ~IME_CMODE_FULLSHAPE;
         dwConversion |= IME_CMODE_JAPANESE | IME_CMODE_KATAKANA;
         if (hwndIndicator)
             PostMessage(hwndIndicator, INDICM_SETIMEICON, 4, (LPARAM)hKL);
         break;
     case IMODE_HALF_ASCII: // 半角英数モード。
-        ImmSetOpenStatus(hIMC, FALSE);
+        if (!::ImmSetOpenStatus(hIMC, FALSE))
+            DPRINTA("!ImmSetOpenStatus\n");
         dwConversion &= ~(IME_CMODE_FULLSHAPE | IME_CMODE_JAPANESE | IME_CMODE_KATAKANA);
         if (hwndIndicator)
             PostMessage(hwndIndicator, INDICM_SETIMEICON, 5, (LPARAM)hKL);
@@ -151,8 +156,10 @@ void SetInputMode(HIMC hIMC, INPUT_MODE imode)
         ASSERT(0);
         break;
     }
+
     // 変換モードをセットする。
-    ::ImmSetConversionStatus(hIMC, dwConversion, dwSentence);
+    if (!::ImmSetConversionStatus(hIMC, dwConversion, dwSentence))
+        DPRINTA("!ImmSetConversionStatus\n");
 }
 
 // ローマ字入力モードか？
