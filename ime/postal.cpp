@@ -46,7 +46,7 @@ std::wstring convert_postal_code(const std::wstring& code)
 
     // codeをANSI文字列に変換したものをszCodeAとする。
     CHAR szCodeA[16];
-    WideCharToMultiByte(CP_ACP, 0, code.c_str(), -1, szCodeA, _countof(szCodeA), NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, code.c_str(), -1, szCodeA, _countof(szCodeA), NULL, NULL);
     szCodeA[_countof(szCodeA) - 1] = 0; // Avoid buffer overflow
 
     // 郵便番号データのファイルを開く。

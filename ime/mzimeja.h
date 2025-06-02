@@ -115,6 +115,9 @@
 #define MAXCOMPWND  10  // maximum number of composition windows
 #define MAXGLCHAR   32  // maximum number of guideline characters
 
+// Codepages
+#define CODEPAGE_SJIS_932 932 // Shift_JIS
+
 // Special messages.
 // 特別なメッセージ。
 #define WM_UI_UPDATE      (WM_USER + 500)

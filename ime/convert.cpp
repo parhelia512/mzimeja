@@ -4093,7 +4093,7 @@ BOOL MzIme::ConvertCode(const std::wstring& strTyping, MzConvResult& result)
         szSJIS[0] = HIBYTE(wSJIS);
         szSJIS[1] = LOBYTE(wSJIS);
         szSJIS[2] = 0;
-        ::MultiByteToWideChar(932, 0, szSJIS, -1, szUnicode, 2);
+        ::MultiByteToWideChar(CODEPAGE_SJIS_932, 0, szSJIS, -1, szUnicode, 2);
         node.post = szUnicode; // 変換後の文字列。
         node.deltaCost++; // コストを１つ加算。
         clause.add(&node);
@@ -4106,7 +4106,7 @@ BOOL MzIme::ConvertCode(const std::wstring& strTyping, MzConvResult& result)
             szSJIS[0] = HIBYTE(wSJIS);
             szSJIS[1] = LOBYTE(wSJIS);
             szSJIS[2] = 0;
-            ::MultiByteToWideChar(932, 0, szSJIS, -1, szUnicode, 2);
+            ::MultiByteToWideChar(CODEPAGE_SJIS_932, 0, szSJIS, -1, szUnicode, 2);
             node.post = szUnicode; // 変換後の文字列。
             node.deltaCost++; // コストを１つ加算。
             clause.add(&node);
@@ -4121,7 +4121,7 @@ BOOL MzIme::ConvertCode(const std::wstring& strTyping, MzConvResult& result)
             szSJIS[0] = HIBYTE(wSJIS);
             szSJIS[1] = LOBYTE(wSJIS);
             szSJIS[2] = 0;
-            ::MultiByteToWideChar(932, 0, szSJIS, -1, szUnicode, 2);
+            ::MultiByteToWideChar(CODEPAGE_SJIS_932, 0, szSJIS, -1, szUnicode, 2);
             node.post = szUnicode; // 変換後の文字列。
             node.deltaCost++; // コストを１つ加算。
             clause.add(&node);
