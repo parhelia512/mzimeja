@@ -1667,13 +1667,13 @@ BOOL Lattice::AddNodesFromDict(const WCHAR *dict_data)
     lattice_compare compare(m_pre);
 
     // 異なるサイズのノードを削除する。
-    for (size_t i = 0; i < m_chunks[0].size(); ++i) {
+    for (size_t i = 0; i < ARRAY_AT(m_chunks, 0).size(); ++i) {
         LatticeChunk::iterator it;
-        it = std::remove_if(m_chunks[0].begin(), m_chunks[0].end(), compare);
-        m_chunks[0].erase(it, m_chunks[0].end());
+        it = std::remove_if(ARRAY_AT(m_chunks, 0).begin(), ARRAY_AT(m_chunks, 0).end(), compare);
+        ARRAY_AT(m_chunks, 0).erase(it, ARRAY_AT(m_chunks, 0).end());
     }
 
-    return !m_chunks[0].empty();
+    return !ARRAY_AT(m_chunks, 0).empty();
 }
 
 // 部分最小コストを計算する。
@@ -1726,7 +1726,7 @@ void Lattice::UpdateLinksAndBranches()
         node.bunrui = HB_HEAD;
         node.linked = 1;
         // 現在位置のノードを先頭ブランチに追加する。
-        LatticeChunk& chunk1 = m_chunks[0];
+        LatticeChunk& chunk1 = ARRAY_AT(m_chunks, 0);
         LatticeChunk::iterator it, end = chunk1.end();
         for (it = chunk1.begin(); it != end; ++it) {
             LatticeNodePtr& ptr1 = *it;
@@ -1743,14 +1743,14 @@ void Lattice::UpdateLinksAndBranches()
         LatticeNode node;
         node.bunrui = HB_TAIL;
         m_tail = unboost::make_shared<LatticeNode>(node);
-        m_chunks[m_pre.size()].clear();
-        m_chunks[m_pre.size()].push_back(m_tail);
+        ARRAY_AT(m_chunks, m_pre.size()).clear();
+        ARRAY_AT(m_chunks, m_pre.size()).push_back(m_tail);
     }
 
     // 各インデックス位置について。
     for (size_t index = 0; index < m_pre.size(); ++index) {
         // インデックス位置のノード集合を取得。
-        LatticeChunk& chunk1 = m_chunks[index];
+        LatticeChunk& chunk1 = ARRAY_AT(m_chunks, index);
         // 各ノードについて。
         LatticeChunk::iterator it, end = chunk1.end();
         for (it = chunk1.begin(); it != end; ++it) {
@@ -1763,7 +1763,7 @@ void Lattice::UpdateLinksAndBranches()
             if (!(index + ptr1->pre.size() <= m_pre.size()))
                 continue;
             // 連結可能であれば、リンク先をブランチに追加し、リンク先のリンク数を増やす。
-            LatticeChunk& chunk2 = m_chunks[index + ptr1->pre.size()];
+            LatticeChunk& chunk2 = ARRAY_AT(m_chunks, index + ptr1->pre.size());
             {
                 LatticeChunk::iterator it, end = chunk2.end();
                 for (it = chunk2.begin(); it != end; ++it) {
@@ -1782,7 +1782,7 @@ void Lattice::UpdateLinksAndBranches()
 void Lattice::ResetLatticeInfo()
 {
     for (size_t index = 0; index < m_pre.size(); ++index) {
-        LatticeChunk& chunk1 = m_chunks[index];
+        LatticeChunk& chunk1 = ARRAY_AT(m_chunks, index);
         LatticeChunk::iterator it, end = chunk1.end();
         for (it = chunk1.begin(); it != end; ++it) {
             LatticeNodePtr& ptr1 = *it;
@@ -1800,13 +1800,13 @@ void Lattice::AddComplement()
     if (lastIndex == m_pre.size())
         return;
 
-    lastIndex += m_chunks[lastIndex][0]->pre.size();
+    lastIndex += ARRAY_AT(m_chunks, lastIndex)[0]->pre.size();
 
     LatticeNode node;
     node.bunrui = HB_UNKNOWN;
     node.deltaCost = 0;
     node.pre = node.post = m_pre.substr(lastIndex);
-    m_chunks[lastIndex].push_back(unboost::make_shared<LatticeNode>(node));
+    ARRAY_AT(m_chunks, lastIndex).push_back(unboost::make_shared<LatticeNode>(node));
     UpdateLinksAndBranches();
 } // Lattice::AddComplement
 
@@ -1833,7 +1833,7 @@ static inline bool latice_compare_by_linked(const LatticeNodePtr& node) {
 void Lattice::CutUnlinkedNodes()
 {
     for (size_t index = 0; index < m_pre.size(); ++index) {
-        LatticeChunk& chunk1 = m_chunks[index];
+        LatticeChunk& chunk1 = ARRAY_AT(m_chunks, index);
         LatticeChunk::iterator it;
         it = std::remove_if(chunk1.begin(), chunk1.end(), latice_compare_by_linked);
         chunk1.erase(it, chunk1.end());
@@ -1844,14 +1844,14 @@ void Lattice::CutUnlinkedNodes()
 size_t Lattice::GetLastLinkedIndex() const
 {
     // 最後にリンクされたノードがあるか？
-    if (m_chunks[m_pre.size()][0]->linked) {
+    if (ARRAY_AT(m_chunks, m_pre.size())[0]->linked) {
         return m_pre.size(); // 最後のインデックスを返す。
     }
 
     // チャンクを逆順でスキャンする。
     for (size_t index = m_pre.size(); index > 0; ) {
         --index;
-        const LatticeChunk& chunk = m_chunks[index];
+        const LatticeChunk& chunk = ARRAY_AT(m_chunks, index);
         LatticeChunk::const_iterator it, end = chunk.end();
         for (it = chunk.begin(); it != end; ++it) {
             unboost::shared_ptr<LatticeNode> ptr = *it;
@@ -1870,7 +1870,7 @@ void Lattice::AddNode(size_t index, const LatticeNode& node)
     // ここで条件付きでブレークさせて、呼び出し履歴を取得すれば、
     // どのようにノードが追加されているのかが観測できる。
     ASSERT(index + node.pre.size() <= m_pre.size());
-    m_chunks[index].push_back(unboost::make_shared<LatticeNode>(node));
+    ARRAY_AT(m_chunks, index).push_back(unboost::make_shared<LatticeNode>(node));
 }
 
 // イ形容詞を変換する。
@@ -3327,9 +3327,9 @@ void Lattice::Dump(int num)
     DPRINTW(L"Lattice length: %d\n", int(length));
     for (size_t i = 0; i < length; ++i) {
         DPRINTW(L"Lattice chunk #%d:", int(i));
-        for (size_t k = 0; k < m_chunks[i].size(); ++k) {
-            DPRINTW(L" %s(%s)", m_chunks[i][k]->post.c_str(),
-                        BunruiToString(m_chunks[i][k]->bunrui));
+        for (size_t k = 0; k < ARRAY_AT(m_chunks, i).size(); ++k) {
+            DPRINTW(L" %s(%s)", ARRAY_AT_AT(m_chunks, i, k)->post.c_str(),
+                        BunruiToString(ARRAY_AT_AT(m_chunks, i, k)->bunrui));
         }
         DPRINTW(L"\n");
     }
