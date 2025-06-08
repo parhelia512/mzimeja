@@ -32,13 +32,6 @@ set_target_properties(ime PROPERTIES OUTPUT_NAME "mzimeja.ime")
 add_executable(imetests tests.cpp mzimeja_res.rc)
 target_link_libraries(imetests libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
 
-# UTF-8
-if(MSVC)
-    target_compile_options(libime PRIVATE /source-charset:utf-8 /execution-charset:utf-8)
-    target_compile_options(ime PRIVATE /source-charset:utf-8 /execution-charset:utf-8)
-    target_compile_options(imetests PRIVATE /source-charset:utf-8 /execution-charset:utf-8)
-endif()
-
 # do statically link
 set_target_properties(ime PROPERTIES LINK_DEPENDS_NO_SHARED 1)
 set_target_properties(ime PROPERTIES LINK_SEARCH_START_STATIC 1)
