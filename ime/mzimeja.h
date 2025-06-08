@@ -564,17 +564,17 @@ extern Dict g_name_dict;
 
 class MzIme {
 public:
-    HINSTANCE m_hInst;
-    HKL m_hMyKL;
-    BOOL m_bWinLogOn;
+    HINSTANCE m_hInst; // IMEのインスタンス。
+    HKL m_hMyKL; // このIMEのHKL。
+    BOOL m_bWinLogOn; // ログオン中か？
     LPTRANSMSGLIST m_lpCurTransKey;
     UINT m_uNumTransKey;
     BOOL m_fOverflowKey;
-    ATOM m_atoms[6];
+    ATOM m_atoms[6]; // アトム（ツールチップ用）。
 
 public:
+    // TheIMEのコンストラクタ。
     MzIme();
-
     // 初期化。
     BOOL Init(HINSTANCE hInstance);
     // ウィンドウクラスの登録。
@@ -635,7 +635,7 @@ protected:
     BOOL LoadDict();
     void UnloadDict();
 
-    // アトム。
+    // アトム（ツールチップ用）。
     BOOL LoadAtoms();
     void UnloadAtoms();
 }; // class MzIme
