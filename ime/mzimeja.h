@@ -95,12 +95,12 @@
     #define ARRAY_AT_AT(array, index0, index1) \
         ARRAY_AT(ARRAY_AT((array), (index0)), (index1))
 #else
-    #define DPRINT(fmt, ...)
-    #define DPRINTA(fmt, ...)
-    #define DPRINTW(fmt, ...)
-    #define ASSERT(exp)
-    #define TRACE_ON()
-    #define TRACE_OFF()
+    #define DPRINT(fmt, ...) while (0)
+    #define DPRINTA(fmt, ...) while (0)
+    #define DPRINTW(fmt, ...) while (0)
+    #define ASSERT(exp) while (0)
+    #define TRACE_ON() while (0)
+    #define TRACE_OFF() while (0)
     #define ARRAY_AT(array, index)         ((array)[index])
     #define ARRAY_AT_AT(array, index0, index1) ((array)[index0][index1])
 #endif
@@ -570,6 +570,7 @@ public:
     LPTRANSMSGLIST m_lpCurTransKey;
     UINT m_uNumTransKey;
     BOOL m_fOverflowKey;
+    ATOM m_atoms[6];
 
 public:
     MzIme();
@@ -633,6 +634,10 @@ protected:
     // 辞書。
     BOOL LoadDict();
     void UnloadDict();
+
+    // アトム。
+    BOOL LoadAtoms();
+    void UnloadAtoms();
 }; // class MzIme
 
 extern MzIme TheIME;

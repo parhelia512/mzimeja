@@ -129,6 +129,9 @@ BOOL MzIme::Init(HINSTANCE hInstance)
     // load dict
     LoadDict();
 
+    // Load atoms
+    LoadAtoms();
+
     // register window classes for IME
     return RegisterClasses(m_hInst);
 } // MzIme::Init
@@ -138,6 +141,38 @@ VOID MzIme::Uninit(VOID)
 {
     UnregisterClasses();
     UnloadDict();
+    UnloadAtoms();
+}
+
+BOOL MzIme::LoadAtoms()
+{
+    TCHAR szText[64];
+    INT i = 0;
+    // アトムを追加する。
+    LoadString(m_hInst, IDS_HIRAGANA, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    LoadString(m_hInst, IDS_ZENKAKU_KATAKANA, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    LoadString(m_hInst, IDS_ZENKAKU_EISUU, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    LoadString(m_hInst, IDS_HANKAKU_KANA, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    LoadString(m_hInst, IDS_HANKAKU_EISUU, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    LoadString(m_hInst, IDS_IMEDISABLED, szText, _countof(szText));
+    m_atoms[i++] = ::GlobalAddAtom(szText);
+    ASSERT(i == _countof(m_atoms));
+    return TRUE;
+}
+
+void MzIme::UnloadAtoms()
+{
+    // アトムを削除する。
+    for (size_t i = 0; i < _countof(m_atoms); ++i)
+    {
+        ::GlobalDeleteAtom(m_atoms[i]);
+        m_atoms[i] = 0;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -402,13 +437,9 @@ void MzIme::UpdateIndicIcon(HIMC hIMC)
             fOpen = ImmGetOpenStatus(hIMC);
         }
 
-        ATOM atomTip = ::GlobalAddAtom(TEXT("MZ-IME Open"));
         LPARAM lParam = (LPARAM)m_hMyKL;
         ::PostMessage(hwndIndicate, INDICM_SETIMEICON, fOpen ? 1 : (-1), lParam);
-        ::PostMessage(hwndIndicate, INDICM_SETIMETOOLTIPS, (fOpen ? atomTip : (-1)),
-                      lParam);
-        ::PostMessage(hwndIndicate, INDICM_REMOVEDEFAULTMENUITEMS,
-                      (fOpen ? (RDMI_LEFT) : 0), lParam);
+        ::PostMessage(hwndIndicate, INDICM_REMOVEDEFAULTMENUITEMS, 0, lParam);
     }
 }
 

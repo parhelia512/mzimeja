@@ -67,6 +67,7 @@
 #define IDS_HINSHI                          135
 #define IDS_WANNADELETEWORD                 136
 #define IDS_HINSHIWRONG                     137
+#define IDS_IMEDISABLED                     138
 #define IDS_DICFILENAME                     1000
 #define IDS_CONFIGNAME                      1001
 #define IDS_GL_NODICTIONARY                 1010
