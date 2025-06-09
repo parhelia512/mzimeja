@@ -150,7 +150,7 @@ STRINGTABLE
     IDS_HINSHIWRONG, "Word or part of speech is wrong. Please enter in the infinitive form."
     IDS_IMEDISABLED, "MZ-IME is disabled"
     IDS_DICFILENAME, "basic.dic"
-    IDS_CONFIGNAME, "mzimeja.ime"
+    IDS_CONFIGNAME, "MZ-IME Japanese Input"
     IDS_GL_NODICTIONARY, "No dictionary found."
     IDS_GL_TYPINGERROR, "There is no roma-ji."
     IDS_GL_TESTGUIDELINESTR, "Test string of guideline"

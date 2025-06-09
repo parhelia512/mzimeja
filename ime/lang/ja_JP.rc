@@ -200,7 +200,7 @@ STRINGTABLE
     IDS_HINSHIWRONG, "単語または品詞が間違っています。終止形で入力してください。"
     IDS_IMEDISABLED, "MZ-IME は無効状態です"
     IDS_DICFILENAME, "basic.dic"
-    IDS_CONFIGNAME, "mzimeja.ime"
+    IDS_CONFIGNAME, "MZ-IME 日本語入力"
     IDS_GL_NODICTIONARY, "辞書が見つかりません。"
     IDS_GL_TYPINGERROR, "ローマ字がありません。"
     IDS_GL_TESTGUIDELINESTR, "ガイドラインのテスト文字列"
