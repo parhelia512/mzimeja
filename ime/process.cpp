@@ -54,7 +54,7 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
     // Get translated char. 可能なら文字をひらがなにする。
     WCHAR chTranslated = 0;
     if (!bRoman) {
-        chTranslated = vkey_to_hiragana(vk, bShift);
+        chTranslated = mz_vkey_to_hiragana(vk, bShift);
     }
 
     // Get typed character. 可能ならキー入力を文字にする。
@@ -62,7 +62,7 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
     if (vk == VK_PACKET) {
         chTyped = chTranslated = HIWORD(wParam);
     } else {
-        chTyped = typing_key_to_char(vk, bShift, bCapsLock);
+        chTyped = mz_typing_key_to_char(vk, bShift, bCapsLock);
     }
 
     if (chTranslated || chTyped) { // 入力キーを変換できたら

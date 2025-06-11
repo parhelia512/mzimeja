@@ -41,7 +41,7 @@ std::map<WCHAR,Dan>   g_hiragana_to_dan;  // 母音写像。
 std::map<WCHAR,Gyou>  g_hiragana_to_gyou; // 子音写像。
 
 // 子音の写像と母音の写像を作成する。
-void MakeLiteralMaps()
+void mz_make_literal_maps()
 {
     if (g_hiragana_to_gyou.size())
         return;
@@ -56,10 +56,10 @@ void MakeLiteralMaps()
             g_hiragana_to_dan[ARRAY_AT_AT(s_hiragana_table, i, k)] = (Dan)k;
         }
     }
-} // MakeLiteralMaps
+} // mz_make_literal_maps
 
 // 品詞分類から文字列を取得する関数。
-LPCTSTR HinshiToString(HinshiBunrui hinshi)
+LPCTSTR mz_hinshi_to_string(HinshiBunrui hinshi)
 {
     if (HB_MEISHI <= hinshi && hinshi <= HB_MAX)
         return TheIME.LoadSTR(IDS_HINSHI_00 + (hinshi - HB_MEISHI));
@@ -67,10 +67,10 @@ LPCTSTR HinshiToString(HinshiBunrui hinshi)
 }
 
 // 文字列から品詞分類を取得する関数。
-HinshiBunrui StringToHinshi(LPCTSTR str)
+HinshiBunrui mz_string_to_hinshi(LPCTSTR str)
 {
     for (INT hinshi = HB_MEISHI; hinshi <= HB_MAX; ++hinshi) {
-        LPCTSTR psz = HinshiToString((HinshiBunrui)hinshi);
+        LPCTSTR psz = mz_hinshi_to_string((HinshiBunrui)hinshi);
         if (lstrcmpW(psz, str) == 0)
             return (HinshiBunrui)hinshi;
     }
@@ -78,7 +78,7 @@ HinshiBunrui StringToHinshi(LPCTSTR str)
 }
 
 // 品詞分類を文字列に変換する（デバッグ用）。
-LPCWSTR BunruiToString(HinshiBunrui bunrui)
+LPCWSTR mz_bunrui_to_string(HinshiBunrui bunrui)
 {
     int index = int(bunrui) - int(HB_HEAD);
     static const WCHAR *s_array[] = {
@@ -116,7 +116,7 @@ LPCWSTR BunruiToString(HinshiBunrui bunrui)
     };
     ASSERT(index <= HB_MAX);
     return s_array[index];
-} // BunruiToString
+} // mz_bunrui_to_string
 
 // 品詞の連結可能性を計算する関数。
 BOOL LatticeNode::CanConnectTo(const LatticeNode& other) const
@@ -705,7 +705,7 @@ static INT CALLBACK UserDictProc(LPCTSTR lpRead, DWORD dwStyle, LPCTSTR lpStr, L
         break;
     case HB_GODAN_DOUSHI: // 五段動詞
         // 写像を準備する。
-        MakeLiteralMaps();
+        mz_make_literal_maps();
         // 終端がウ段の文字でなければ失敗。
         if (pre.empty())
             return TRUE;
@@ -1000,7 +1000,7 @@ void MzConvClause::add(const LatticeNode *node)
     }
     MzConvCandidate cand;
     cand.pre = node->pre;
-    cand.post = translateString(node->post);
+    cand.post = mz_translate_string(node->post);
     cand.cost = node->subtotal_cost;
     cand.word_cost = node->WordCost();
     cand.bunruis.insert(node->bunrui);
@@ -1128,20 +1128,20 @@ void Lattice::AddExtraNodes()
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%02u月%02u日", st.wYear, st.wMonth, st.wDay);
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u", st.wYear, st.wMonth, st.wDay);
@@ -1192,10 +1192,10 @@ void Lattice::AddExtraNodes()
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         return;
@@ -1212,20 +1212,20 @@ void Lattice::AddExtraNodes()
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%u年%02u月", st.wYear, st.wMonth);
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         return;
@@ -1249,20 +1249,20 @@ void Lattice::AddExtraNodes()
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         StringCchPrintfW(sz, _countof(sz), L"%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
         DoFields(0, fields, +10);
 
-        fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
         DoFields(0, fields, +10);
 
         if (st.wHour >= 12) {
@@ -1270,40 +1270,40 @@ void Lattice::AddExtraNodes()
             fields[I_FIELD_POST] = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
 
             StringCchPrintfW(sz, _countof(sz), L"午後%02u時%02u分%02u秒", st.wHour - 12, st.wMinute, st.wSecond);
             fields[I_FIELD_POST] = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
         } else {
             StringCchPrintfW(sz, _countof(sz), L"午前%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
             fields[I_FIELD_POST] = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
 
             StringCchPrintfW(sz, _countof(sz), L"午前%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
             fields[I_FIELD_POST] = sz;
             DoFields(0, fields);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
             DoFields(0, fields, +10);
 
-            fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(sz);
+            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
             DoFields(0, fields, +10);
         }
 
@@ -1444,11 +1444,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
     WStrings fields, records;
     for (; index < length; ++index) {
         // periods (。。。)
-        if (is_period(m_pre[index])) {
+        if (mz_is_period(m_pre[index])) {
             size_t saved = index;
             do {
                 ++index;
-            } while (is_period(m_pre[index]));
+            } while (mz_is_period(m_pre[index]));
 
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
@@ -1498,11 +1498,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         }
 
         // commas (、、、)
-        if (is_comma(m_pre[index])) {
+        if (mz_is_comma(m_pre[index])) {
             size_t saved = index;
             do {
                 ++index;
-            } while (is_comma(m_pre[index]));
+            } while (mz_is_comma(m_pre[index]));
 
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
@@ -1515,7 +1515,7 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         }
 
         // arrow right (→)
-        if (is_hyphen(m_pre[index]) && (m_pre[index + 1] == L'>' || m_pre[index + 1] == L'＞'))
+        if (mz_is_hyphen(m_pre[index]) && (m_pre[index + 1] == L'>' || m_pre[index + 1] == L'＞'))
         {
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(index, 2);
@@ -1529,7 +1529,7 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         }
 
         // arrow left (←)
-        if ((m_pre[index] == L'<' || m_pre[index] == L'＜') && is_hyphen(m_pre[index + 1]))
+        if ((m_pre[index] == L'<' || m_pre[index] == L'＜') && mz_is_hyphen(m_pre[index + 1]))
         {
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(index, 2);
@@ -1543,17 +1543,17 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
         }
 
         // arrows (zh, zj, zk, zl) and z. etc.
-        WCHAR ch0 = translateChar(m_pre[index], FALSE, TRUE);
+        WCHAR ch0 = mz_translate_char(m_pre[index], FALSE, TRUE);
         if (ch0 == L'z' || ch0 == L'Z') {
-            WCHAR ch1 = translateChar(m_pre[index + 1], FALSE, TRUE);
+            WCHAR ch1 = mz_translate_char(m_pre[index + 1], FALSE, TRUE);
             WCHAR ch2 = 0;
             if (ch1 == L'h' || ch1 == L'H') ch2 = L'←'; // zh
             else if (ch1 == L'j' || ch1 == L'J') ch2 = L'↓'; // zj
             else if (ch1 == L'k' || ch1 == L'K') ch2 = L'↑'; // zk
             else if (ch1 == L'l' || ch1 == L'L') ch2 = L'→'; // zl
-            else if (is_hyphen(ch1)) ch2 = L'～'; // z-
-            else if (is_period(ch1)) ch2 = L'…'; // z.
-            else if (is_comma(ch1)) ch2 = L'‥'; // z,
+            else if (mz_is_hyphen(ch1)) ch2 = L'～'; // z-
+            else if (mz_is_period(ch1)) ch2 = L'…'; // z.
+            else if (mz_is_comma(ch1)) ch2 = L'‥'; // z,
             else if (ch1 == L'[' || ch1 == L'［' || ch1 == L'「') ch2 = L'『'; // z[
             else if (ch1 == L']' || ch1 == L'］' || ch1 == L'」') ch2 = L'』'; // z]
             else if (ch1 == L'/' || ch1 == L'／') ch2 = L'・'; // z/
@@ -1570,11 +1570,11 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             }
         }
 
-        if (!is_hiragana(m_pre[index])) { // ひらがなではない？
+        if (!mz_is_hiragana(m_pre[index])) { // ひらがなではない？
             size_t saved = index;
             do {
                 ++index;
-            } while ((!is_hiragana(m_pre[index]) || is_hyphen(m_pre[index])) && m_pre[index]);
+            } while ((!mz_is_hiragana(m_pre[index]) || mz_is_hyphen(m_pre[index])) && m_pre[index]);
 
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
@@ -1584,21 +1584,21 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             DoMeishi(saved, fields);
 
             // 全部が数字なら特殊な変換を行う。
-            if (are_all_chars_numeric(fields[I_FIELD_PRE])) {
-                fields[I_FIELD_POST] = convert_to_kansuuji(fields[I_FIELD_PRE]);
+            if (mz_are_all_chars_numeric(fields[I_FIELD_PRE])) {
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji(fields[I_FIELD_PRE]);
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_brief(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(fields[I_FIELD_PRE]);
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_formal(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_formal(fields[I_FIELD_PRE]);
                 DoMeishi(saved, fields);
-                fields[I_FIELD_POST] = convert_to_kansuuji_brief_formal(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(fields[I_FIELD_PRE]);
                 DoMeishi(saved, fields);
             }
 
             // 郵便番号変換。
-            std::wstring postal = normalize_postal_code(fields[I_FIELD_PRE]);
+            std::wstring postal = mz_normalize_postal_code(fields[I_FIELD_PRE]);
             if (postal.size()) {
-                std::wstring addr = convert_postal_code(postal);
+                std::wstring addr = mz_convert_postal_code(postal);
                 if (addr.size()) {
                     fields[I_FIELD_POST] = addr;
                     DoMeishi(saved, fields, -10);
@@ -1908,7 +1908,7 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
     } while (0);
 
-    MakeLiteralMaps();
+    mz_make_literal_maps();
 
     // い形容詞の連用形。
     // 「痛い」→「痛かっ(た)」
@@ -3084,7 +3084,7 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
     if (node.HasTag(L"[動植物]")) {
         // 動植物名は、カタカナでもよい。
         node.pre = fields[I_FIELD_PRE];
-        node.post = lcmap(fields[I_FIELD_PRE], LCMAP_KATAKANA | LCMAP_FULLWIDTH);
+        node.post = mz_lcmap(fields[I_FIELD_PRE], LCMAP_KATAKANA | LCMAP_FULLWIDTH);
         AddNode(index, node);
 
         node.deltaCost += 30;
@@ -3329,7 +3329,7 @@ void Lattice::Dump(int num)
         DPRINTW(L"Lattice chunk #%d:", int(i));
         for (size_t k = 0; k < ARRAY_AT(m_chunks, i).size(); ++k) {
             DPRINTW(L" %s(%s)", ARRAY_AT_AT(m_chunks, i, k)->post.c_str(),
-                        BunruiToString(ARRAY_AT_AT(m_chunks, i, k)->bunrui));
+                        mz_bunrui_to_string(ARRAY_AT_AT(m_chunks, i, k)->bunrui));
         }
         DPRINTW(L"\n");
     }
@@ -3481,33 +3481,33 @@ void MzIme::MakeResultForMulti(MzConvResult& result, Lattice& lattice)
         LatticeNode node;
         node.bunrui = HB_UNKNOWN;
         node.deltaCost = 3000;
-        node.pre = lcmap(target->pre, LCMAP_HIRAGANA | LCMAP_FULLWIDTH);
+        node.pre = mz_lcmap(target->pre, LCMAP_HIRAGANA | LCMAP_FULLWIDTH);
 
-        node.post = lcmap(node.pre, LCMAP_HIRAGANA | LCMAP_FULLWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_HIRAGANA | LCMAP_FULLWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_KATAKANA | LCMAP_FULLWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_KATAKANA | LCMAP_FULLWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_KATAKANA | LCMAP_HALFWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_KATAKANA | LCMAP_HALFWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_LOWERCASE | LCMAP_FULLWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_LOWERCASE | LCMAP_FULLWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_UPPERCASE | LCMAP_FULLWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_UPPERCASE | LCMAP_FULLWIDTH);
         clause.add(&node);
 
-        node.post = node.post[0] + lcmap(node.pre.substr(1), LCMAP_LOWERCASE | LCMAP_FULLWIDTH);
+        node.post = node.post[0] + mz_lcmap(node.pre.substr(1), LCMAP_LOWERCASE | LCMAP_FULLWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_LOWERCASE | LCMAP_HALFWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_LOWERCASE | LCMAP_HALFWIDTH);
         clause.add(&node);
 
-        node.post = lcmap(node.pre, LCMAP_UPPERCASE | LCMAP_HALFWIDTH);
+        node.post = mz_lcmap(node.pre, LCMAP_UPPERCASE | LCMAP_HALFWIDTH);
         clause.add(&node);
 
-        node.post = node.post[0] + lcmap(node.pre.substr(1), LCMAP_LOWERCASE | LCMAP_HALFWIDTH);
+        node.post = node.post[0] + mz_lcmap(node.pre.substr(1), LCMAP_LOWERCASE | LCMAP_HALFWIDTH);
         clause.add(&node);
 
         result.clauses.push_back(clause);
@@ -3536,19 +3536,19 @@ void MzIme::MakeResultOnFailure(MzConvResult& result, const std::wstring& pre)
     clause.add(&node);
 
     // 文節にひらがなを追加。
-    node.post = lcmap(pre, LCMAP_HIRAGANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_HIRAGANA); // 変換後の文字列。
     clause.add(&node);
 
     // 文節にカタカナを追加。
-    node.post = lcmap(pre, LCMAP_KATAKANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_KATAKANA); // 変換後の文字列。
     clause.add(&node);
 
     // 文節に全角を追加。
-    node.post = lcmap(pre, LCMAP_FULLWIDTH); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_FULLWIDTH); // 変換後の文字列。
     clause.add(&node);
 
     // 文節に半角を追加。
-    node.post = lcmap(pre, LCMAP_HALFWIDTH | LCMAP_KATAKANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_HALFWIDTH | LCMAP_KATAKANA); // 変換後の文字列。
     clause.add(&node);
 
     // 結果に文節を追加。
@@ -3585,19 +3585,19 @@ void MzIme::MakeResultForSingle(MzConvResult& result, Lattice& lattice)
     clause.add(&node);
 
     // 文節にひらがなを追加。
-    node.post = lcmap(pre, LCMAP_HIRAGANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_HIRAGANA); // 変換後の文字列。
     clause.add(&node);
 
     // 文節にカタカナを追加。
-    node.post = lcmap(pre, LCMAP_KATAKANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_KATAKANA); // 変換後の文字列。
     clause.add(&node);
 
     // 文節に全角を追加。
-    node.post = lcmap(pre, LCMAP_FULLWIDTH); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_FULLWIDTH); // 変換後の文字列。
     clause.add(&node);
 
     // 文節に半角を追加。
-    node.post = lcmap(pre, LCMAP_HALFWIDTH | LCMAP_KATAKANA); // 変換後の文字列。
+    node.post = mz_lcmap(pre, LCMAP_HALFWIDTH | LCMAP_KATAKANA); // 変換後の文字列。
     clause.add(&node);
 
     // 結果に文節を追加。
@@ -3652,7 +3652,7 @@ void OutputGraphvizEdge(FILE* fout, const MzConvCandidate *cand0, const MzConvCa
 // Graphvizでグラフ構造を表示する。
 void ShowGraphviz(const MzConvResult& result)
 {
-    if (!findGraphviz()[0])
+    if (!mz_find_graphviz()[0])
         return;
 
     TCHAR path0[MAX_PATH], path1[MAX_PATH];
@@ -3702,7 +3702,7 @@ void ShowGraphviz(const MzConvResult& result)
 
         TCHAR cmdline[MAX_PATH * 2];
         StringCchPrintf(cmdline, _countof(cmdline), TEXT("-Tpng \"%s\" -o \"%s\""), path0, path1);
-        ::ShellExecute(NULL, NULL, findGraphviz(), cmdline, NULL, SW_SHOWNORMAL);
+        ::ShellExecute(NULL, NULL, mz_find_graphviz(), cmdline, NULL, SW_SHOWNORMAL);
         for (INT i = 0; i < 20; ++i) {
             ::Sleep(100);
             if (PathFileExists(path1))
@@ -3721,7 +3721,7 @@ BOOL MzIme::ConvertMultiClause(const std::wstring& str, MzConvResult& result, BO
     DPRINTW(L"%s\n", str.c_str());
 
     // 変換前文字列をひらがな全角で取得。
-    std::wstring pre = lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+    std::wstring pre = mz_lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
 
     // ラティスを作成し、結果を作成する。
     Lattice lattice;
@@ -3792,7 +3792,7 @@ BOOL MzIme::ConvertSingleClause(const std::wstring& str, MzConvResult& result)
     result.clear(); // 結果をクリア。
 
     // 変換前文字列をひらがな全角で取得。
-    std::wstring pre = lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+    std::wstring pre = mz_lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
 
     // ラティスを作成する。
     Lattice lattice;
@@ -4167,7 +4167,7 @@ BOOL MzIme::StoreResult(const MzConvResult& result, LogCompStr& comp, LogCandInf
             const MzConvCandidate& cand2 = *it;
             comp.comp_clause[iClause] = (DWORD)comp.comp_str.size();
             comp.extra.hiragana_clauses.push_back(cand2.pre);
-            std::wstring typing = hiragana_to_typing(cand2.pre);
+            std::wstring typing = mz_hiragana_to_typing(cand2.pre);
             comp.extra.typing_clauses.push_back(typing);
             comp.comp_str += cand2.post;
             break;
@@ -4243,7 +4243,7 @@ std::wstring MzConvResult::get_str(bool detailed) const
                 else
                     ret += unboost::to_wstring(cand.cost);
                 ret += L":";
-                ret += HinshiToString(cand.bunrui);
+                ret += mz_hinshi_to_string(cand.bunrui);
                 if (cand.bunrui == HB_GODAN_DOUSHI) {
                     ret += L":";
                     ret += KatsuyouToString(cand.katsuyou);

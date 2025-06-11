@@ -66,7 +66,7 @@ BOOL WINAPI ImeRegisterWord(LPCTSTR lpRead, DWORD dw, LPCTSTR lpStr)
         return FALSE;
     }
 
-    LPCTSTR pszHinshi = HinshiToString(hinshi);
+    LPCTSTR pszHinshi = mz_hinshi_to_string(hinshi);
     if (!pszHinshi || !pszHinshi[0]) {
         DPRINTA("%d\n", hinshi);
         return FALSE;
@@ -165,7 +165,7 @@ BOOL WINAPI ImeUnregisterWord(LPCTSTR lpRead, DWORD dw, LPCTSTR lpStr)
         DPRINTA("%d\n", hinshi);
         return FALSE;
     }
-    LPCTSTR pszHinshi = HinshiToString(hinshi);
+    LPCTSTR pszHinshi = mz_hinshi_to_string(hinshi);
     if (!pszHinshi || !pszHinshi[0]) {
         DPRINTA("%d\n", hinshi);
         return FALSE;
@@ -236,7 +236,7 @@ UINT WINAPI ImeGetRegisterWordStyle(UINT u, LPSTYLEBUF lp)
         if (i >= u)
             break;
         lp[i].dwStyle = HinshiToStyle(hinshi);
-        StringCchCopy(lp[i].szDescription, _countof(lp[i].szDescription), HinshiToString(hinshi));
+        StringCchCopy(lp[i].szDescription, _countof(lp[i].szDescription), mz_hinshi_to_string(hinshi));
     }
     return i;
 }
@@ -307,7 +307,7 @@ UINT WINAPI ImeEnumRegisterWord(REGISTERWORDENUMPROC lpfn, LPCTSTR lpRead,
             DPRINTA("%d\n", hinshi);
             return FALSE;
         }
-        strHinshi = HinshiToString(hinshi);
+        strHinshi = mz_hinshi_to_string(hinshi);
     }
 
     // レジストリキーを開く。
@@ -358,7 +358,7 @@ UINT WINAPI ImeEnumRegisterWord(REGISTERWORDENUMPROC lpfn, LPCTSTR lpRead,
         if (dw && strHinshi[0] && lstrcmpi(pch2, strHinshi.c_str()) != 0)
             continue;
 
-        HinshiBunrui hinshi = StringToHinshi(pch2);
+        HinshiBunrui hinshi = mz_string_to_hinshi(pch2);
         if (hinshi == HB_UNKNOWN)
             continue;
         DWORD dwStyle = HinshiToStyle(hinshi);

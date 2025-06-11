@@ -3,17 +3,17 @@
 
 // 郵便番号を正規化する。
 // 与えられた文字列が郵便番号ではない場合は空文字列を返す。
-std::wstring normalize_postal_code(const std::wstring& str)
+std::wstring mz_normalize_postal_code(const std::wstring& str)
 {
     // 半角に変換。
-    std::wstring ret = lcmap(str, LCMAP_HALFWIDTH);
+    std::wstring ret = mz_lcmap(str, LCMAP_HALFWIDTH);
 
     // 郵便番号中のハイフンを取り除く。
-    if (ret.size() >= 5 && is_hyphen(ret[3]))
+    if (ret.size() >= 5 && mz_is_hyphen(ret[3]))
         ret.erase(3, 1);
 
     // 全部数字でなければ失敗。
-    if (!are_all_chars_numeric(ret))
+    if (!mz_are_all_chars_numeric(ret))
         return L"";
 
     // 三桁や五桁の場合は七桁の省略形と見なす。
@@ -30,10 +30,10 @@ std::wstring normalize_postal_code(const std::wstring& str)
 }
 
 // 郵便番号変換を行う関数。
-std::wstring convert_postal_code(const std::wstring& code)
+std::wstring mz_convert_postal_code(const std::wstring& code)
 {
     // 正規化されていると仮定する。
-    ASSERT(code.size() == 7 && are_all_chars_numeric(code));
+    ASSERT(code.size() == 7 && mz_are_all_chars_numeric(code));
 
     std::wstring postal, ret;
     if (Config_GetDWORD(L"PostalDictDisabled", FALSE)) // 無効化されている？
@@ -94,7 +94,7 @@ std::wstring convert_postal_code(const std::wstring& code)
     DWORD dwTick2 = ::GetTickCount(); // 測定終了。
 
     // 測定値をデバッグ出力。
-    DPRINTA("convert_postal_code: %lu\n", dwTick2 - dwTick1);
+    DPRINTA("mz_convert_postal_code: %lu\n", dwTick2 - dwTick1);
 
     return ret;
 }

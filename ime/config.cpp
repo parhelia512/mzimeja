@@ -282,7 +282,7 @@ BOOL RegWord_AddWord(HWND hDlg, LPCTSTR pszWord OPTIONAL)
         }
         break;
     case HB_GODAN_DOUSHI: // 五段動詞
-        MakeLiteralMaps();
+        mz_make_literal_maps();
         if (len == 0 || g_hiragana_to_dan[pszWord[len - 1]] != DAN_U) // う段で終わらなければならない。
             bWrong = TRUE;
         break;
@@ -325,7 +325,7 @@ BOOL RegWord_DeleteWord(HWND hDlg, INT iItem)
     if (!szText1[0] || !szText2[0] || !szText3[0])
         return FALSE;
 
-    HinshiBunrui hinshi = StringToHinshi(szText3);
+    HinshiBunrui hinshi = mz_string_to_hinshi(szText3);
     if (hinshi == HB_UNKNOWN)
         return FALSE;
 
@@ -414,7 +414,7 @@ static INT CALLBACK EnumRegWordProc(LPCTSTR lpRead, DWORD dw, LPCTSTR lpStr, LPV
     if ((dw & MZIME_REGWORD_STYLE) != MZIME_REGWORD_STYLE)
         return TRUE;
     HinshiBunrui hinshi = StyleToHinshi(dw);
-    std::wstring strHinshi = HinshiToString(hinshi);
+    std::wstring strHinshi = mz_hinshi_to_string(hinshi);
     item.iItem = iItem;
     item.iSubItem = 2;
     item.pszText = &strHinshi[0];

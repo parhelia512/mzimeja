@@ -124,7 +124,7 @@ BOOL MzIme::Init(HINSTANCE hInstance)
     m_hInst = hInstance;
     //::InitCommonControls();
 
-    MakeLiteralMaps();
+    mz_make_literal_maps();
 
     // load dict
     LoadDict();
@@ -530,7 +530,7 @@ void FreeUIExtra(HWND hwndServer)
 //////////////////////////////////////////////////////////////////////////////
 
 // ローカルファイルを検索する。
-LPCTSTR findLocalFile(LPCTSTR name)
+LPCTSTR mz_find_local_file(LPCTSTR name)
 {
     TCHAR szDir[MAX_PATH];
     ::GetModuleFileName(NULL, szDir, _countof(szDir));
@@ -560,7 +560,7 @@ LPCTSTR findLocalFile(LPCTSTR name)
 }
 
 // グラフを描画するプログラムGraphvizを探す。
-LPCTSTR findGraphviz(void)
+LPCTSTR mz_find_graphviz(void)
 {
     static std::wstring s_strPath;
     LPCTSTR str1 = TEXT("C:\\Program Files\\Graphviz\\bin\\dot.exe");

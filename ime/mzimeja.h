@@ -238,10 +238,10 @@ extern "C" {
 // convert.cpp
 extern std::map<WCHAR, Dan>  g_hiragana_to_dan;  // 母音写像。
 extern std::map<WCHAR, Gyou> g_hiragana_to_gyou; // 子音写像。
-void MakeLiteralMaps(); // 子音の写像と母音の写像を作成する。
-LPCWSTR BunruiToString(HinshiBunrui bunrui);
-LPCTSTR HinshiToString(HinshiBunrui hinshi);
-HinshiBunrui StringToHinshi(LPCTSTR str);
+void mz_make_literal_maps(); // 子音の写像と母音の写像を作成する。
+LPCWSTR mz_bunrui_to_string(HinshiBunrui bunrui);
+LPCTSTR mz_hinshi_to_string(HinshiBunrui hinshi);
+HinshiBunrui mz_string_to_hinshi(LPCTSTR str);
 
 // ui.cpp
 LRESULT CALLBACK MZIMEWndProc(HWND, UINT, WPARAM, LPARAM);
@@ -314,79 +314,79 @@ void      UnlockUIExtra(HWND hwndServer);
 void      FreeUIExtra(HWND hwndServer);
 
 // main.cpp
-LPCTSTR findLocalFile(LPCTSTR name);
-LPCTSTR findGraphviz(void);
+LPCTSTR mz_find_local_file(LPCTSTR name);
+LPCTSTR mz_find_graphviz(void);
 
 }  // extern "C"
 
 // postal.cpp
-std::wstring normalize_postal_code(const std::wstring& str);
-std::wstring convert_postal_code(const std::wstring& code);
+std::wstring mz_normalize_postal_code(const std::wstring& str);
+std::wstring mz_convert_postal_code(const std::wstring& code);
 
 //////////////////////////////////////////////////////////////////////////////
 // keychar.cpp
 
 // conversion between roman and hiragana
 std::wstring hiragana_to_roman(std::wstring hiragana);
-std::wstring roman_to_hiragana(std::wstring roman);
-std::wstring roman_to_hiragana(std::wstring roman, size_t ichTarget);
+std::wstring mz_roman_to_hiragana(std::wstring roman);
+std::wstring mz_roman_to_hiragana(std::wstring roman, size_t ichTarget);
 // conversion between roman and katakana
-std::wstring roman_to_katakana(std::wstring roman);
-std::wstring roman_to_katakana(std::wstring roman, size_t ichTarget);
+std::wstring mz_roman_to_katakana(std::wstring roman);
+std::wstring mz_roman_to_katakana(std::wstring roman, size_t ichTarget);
 // conversion between roman and halfwidth katakana
-std::wstring roman_to_halfwidth_katakana(std::wstring roman);
-std::wstring roman_to_halfwidth_katakana(std::wstring roman, size_t ichTarget);
+std::wstring mz_roman_to_halfwidth_katakana(std::wstring roman);
+std::wstring mz_roman_to_halfwidth_katakana(std::wstring roman, size_t ichTarget);
 
 // character map for kana input
-WCHAR vkey_to_hiragana(BYTE vk, BOOL bShift);
+WCHAR mz_vkey_to_hiragana(BYTE vk, BOOL bShift);
 // character map for typing keys
-WCHAR typing_key_to_char(BYTE vk, BOOL bShift, BOOL bCapsLock);
+WCHAR mz_typing_key_to_char(BYTE vk, BOOL bShift, BOOL bCapsLock);
 // dakuon (voiced consonant) processor
-WCHAR dakuon_shori(WCHAR ch0, WCHAR ch1);
+WCHAR mz_dakuon_shori(WCHAR ch0, WCHAR ch1);
 // locale-dependent string conversion
-std::wstring lcmap(const std::wstring& str, DWORD dwFlags);
+std::wstring mz_lcmap(const std::wstring& str, DWORD dwFlags);
 // convert hiragana to typing characters
-std::wstring hiragana_to_typing(std::wstring hiragana);
+std::wstring mz_hiragana_to_typing(std::wstring hiragana);
 // convert fullwidth ascii to halfwidth
-std::wstring fullwidth_ascii_to_halfwidth(const std::wstring& str);
+std::wstring mz_fullwidth_ascii_to_halfwidth(const std::wstring& str);
 
 // is the character hiragana?
-BOOL is_hiragana(WCHAR ch);
+BOOL mz_is_hiragana(WCHAR ch);
 // is the character fullwidth katakana?
-BOOL is_fullwidth_katakana(WCHAR ch);
+BOOL mz_is_fullwidth_katakana(WCHAR ch);
 // is the character halfwidth katakana?
-BOOL is_halfwidth_katakana(WCHAR ch);
+BOOL mz_is_halfwidth_katakana(WCHAR ch);
 // is the character fullwidth ascii?
-BOOL is_fullwidth_ascii(WCHAR ch);
+BOOL mz_is_fullwidth_ascii(WCHAR ch);
 // is the character kanji?
-BOOL is_kanji(WCHAR ch);
+BOOL mz_is_kanji(WCHAR ch);
 // is the character the education kanji?
-BOOL is_education_kanji(WCHAR ch);
+BOOL mz_is_education_kanji(WCHAR ch);
 // is the character the common use kanji?
-BOOL is_common_use_kanji(WCHAR ch);
+BOOL mz_is_common_use_kanji(WCHAR ch);
 // is the character fullwidth ASCII?
-BOOL is_fullwidth_ascii(WCHAR ch);
+BOOL mz_is_fullwidth_ascii(WCHAR ch);
 // are all the characters numeric?
-BOOL are_all_chars_numeric(const std::wstring& str);
+BOOL mz_are_all_chars_numeric(const std::wstring& str);
 // convert to kansuuji (Kanji number)
-std::wstring convert_to_kansuuji_1(wchar_t ch, size_t digit_level);
-std::wstring convert_to_kansuuji_4(const std::wstring& halfwidth);
-std::wstring convert_to_kansuuji(const std::wstring& str);
-std::wstring convert_to_kansuuji_brief(const std::wstring& str);
-std::wstring convert_to_kansuuji_formal(const std::wstring& str);
-std::wstring convert_to_kansuuji_brief_formal(const std::wstring& str);
+std::wstring mz_convert_to_kansuuji_1(wchar_t ch, size_t digit_level);
+std::wstring mz_convert_to_kansuuji_4(const std::wstring& halfwidth);
+std::wstring mz_convert_to_kansuuji(const std::wstring& str);
+std::wstring mz_convert_to_kansuuji_brief(const std::wstring& str);
+std::wstring mz_convert_to_kansuuji_formal(const std::wstring& str);
+std::wstring mz_convert_to_kansuuji_brief_formal(const std::wstring& str);
 // ピリオドか？
-BOOL is_period(WCHAR ch);
+BOOL mz_is_period(WCHAR ch);
 // カンマか？
-BOOL is_comma(WCHAR ch);
+BOOL mz_is_comma(WCHAR ch);
 // ハイフンか？
-BOOL is_hyphen(WCHAR ch);
+BOOL mz_is_hyphen(WCHAR ch);
 // 設定に応じて文字を変換する。
-WCHAR translateChar(WCHAR ch);
-WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii);
-WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii, BOOL bNoFullwidthSpace);
+WCHAR mz_translate_char(WCHAR ch);
+WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii);
+WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii, BOOL bNoFullwidthSpace);
 // 設定に応じて文字列を変換する。
-std::wstring translateString(const std::wstring& str);
+std::wstring mz_translate_string(const std::wstring& str);
 
 //////////////////////////////////////////////////////////////////////////////
 // LatticeNode and Lattice.

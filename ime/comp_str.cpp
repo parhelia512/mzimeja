@@ -341,18 +341,18 @@ void LogCompStr::UpdateExtraClause(DWORD iClause, DWORD dwConversion)
 {
     BOOL bRoman = (dwConversion & IME_CMODE_ROMAN);
     std::wstring str = extra.comp_str_clauses[iClause];
-    str = lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+    str = mz_lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
     if (bRoman) {
         extra.typing_clauses[iClause] =
-                lcmap(hiragana_to_roman(str), LCMAP_HALFWIDTH);
-        str = fullwidth_ascii_to_halfwidth(str);
-        str = roman_to_hiragana(str);
-        str = translateString(str);
+                mz_lcmap(hiragana_to_roman(str), LCMAP_HALFWIDTH);
+        str = mz_fullwidth_ascii_to_halfwidth(str);
+        str = mz_roman_to_hiragana(str);
+        str = mz_translate_string(str);
         extra.hiragana_clauses[iClause] = str;
     } else {
         extra.hiragana_clauses[iClause] = str;
         extra.typing_clauses[iClause] =
-                lcmap(hiragana_to_typing(str), LCMAP_HALFWIDTH);
+                mz_lcmap(mz_hiragana_to_typing(str), LCMAP_HALFWIDTH);
     }
 } // LogCompStr::UpdateExtraClause
 
@@ -380,12 +380,12 @@ void LogCompStr::UpdateFromExtra(BOOL bRoman)
     if (bRoman) {
         for (DWORD i = 0; i < GetClauseCount(); ++i) {
             std::wstring& hira = extra.hiragana_clauses[i];
-            extra.typing_clauses[i] = lcmap(hiragana_to_typing(hira), LCMAP_HALFWIDTH);
+            extra.typing_clauses[i] = mz_lcmap(mz_hiragana_to_typing(hira), LCMAP_HALFWIDTH);
         }
     } else {
         for (DWORD i = 0; i < GetClauseCount(); ++i) {
             std::wstring& hira = extra.hiragana_clauses[i];
-            extra.typing_clauses[i] = lcmap(hiragana_to_roman(hira), LCMAP_HALFWIDTH);
+            extra.typing_clauses[i] = mz_lcmap(hiragana_to_roman(hira), LCMAP_HALFWIDTH);
         }
     }
     comp_attr.assign(comp_str.size(), ATTR_CONVERTED);
@@ -395,7 +395,7 @@ void LogCompStr::UpdateFromExtra(BOOL bRoman)
 void LogCompStr::MakeHiragana()
 {
     std::wstring str =
-            lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_HIRAGANA);
+            mz_lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_HIRAGANA);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -404,7 +404,7 @@ void LogCompStr::MakeHiragana()
 void LogCompStr::MakeKatakana()
 {
     std::wstring str =
-            lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_KATAKANA);
+            mz_lcmap(extra.hiragana_clauses[extra.iClause], LCMAP_KATAKANA);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -412,7 +412,7 @@ void LogCompStr::MakeKatakana()
 // 現在の文節を半角にする。
 void LogCompStr::MakeHankaku()
 {
-    std::wstring str = lcmap(
+    std::wstring str = mz_lcmap(
             extra.hiragana_clauses[extra.iClause],
             LCMAP_HALFWIDTH | LCMAP_KATAKANA);
     SetClauseCompString(extra.iClause, str);
@@ -423,7 +423,7 @@ void LogCompStr::MakeHankaku()
 void LogCompStr::MakeZenEisuu()
 {
     std::wstring str =
-            lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
+            mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -432,7 +432,7 @@ void LogCompStr::MakeZenEisuu()
 void LogCompStr::MakeHanEisuu()
 {
     std::wstring str =
-            lcmap(extra.typing_clauses[extra.iClause], LCMAP_HALFWIDTH);
+            mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_HALFWIDTH);
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -445,31 +445,31 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     typed += chTyped;
     translated += chTranslated;
     // カタカナはひらがなに直す。
-    if (is_fullwidth_katakana(chTranslated)) {
-        translated = lcmap(translated, LCMAP_HIRAGANA);
+    if (mz_is_fullwidth_katakana(chTranslated)) {
+        translated = mz_lcmap(translated, LCMAP_HIRAGANA);
         chTranslated = translated[0];
     }
     int len = 0;
     INPUT_MODE imode = InputModeFromConversionMode(TRUE, dwConv);
     switch (imode) {
     case IMODE_FULL_HIRAGANA:
-        if (is_hiragana(chTranslated)) {
+        if (mz_is_hiragana(chTranslated)) {
             // set comp str and get delta length
             len = 1;
-            chTranslated = translateChar(chTranslated);
+            chTranslated = mz_translate_char(chTranslated);
             extra.comp_str_clauses[extra.iClause] += chTranslated;
             // set hiragana
-            chTranslated = translateChar(chTranslated);
+            chTranslated = mz_translate_char(chTranslated);
             extra.hiragana_clauses[extra.iClause] += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
-                    translated = fullwidth_ascii_to_halfwidth(translated);
-                    translated = translateString(translated);
+                    translated = mz_fullwidth_ascii_to_halfwidth(translated);
+                    translated = mz_translate_string(translated);
                     translated = hiragana_to_roman(translated);
                     extra.typing_clauses[extra.iClause] += translated;
                 } else {
-                    translated = hiragana_to_typing(translated);
+                    translated = mz_hiragana_to_typing(translated);
                     extra.typing_clauses[extra.iClause] += translated;
                 }
             } else {
@@ -480,40 +480,40 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
             str = extra.comp_str_clauses[extra.iClause];
             len = (int)str.size();
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_hiragana(str, str.size());
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_hiragana(str, str.size());
+            str = mz_translate_string(str);
             extra.comp_str_clauses[extra.iClause] = str;
             len = (int)str.size() - len;
             // set hiragana
             str = extra.hiragana_clauses[extra.iClause];
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_hiragana(str, str.size());
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_hiragana(str, str.size());
+            str = mz_translate_string(str);
             extra.hiragana_clauses[extra.iClause] = str;
             // set typing
-            chTyped = translateChar(chTyped);
+            chTyped = mz_translate_char(chTyped);
             extra.typing_clauses[extra.iClause] += chTyped;
         }
         break;
     case IMODE_FULL_KATAKANA:
-        if (is_hiragana(chTranslated)) {
+        if (mz_is_hiragana(chTranslated)) {
             // set comp str and get delta length
             len = 1;
-            extra.comp_str_clauses[extra.iClause] += lcmap(translated, LCMAP_KATAKANA);
+            extra.comp_str_clauses[extra.iClause] += mz_lcmap(translated, LCMAP_KATAKANA);
             // set hiragana
             extra.hiragana_clauses[extra.iClause] += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
-                    translated = fullwidth_ascii_to_halfwidth(translated);
+                    translated = mz_fullwidth_ascii_to_halfwidth(translated);
                     translated = hiragana_to_roman(translated);
-                    translated = translateString(translated);
+                    translated = mz_translate_string(translated);
                     extra.typing_clauses[extra.iClause] += translated;
                 } else {
-                    translated = hiragana_to_typing(translated);
-                    translated = translateString(translated);
+                    translated = mz_hiragana_to_typing(translated);
+                    translated = mz_translate_string(translated);
                     extra.typing_clauses[extra.iClause] += translated;
                 }
             } else {
@@ -524,20 +524,20 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
             str = extra.comp_str_clauses[extra.iClause];
             len = (int)str.size();
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_katakana(str, str.size());
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_katakana(str, str.size());
+            str = mz_translate_string(str);
             extra.comp_str_clauses[extra.iClause] = str;
             len = (int)str.size() - len;
             // set hiragana
             str = extra.hiragana_clauses[extra.iClause];
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_hiragana(str, str.size());
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_hiragana(str, str.size());
+            str = mz_translate_string(str);
             extra.hiragana_clauses[extra.iClause] = str;
             // set typing
-            chTyped = translateChar(chTyped);
+            chTyped = mz_translate_char(chTyped);
             extra.typing_clauses[extra.iClause] += chTyped;
         }
         break;
@@ -546,53 +546,53 @@ void LogCompStr::AddCharToEnd(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
         str = extra.comp_str_clauses[extra.iClause];
         len = (int)str.size();
         str += chTyped;
-        str = lcmap(str, LCMAP_FULLWIDTH);
+        str = mz_lcmap(str, LCMAP_FULLWIDTH);
         extra.comp_str_clauses[extra.iClause] = str;
         len = (int)str.size() - len;
         // set hiragana
         str = extra.hiragana_clauses[extra.iClause];
         str += chTyped;
-        str = fullwidth_ascii_to_halfwidth(str);
-        str = roman_to_hiragana(str);
+        str = mz_fullwidth_ascii_to_halfwidth(str);
+        str = mz_roman_to_hiragana(str);
         extra.hiragana_clauses[extra.iClause] = str;
         // set typing
         extra.typing_clauses[extra.iClause] += chTyped;
         break;
     case IMODE_HALF_KANA:
-        if (is_hiragana(chTranslated)) {
+        if (mz_is_hiragana(chTranslated)) {
             // set comp str and get delta length
             len = (int)translated.size();
             extra.comp_str_clauses[extra.iClause] +=
-                    lcmap(translated, LCMAP_KATAKANA | LCMAP_HALFWIDTH);
+                    mz_lcmap(translated, LCMAP_KATAKANA | LCMAP_HALFWIDTH);
             // set hiragana
             extra.hiragana_clauses[extra.iClause] += chTranslated;
             // set typing
             if (chTyped == chTranslated) {
                 if (bRoman) {
                     extra.typing_clauses[extra.iClause] +=
-                            hiragana_to_roman(fullwidth_ascii_to_halfwidth(translated));
+                            hiragana_to_roman(mz_fullwidth_ascii_to_halfwidth(translated));
                 } else {
                     extra.typing_clauses[extra.iClause] +=
-                            hiragana_to_typing(translated);
+                            mz_hiragana_to_typing(translated);
                 }
             } else {
                 extra.typing_clauses[extra.iClause] +=
-                        hiragana_to_typing(translated);
+                        mz_hiragana_to_typing(translated);
             }
         } else {
             // set comp str and get delta length
             str = extra.comp_str_clauses[extra.iClause];
             len = (int)str.size();
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_halfwidth_katakana(str, str.size());
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_halfwidth_katakana(str, str.size());
             extra.comp_str_clauses[extra.iClause] = str;
             len = (int)str.size() - len;
             // set hiragana
             str = extra.hiragana_clauses[extra.iClause];
             str += chTyped;
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_hiragana(str, str.size());
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_hiragana(str, str.size());
             extra.hiragana_clauses[extra.iClause] = str;
             // set typing
             extra.typing_clauses[extra.iClause] += chTyped;
@@ -614,8 +614,8 @@ void LogCompStr::InsertChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     translated += chTranslated;
     DWORD dwIndexInClause = dwCursorPos - ClauseToCompChar(extra.iClause);
     // カタカナはひらがなに直す。
-    if (is_fullwidth_katakana(chTranslated)) {
-        translated = lcmap(translated, LCMAP_HIRAGANA);
+    if (mz_is_fullwidth_katakana(chTranslated)) {
+        translated = mz_lcmap(translated, LCMAP_HIRAGANA);
         chTranslated = translated[0];
     }
     int len = 0;
@@ -623,48 +623,48 @@ void LogCompStr::InsertChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
     INPUT_MODE imode = InputModeFromConversionMode(TRUE, dwConv);
     switch (imode) {
     case IMODE_FULL_HIRAGANA:
-        if (is_hiragana(chTranslated)) {
+        if (mz_is_hiragana(chTranslated)) {
             str.insert(dwIndexInClause, translated);
             len = 1;
         } else {
             len = (int)str.size();
             str.insert(dwIndexInClause, typed);
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_hiragana(str);
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_hiragana(str);
+            str = mz_translate_string(str);
             len = (int)str.size() - len;
         }
         break;
     case IMODE_FULL_KATAKANA:
-        translated = lcmap(translated, LCMAP_KATAKANA);
-        if (is_hiragana(chTranslated)) {
+        translated = mz_lcmap(translated, LCMAP_KATAKANA);
+        if (mz_is_hiragana(chTranslated)) {
             str.insert(dwIndexInClause, translated);
             len = 1;
         } else {
             len = (int)str.size();
             str.insert(dwIndexInClause, typed);
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_katakana(str);
-            str = translateString(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_katakana(str);
+            str = mz_translate_string(str);
             len = (int)str.size() - len;
         }
         break;
     case IMODE_FULL_ASCII:
         len = (int)str.size();
         str.insert(dwIndexInClause, typed);
-        str = lcmap(str, LCMAP_FULLWIDTH);
+        str = mz_lcmap(str, LCMAP_FULLWIDTH);
         len = (int)str.size() - len;
         break;
     case IMODE_HALF_KANA:
-        translated = lcmap(translated, LCMAP_HALFWIDTH | LCMAP_KATAKANA);
-        if (is_hiragana(chTranslated)) {
+        translated = mz_lcmap(translated, LCMAP_HALFWIDTH | LCMAP_KATAKANA);
+        if (mz_is_hiragana(chTranslated)) {
             str.insert(dwIndexInClause, translated);
             len = 1;
         } else {
             len = (int)str.size();
             str.insert(dwIndexInClause, typed);
-            str = fullwidth_ascii_to_halfwidth(str);
-            str = roman_to_halfwidth_katakana(str);
+            str = mz_fullwidth_ascii_to_halfwidth(str);
+            str = mz_roman_to_halfwidth_katakana(str);
             len = (int)str.size() - len;
         }
         break;
@@ -696,7 +696,7 @@ void LogCompStr::AddChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv)
 {
     size_t size0 = comp_str.size();
     WCHAR ch = PrevCharInClause();
-    if (ch) ch = dakuon_shori(ch, chTranslated);
+    if (ch) ch = mz_dakuon_shori(ch, chTranslated);
     if (ch) {
         chTyped = L'@';
         chTranslated = ch;
@@ -779,7 +779,7 @@ void LogCompStr::RevertText()
         }
         // compare old and new string
         std::wstring old_str = extra.comp_str_clauses[extra.iClause];
-        std::wstring str = lcmap(extra.hiragana_clauses[extra.iClause],
+        std::wstring str = mz_lcmap(extra.hiragana_clauses[extra.iClause],
                                  LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
         DWORD ich = ClauseToCompChar(extra.iClause);
         if (old_str.size() < str.size()) {
@@ -813,7 +813,7 @@ void LogCompStr::MakeResult()
     for (size_t i = 0; i < count; ++i) {
         result_read_clause[i] = DWORD(result_read_str.size());
         result_read_str +=
-                lcmap(extra.hiragana_clauses[i], LCMAP_HALFWIDTH | LCMAP_KATAKANA);
+                mz_lcmap(extra.hiragana_clauses[i], LCMAP_HALFWIDTH | LCMAP_KATAKANA);
     }
     result_read_clause[count] = DWORD(result_read_str.size());
 
@@ -995,9 +995,9 @@ void LogCompStr::SetClauseCompHiragana(
     if (iClause < GetClauseCount()) {
         if (bRoman) {
             extra.typing_clauses[iClause] =
-                    hiragana_to_roman(fullwidth_ascii_to_halfwidth(str));
+                    hiragana_to_roman(mz_fullwidth_ascii_to_halfwidth(str));
         } else {
-            extra.typing_clauses[iClause] = hiragana_to_typing(str);
+            extra.typing_clauses[iClause] = mz_hiragana_to_typing(str);
         }
     }
 }
