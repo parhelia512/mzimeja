@@ -8,11 +8,11 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // 設定に応じて文字を変換する。
-WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoZenkakuAscii)
+WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii, BOOL bNoFullwidthSpace)
 {
     if (is_comma(ch)) {
         if (bCommaPeriod) {
-            if (Config_GetDWORD(L"bNoZenkakuAscii", FALSE))
+            if (bNoFullwidthAscii)
                 ch = L',';
             else
                 ch = L'，';
@@ -21,7 +21,7 @@ WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoZenkakuAscii)
         }
     } else if (is_period(ch)) {
         if (bCommaPeriod) {
-            if (bNoZenkakuAscii)
+            if (bNoFullwidthAscii)
                 ch = L'.';
             else
                 ch = L'．';
@@ -29,15 +29,25 @@ WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoZenkakuAscii)
             ch = L'。';
         }
     } else if (L'!' <= ch && ch <= L'~') {
-        if (!bNoZenkakuAscii) {
+        if (!bNoFullwidthAscii) {
             ch = (WCHAR)(ch + (L'！' - L'!'));
         }
     } else if (L'！' <= ch && ch <= L'～') {
-        if (bNoZenkakuAscii) {
+        if (bNoFullwidthAscii) {
             ch = (WCHAR)(ch - (L'！' - L'!'));
         }
     }
+    if (bNoFullwidthSpace && ch == L'　') {
+        ch = L' ';
+    }
     return ch;
+}
+
+// 設定に応じて文字を変換する。
+WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii)
+{
+    return translateChar(ch, bCommaPeriod, bNoFullwidthAscii,
+                         Config_GetDWORD(L"bNoFullwidthSpace", FALSE));
 }
 
 // 設定に応じて文字を変換する。
@@ -45,20 +55,23 @@ WCHAR translateChar(WCHAR ch)
 {
     return translateChar(ch,
                          Config_GetDWORD(L"bCommaPeriod", FALSE),
-                         Config_GetDWORD(L"bNoZenkakuAscii", FALSE));
+                         Config_GetDWORD(L"bNoFullwidthAscii", FALSE),
+                         Config_GetDWORD(L"bNoFullwidthSpace", FALSE));
 }
 
 // 設定に応じて文字列を変換する。
 std::wstring translateString(const std::wstring& str)
 {
     BOOL bCommaPeriod = Config_GetDWORD(L"bCommaPeriod", FALSE);
-    BOOL bNoZenkakuAscii = Config_GetDWORD(L"bNoZenkakuAscii", FALSE);
+    BOOL bNoFullwidthAscii = Config_GetDWORD(L"bNoFullwidthAscii", FALSE);
+    BOOL bNoFullwidthSpace = Config_GetDWORD(L"bNoFullwidthSpace", FALSE);
 
     std::wstring ret = str;
     for (size_t ich = 0; ich < ret.size(); ++ich) {
         WCHAR& ch = ret[ich];
-        ch = translateChar(ch, bCommaPeriod, bNoZenkakuAscii);
+        ch = translateChar(ch, bCommaPeriod, bNoFullwidthAscii, bNoFullwidthSpace);
     }
+
     return ret;
 }
 

@@ -171,10 +171,14 @@ GeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ::CheckDlgButton(hDlg, chx1, BST_CHECKED);
         else
             ::CheckDlgButton(hDlg, chx1, BST_UNCHECKED);
-        if (Config_GetDWORD(TEXT("bNoZenkakuAscii"), FALSE))
+        if (Config_GetDWORD(TEXT("bNoFullwidthAscii"), FALSE))
             ::CheckDlgButton(hDlg, chx2, BST_CHECKED);
         else
             ::CheckDlgButton(hDlg, chx2, BST_UNCHECKED);
+        if (Config_GetDWORD(TEXT("bNoFullwidthSpace"), FALSE))
+            ::CheckDlgButton(hDlg, chx3, BST_CHECKED);
+        else
+            ::CheckDlgButton(hDlg, chx3, BST_UNCHECKED);
         return TRUE;
 
     case WM_COMMAND:
@@ -195,9 +199,14 @@ GeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 Config_SetDWORD(TEXT("bCommaPeriod"), FALSE);
             }
             if (::IsDlgButtonChecked(hDlg, chx2) == BST_CHECKED) {
-                Config_SetDWORD(TEXT("bNoZenkakuAscii"), TRUE);
+                Config_SetDWORD(TEXT("bNoFullwidthAscii"), TRUE);
             } else {
-                Config_SetDWORD(TEXT("bNoZenkakuAscii"), FALSE);
+                Config_SetDWORD(TEXT("bNoFullwidthAscii"), FALSE);
+            }
+            if (::IsDlgButtonChecked(hDlg, chx3) == BST_CHECKED) {
+                Config_SetDWORD(TEXT("bNoFullwidthSpace"), TRUE);
+            } else {
+                Config_SetDWORD(TEXT("bNoFullwidthSpace"), FALSE);
             }
             break;
         }

@@ -383,7 +383,8 @@ BOOL is_comma(WCHAR ch);
 BOOL is_hyphen(WCHAR ch);
 // 設定に応じて文字を変換する。
 WCHAR translateChar(WCHAR ch);
-WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoZenkakuAscii);
+WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii);
+WCHAR translateChar(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii, BOOL bNoFullwidthSpace);
 // 設定に応じて文字列を変換する。
 std::wstring translateString(const std::wstring& str);
 
@@ -514,7 +515,6 @@ struct MzConvClause {
     candidates_t candidates; // 候補群。
     void sort();                                // ソートする。
     void add(const LatticeNode *node);          // ノードを追加する。
-
     void clear() {
         candidates.clear();
     }

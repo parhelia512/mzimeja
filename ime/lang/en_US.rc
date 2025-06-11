@@ -37,7 +37,8 @@ STYLE DS_NOIDLEMSG | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
 FONT 10, "MS Shell Dlg"
 {
     AUTOCHECKBOX "Use 「，」「．」 instead of 「、」「。」", chx1, 5, 5, 170, 15
-    AUTOCHECKBOX "Don't use Fullwidth ASCII", chx2, 5, 25, 170, 15
+    AUTOCHECKBOX "Don't use fullwidth ASCII", chx2, 5, 25, 170, 15
+    AUTOCHECKBOX "Prohibit fullwidth space", chx3, 5, 45, 170, 15
 }
 
 IDD_WORDLIST DIALOG 0, 0, 185, 132

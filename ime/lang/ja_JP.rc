@@ -43,6 +43,7 @@ FONT 10, "ＭＳ Ｐゴシック"
 {
     AUTOCHECKBOX "「、」「。」の代わりに「，」「．」を使用する", chx1, 5, 5, 170, 15
     AUTOCHECKBOX "全角英数を使わない", chx2, 5, 25, 170, 15
+    AUTOCHECKBOX "全角空白を禁止する", chx3, 5, 45, 170, 15
 }
 
 IDD_WORDLIST DIALOG 0, 0, 185, 132

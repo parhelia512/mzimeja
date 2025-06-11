@@ -1000,7 +1000,7 @@ void MzConvClause::add(const LatticeNode *node)
     }
     MzConvCandidate cand;
     cand.pre = node->pre;
-    cand.post = node->post;
+    cand.post = translateString(node->post);
     cand.cost = node->subtotal_cost;
     cand.word_cost = node->WordCost();
     cand.bunruis.insert(node->bunrui);
