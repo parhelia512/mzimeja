@@ -378,19 +378,19 @@ void InputContext::MakeGuideLine(DWORD dwID)
 
     // ガイドラインの基本情報を設定。
     lpGuideLine->dwSize = dwSize;
-    lpGuideLine->dwLevel = glTable[dwID].dwLevel;
-    lpGuideLine->dwIndex = glTable[dwID].dwIndex;
+    lpGuideLine->dwLevel = guideline_table[dwID].dwLevel;
+    lpGuideLine->dwIndex = guideline_table[dwID].dwIndex;
     lpGuideLine->dwStrOffset = sizeof(GUIDELINE);
     lpStr = (LPTSTR)((LPBYTE)lpGuideLine + lpGuideLine->dwStrOffset);
-    LoadString(TheIME.m_hInst, glTable[dwID].dwStrID, lpStr, MAXGLCHAR);
+    LoadString(TheIME.m_hInst, guideline_table[dwID].dwStrID, lpStr, MAXGLCHAR);
     lpGuideLine->dwStrLen = lstrlen(lpStr);
 
     // ガイドラインの余剰情報を設定する。
-    if (glTable[dwID].dwPrivateID) {
+    if (guideline_table[dwID].dwPrivateID) {
         lpGuideLine->dwPrivateOffset =
                 sizeof(GUIDELINE) + (MAXGLCHAR + 1) * sizeof(TCHAR);
         lpStr = (LPTSTR)((LPBYTE)lpGuideLine + lpGuideLine->dwPrivateOffset);
-        LoadString(TheIME.m_hInst, glTable[dwID].dwStrID, lpStr, MAXGLCHAR);
+        LoadString(TheIME.m_hInst, guideline_table[dwID].dwStrID, lpStr, MAXGLCHAR);
         lpGuideLine->dwPrivateSize = lstrlen(lpStr) * sizeof(TCHAR);
     } else {
         lpGuideLine->dwPrivateOffset = 0;

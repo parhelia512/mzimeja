@@ -9,25 +9,13 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-// The window classes for mzimeja UI windows.
-// mzimejaで使われるウィンドウクラスの名前。
-const WCHAR szUIServerClassName[] = L"MZIMEUI";
-const WCHAR szCompStrClassName[]  = L"MZIMECompStr";
-const WCHAR szCandClassName[]     = L"MZIMECand";
-const WCHAR szStatusClassName[]   = L"MZIMEStatus";
-const WCHAR szGuideClassName[]    = L"MZIMEGuide";
-
 // The table of guideline.
 // ガイドラインのテーブル。
-const MZGUIDELINE glTable[] = {
+const MZGUIDELINE guideline_table[] = {
     {GL_LEVEL_ERROR, GL_ID_NODICTIONARY, IDS_GL_NODICTIONARY, 0},
     {GL_LEVEL_WARNING, GL_ID_TYPINGERROR, IDS_GL_TYPINGERROR, 0},
-    {GL_LEVEL_WARNING, GL_ID_PRIVATE_FIRST, IDS_GL_TESTGUIDELINESTR,
-     IDS_GL_TESTGUIDELINEPRIVATE}
+    {GL_LEVEL_WARNING, GL_ID_PRIVATE_FIRST, IDS_GL_TESTGUIDELINESTR, IDS_GL_TESTGUIDELINEPRIVATE}
 };
-
-// The filename of the IME. IMEのファイル名。
-const WCHAR szImeFileName[] = L"mzimeja.ime";
 
 //////////////////////////////////////////////////////////////////////////////
 

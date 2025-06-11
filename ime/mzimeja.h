@@ -222,14 +222,15 @@ struct MZGUIDELINE {
 //////////////////////////////////////////////////////////////////////////////
 
 // ウィンドウクラス名。
-extern const WCHAR szUIServerClassName[];   // UIサーバー。
-extern const WCHAR szCompStrClassName[];    // 未確定文字列。
-extern const WCHAR szCandClassName[];       // 候補ウィンドウ。
-extern const WCHAR szStatusClassName[];     // 状態ウィンドウ。
-extern const WCHAR szGuideClassName[];      // ガイドラインウィンドウ。
+#define szUIServerClassName L"MZIMEUI" // UIサーバー。
+#define szCompStrClassName  L"MZIMECompStr" // 未確定文字列。
+#define szCandClassName     L"MZIMECand" // 候補ウィンドウ。
+#define szStatusClassName   L"MZIMEStatus" // 状態ウィンドウ。
+#define szGuideClassName    L"MZIMEGuide" // ガイドラインウィンドウ。
 
-// ガイドラインテーブル。
-extern const MZGUIDELINE glTable[];
+extern const MZGUIDELINE guideline_table[]; // ガイドラインテーブル。
+
+#define szImeFileName L"mzimeja.ime" // IMEのファイル名。
 
 //////////////////////////////////////////////////////////////////////////////
 
