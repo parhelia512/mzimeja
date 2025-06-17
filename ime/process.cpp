@@ -29,10 +29,16 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
     }
 
     // check modifiers
-    BOOL bAlt = lpbKeyState[VK_MENU] & 0x80;
-    BOOL bShift = lpbKeyState[VK_SHIFT] & 0x80;
-    BOOL bCtrl = lpbKeyState[VK_CONTROL] & 0x80;
-    BOOL bCapsLock = lpbKeyState[VK_CAPITAL] & 0x80;
+    BOOL bAlt = (lpbKeyState[VK_MENU] & 0x80) ||
+                (lpbKeyState[VK_LMENU] & 0x80) ||
+                (lpbKeyState[VK_RMENU] & 0x80);
+    BOOL bShift = (lpbKeyState[VK_SHIFT] & 0x80) ||
+                  (lpbKeyState[VK_LSHIFT] & 0x80) ||
+                  (lpbKeyState[VK_RSHIFT] & 0x80);
+    BOOL bCtrl = (lpbKeyState[VK_CONTROL] & 0x80) ||
+                 (lpbKeyState[VK_LCONTROL] & 0x80) ||
+                 (lpbKeyState[VK_RCONTROL] & 0x80);
+    BOOL bCapsLock = (lpbKeyState[VK_CAPITAL] & 0x80);
     BOOL bRoman = IsRomanMode(hIMC);
 
     // Is Ctrl down? Ctrlキーが押されているか？
@@ -406,7 +412,8 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
     FOOTMARK_FORMAT("(%p, %u, 0x%08lX, %p)\n",
                     hIMC, vKey, lKeyData, lpbKeyState);
 
-    BOOL bKeyUp = (lKeyData & 0x80000000);
+    WORD wKeyFlags = HIWORD(wKeyFlags);
+    BOOL bKeyUp = (wKeyFlags & KF_UP);
     if (bKeyUp) {
         FOOTMARK_RETURN_INT(FALSE);
     }
@@ -415,9 +422,17 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
 
     InputContext *lpIMC = TheIME.LockIMC(hIMC);
     BOOL fOpen = lpIMC->IsOpen();
-    BOOL fAlt = (lpbKeyState[VK_MENU] & 0x80);
-    BOOL fCtrl = (lpbKeyState[VK_CONTROL] & 0x80);
-    BOOL fShift = (lpbKeyState[VK_SHIFT] & 0x80);
+
+    BOOL fAlt = (wKeyFlags & KF_ALTDOWN) ||
+                (lpbKeyState[VK_MENU] & 0x80) || 
+                (lpbKeyState[VK_LMENU] & 0x80) || 
+                (lpbKeyState[VK_RMENU] & 0x80);
+    BOOL fCtrl = (lpbKeyState[VK_CONTROL] & 0x80) ||
+                 (lpbKeyState[VK_LCONTROL] & 0x80) ||
+                 (lpbKeyState[VK_RCONTROL] & 0x80);
+    BOOL fShift = (lpbKeyState[VK_SHIFT] & 0x80) ||
+                  (lpbKeyState[VK_LSHIFT] & 0x80) ||
+                  (lpbKeyState[VK_RSHIFT] & 0x80);
 
     switch (vKey) {
     case VK_KANJI: case VK_OEM_AUTO: case VK_OEM_ENLW:
