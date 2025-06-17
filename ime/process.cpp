@@ -448,7 +448,9 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
         FOOTMARK_RETURN_INT(TRUE);
     }
 
-    DPRINTA("ImeProcessKey: vKey: %u (0x%X)\n", vKey, vKey);
+    WCHAR wch = MapVirtualKeyExW(vKey, MAPVK_VK_TO_CHAR, GetKeyboardLayout(0));
+
+    DPRINTA("ImeProcessKey: vKey:%u (0x%X), wch:%lc\n", vKey, vKey, wch);
 
     InputContext *lpIMC = TheIME.LockIMC(hIMC);
     BOOL fOpen = lpIMC->IsOpen();
