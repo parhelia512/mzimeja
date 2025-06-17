@@ -19,7 +19,7 @@ UINT g_uOldVK0 = 0;
 BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
                        INPUT_MODE imode)
 {
-    FOOTMARK_FORMAT("(%p, 0x%08lX, %p, %u)\n", hIMC, wParam, lpbKeyState, (INT)imode);
+    FOOTMARK_FORMAT("(%p, %p, %p, %u)\n", hIMC, wParam, lpbKeyState, (INT)imode);
     InputContext *lpIMC;
     BYTE vk = (BYTE)wParam;
 
@@ -428,8 +428,8 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
                           CONST LPBYTE lpbKeyState)
 {
     BOOL ret = FALSE;
-    FOOTMARK_FORMAT("(%p, %u, 0x%08lX, %p)\n",
-                    hIMC, vKey, lKeyData, lpbKeyState);
+    FOOTMARK_FORMAT("(%p, %u (0x%X), 0x%lX, %p)\n",
+                    hIMC, vKey, vKey, lKeyData, lpbKeyState);
 
     WORD wKeyFlags = HIWORD(lKeyData);
     BOOL bKeyUp = (wKeyFlags & KF_UP);
@@ -448,7 +448,7 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
         FOOTMARK_RETURN_INT(TRUE);
     }
 
-    DPRINTA("ImeProcessKey: vKey: %u\n", vKey);
+    DPRINTA("ImeProcessKey: vKey: %u (0x%X)\n", vKey, vKey);
 
     InputContext *lpIMC = TheIME.LockIMC(hIMC);
     BOOL fOpen = lpIMC->IsOpen();
@@ -605,8 +605,8 @@ UINT WINAPI ImeToAsciiEx(UINT uVKey, UINT uScanCode, CONST LPBYTE lpbKeyState,
                          LPTRANSMSGLIST lpTransBuf, UINT fuState, HIMC hIMC)
 {
     UINT ret = 0;
-    FOOTMARK_FORMAT("(%u, %u, %p, %p, %u, %p)\n",
-                    uVKey, uScanCode, lpbKeyState, lpTransBuf, fuState, hIMC);
+    FOOTMARK_FORMAT("(%u (0x%X), 0x%X, %p, %p, 0x%X, %p)\n",
+                    uVKey, uVKey, uScanCode, lpbKeyState, lpTransBuf, fuState, hIMC);
 
     TheIME.m_lpCurTransKey = lpTransBuf;
     TheIME.m_uNumTransKey = 0;
