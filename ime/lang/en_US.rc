@@ -29,6 +29,36 @@ STATUSRMENU MENU
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// RT_VERSION
+
+1 VERSIONINFO
+FILEVERSION     0, 9, 9, 2
+PRODUCTVERSION  0, 9, 9, 2
+FILEOS          0x0004
+FILETYPE        0x3
+FILESUBTYPE     0xB
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904E4"
+        {
+            VALUE "CompanyName", "katahiromz\0"
+            VALUE "FileDescription", "MZ-IME Japanese Input 0.9.9.2\0"
+            VALUE "FileVersion", "0.9.9.2\0"
+            VALUE "InternalName", "mzimeja\0"
+            VALUE "LegalCopyright", "Copyright (C) 2016-2025 katahiromz.\0"
+            VALUE "OriginalFilename", "mzimeja.ime\0"
+            VALUE "ProductName", "MZ-IME Japanese Input\0"
+            VALUE "ProductVersion", "0.9.9.2\0"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0409, 0x04E4
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // RT_DIALOG
 
 IDD_GENERAL DIALOG 0, 0, 185, 132

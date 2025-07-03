@@ -141,10 +141,10 @@ FILESUBTYPE     0xB
         BLOCK "041103A4"
         {
             VALUE "CompanyName", "片山博文MZ\0"
-            VALUE "FileDescription", "MZ-IME日本語入力 0.0\0"
+            VALUE "FileDescription", "MZ-IME日本語入力 0.9.9.2\0"
             VALUE "FileVersion", "0.9.9.2\0"
             VALUE "InternalName", "mzimeja\0"
-            VALUE "LegalCopyright", "Copyright (C) 2016-2023 片山博文MZ.\0"
+            VALUE "LegalCopyright", "Copyright (C) 2016-2025 片山博文MZ.\0"
             VALUE "OriginalFilename", "mzimeja.ime\0"
             VALUE "ProductName", "MZ-IME日本語入力\0"
             VALUE "ProductVersion", "0.9.9.2\0"
