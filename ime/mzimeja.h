@@ -110,6 +110,17 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
+static inline BOOL
+InvalidateRectWrap(HWND hwnd, LPCRECT prc, BOOL bErase, const char *file, INT lineno)
+{
+    if (!hwnd)
+        DPRINTA("InvalidateRect(NULL) detected at File %s, Line %d\n", file, lineno);
+    return InvalidateRect(hwnd, prc, bErase);
+}
+#define InvalidateRect(hwnd, prc, bErase) InvalidateRectWrap(hwnd, prc, bErase, __FILE__, __LINE__)
+
+//////////////////////////////////////////////////////////////////////////////
+
 // For limit of MZ-IME.
 // MZ-IMEの制限。
 #define MAXCOMPWND  10  // maximum number of composition windows
