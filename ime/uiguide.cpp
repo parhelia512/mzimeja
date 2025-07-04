@@ -23,7 +23,7 @@ LRESULT CALLBACK GuideWnd_WindowProc(HWND hWnd, UINT message, WPARAM wParam,
         break;
 
     case WM_UI_UPDATE: // UIを更新する時。
-        InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRectWrap(hWnd, NULL, FALSE, __FILE__, __LINE__);
         break;
 
     case WM_PAINT: // 描画時。

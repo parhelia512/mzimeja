@@ -387,7 +387,7 @@ void CandWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
         DPRINTA("%d, %d, %d, %d\n", pt.x, pt.y, cx, cy);
         ::MoveWindow(hwndCand, pt.x, pt.y, cx, cy, TRUE);
         ::ShowWindow(hwndCand, SW_SHOWNOACTIVATE);
-        ::InvalidateRect(hwndCand, NULL, FALSE);
+        InvalidateRectWrap(hwndCand, NULL, FALSE, __FILE__, __LINE__);
 
         // 動いたことをUIサーバーに通知。
         ::SendMessage(hSvrWnd, WM_UI_CANDMOVE, 0, 0);
@@ -421,7 +421,7 @@ void CandWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
         DPRINTA("%d, %d, %d, %d\n", pt.x, pt.y, cx, cy);
         ::MoveWindow(hwndCand, pt.x, pt.y, cx, cy, TRUE);
         ::ShowWindow(hwndCand, SW_SHOWNOACTIVATE);
-        ::InvalidateRect(hwndCand, NULL, FALSE);
+        InvalidateRectWrap(hwndCand, NULL, FALSE, __FILE__, __LINE__);
     }
 
     // 動いたことをUIサーバーに通知。

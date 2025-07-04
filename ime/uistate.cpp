@@ -473,7 +473,7 @@ StatusWnd_WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_UI_UPDATE: // UI更新時。
-        ::InvalidateRect(hWnd, NULL, FALSE);
+        InvalidateRectWrap(hWnd, NULL, FALSE, __FILE__, __LINE__);
         break;
 
     case WM_LBUTTONUP: // 左ボタン解放時。

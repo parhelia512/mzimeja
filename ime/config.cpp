@@ -472,7 +472,7 @@ WordListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 SetWindowRedraw(hLst1, FALSE);
                 WordList_PopulateList(hDlg);
                 SetWindowRedraw(hLst1, TRUE);
-                InvalidateRect(hLst1, NULL, TRUE);
+                InvalidateRectWrap(hLst1, NULL, TRUE, __FILE__, __LINE__);
             }
             break;
         case psh2: // 削除。

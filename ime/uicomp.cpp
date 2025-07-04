@@ -294,7 +294,7 @@ void CompWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
                         ::SetWindowLongPtr(hwnd, FIGWL_COMPSTARTNUM, 0);
                         ::ShowWindow(hwnd, SW_HIDE);
                     }
-                    ::InvalidateRect(hwnd, NULL, FALSE);
+                    InvalidateRectWrap(hwnd, NULL, FALSE, __FILE__, __LINE__);
 
                     dx = rcSrc.right - rcSrc.left;
                     curx = rcSrc.left;
@@ -345,7 +345,7 @@ void CompWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
                         ::SetWindowLongPtr(hwnd, FIGWL_COMPSTARTNUM, 0);
                         ::ShowWindow(hwnd, SW_HIDE);
                     }
-                    ::InvalidateRect(hwnd, NULL, FALSE);
+                    InvalidateRectWrap(hwnd, NULL, FALSE, __FILE__, __LINE__);
 
                     dy = rcSrc.bottom - rcSrc.top;
                     cury = rcSrc.top;
@@ -404,7 +404,7 @@ void CompWnd_Move(UIEXTRA *lpUIExtra, InputContext *lpIMC)
             ::ShowWindow(hwndDef, SW_SHOWNOACTIVATE);
 
             // redraw window
-            ::InvalidateRect(hwndDef, NULL, FALSE);
+            InvalidateRectWrap(hwndDef, NULL, FALSE, __FILE__, __LINE__);
         }
     }
 } // CompWnd_Move
