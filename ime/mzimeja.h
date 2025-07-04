@@ -117,7 +117,8 @@ InvalidateRectWrap(HWND hwnd, LPCRECT prc, BOOL bErase, const char *file, INT li
         DPRINTA("InvalidateRect(NULL) detected at File %s, Line %d\n", file, lineno);
     return InvalidateRect(hwnd, prc, bErase);
 }
-#define InvalidateRect(hwnd, prc, bErase) InvalidateRectWrap(hwnd, prc, bErase, __FILE__, __LINE__)
+#define InvalidateRect(hwnd, prc, bErase) \
+    InvalidateRectWrap((hwnd), (prc), (bErase), __FILE__, __LINE__)
 
 //////////////////////////////////////////////////////////////////////////////
 
