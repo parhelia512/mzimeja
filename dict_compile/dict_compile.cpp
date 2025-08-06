@@ -359,13 +359,13 @@ BOOL CreateDictFile(const wchar_t *fname, const std::vector<DictEntry>& entries)
         memcpy(pch, entry.pre.c_str(), cch * sizeof(WCHAR));
         pch += cch;
         *pch++ = FIELD_SEP;
-        // MAKEWORD(bunrui, gyou) \t
-        *pch++ = MAKEWORD(entry.bunrui, entry.gyou);
-        *pch++ = FIELD_SEP;
         // post \t
         cch = entry.post.size();
         memcpy(pch, entry.post.c_str(), cch * sizeof(WCHAR));
         pch += cch;
+        *pch++ = FIELD_SEP;
+        // MAKEWORD(bunrui, gyou) \t
+        *pch++ = MAKEWORD(entry.bunrui, entry.gyou);
         *pch++ = FIELD_SEP;
         // tags
         cch = entry.tags.size();
