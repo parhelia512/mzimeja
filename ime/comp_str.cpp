@@ -819,6 +819,7 @@ void LogCompStr::MakeResult()
 
     result_clause = comp_clause;
     result_str = comp_str;
+
     clear_read();
     clear_comp();
     clear_extra();

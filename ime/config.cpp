@@ -179,14 +179,35 @@ GeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ::CheckDlgButton(hDlg, chx3, BST_CHECKED);
         else
             ::CheckDlgButton(hDlg, chx3, BST_UNCHECKED);
+        if (Config_GetDWORD(TEXT("bFullwidthKatakanaYuusen"), FALSE))
+            ::CheckDlgButton(hDlg, chx4, BST_CHECKED);
+        else
+            ::CheckDlgButton(hDlg, chx4, BST_UNCHECKED);
+        if (Config_GetDWORD(TEXT("bHalfwidthKanaYuusen"), FALSE))
+            ::CheckDlgButton(hDlg, chx5, BST_CHECKED);
+        else
+            ::CheckDlgButton(hDlg, chx5, BST_UNCHECKED);
         return TRUE;
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case chx1:
         case chx2:
+        case chx3:
             PropSheet_Changed(::GetParent(hDlg), hDlg);
             break;
+        case chx4:
+            if (IsDlgButtonChecked(hDlg, chx4) == BST_CHECKED)
+                CheckDlgButton(hDlg, chx5, BST_UNCHECKED);
+            else
+                CheckDlgButton(hDlg, chx5, BST_CHECKED);
+            PropSheet_Changed(::GetParent(hDlg), hDlg);
+        case chx5:
+            if (IsDlgButtonChecked(hDlg, chx5) == BST_CHECKED)
+                CheckDlgButton(hDlg, chx4, BST_UNCHECKED);
+            else
+                CheckDlgButton(hDlg, chx4, BST_CHECKED);
+            PropSheet_Changed(::GetParent(hDlg), hDlg);
         }
         break;
 
@@ -207,6 +228,16 @@ GeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 Config_SetDWORD(TEXT("bNoFullwidthSpace"), TRUE);
             } else {
                 Config_SetDWORD(TEXT("bNoFullwidthSpace"), FALSE);
+            }
+            if (::IsDlgButtonChecked(hDlg, chx4) == BST_CHECKED) {
+                Config_SetDWORD(TEXT("bFullwidthKatakanaYuusen"), TRUE);
+            } else {
+                Config_SetDWORD(TEXT("bFullwidthKatakanaYuusen"), FALSE);
+            }
+            if (::IsDlgButtonChecked(hDlg, chx5) == BST_CHECKED) {
+                Config_SetDWORD(TEXT("bHalfwidthKanaYuusen"), TRUE);
+            } else {
+                Config_SetDWORD(TEXT("bHalfwidthKanaYuusen"), FALSE);
             }
             break;
         }

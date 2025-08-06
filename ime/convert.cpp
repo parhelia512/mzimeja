@@ -1031,6 +1031,26 @@ compare_candidate_by_post(const MzConvCandidate& cand1, const MzConvCandidate& c
 // コストで候補をソートする。
 void MzConvClause::sort()
 {
+    // 全角カタカナを優先するか？
+    if (Config_GetDWORD(TEXT("bFullwidthKatakanaYuusen"), FALSE))
+    {
+        candidates_t::iterator it, end = candidates.end();
+        for (it = candidates.begin(); it != end; ++it)
+        {
+            it->post = mz_lcmap(it->post, LCMAP_FULLWIDTH | LCMAP_KATAKANA);
+        }
+    }
+
+    // 半角カナを優先するか？
+    if (Config_GetDWORD(TEXT("bHalfwidthKanaYuusen"), FALSE))
+    {
+        candidates_t::iterator it, end = candidates.end();
+        for (it = candidates.begin(); it != end; ++it)
+        {
+            it->post = mz_lcmap(it->post, LCMAP_HALFWIDTH | LCMAP_KATAKANA);
+        }
+    }
+
     std::sort(candidates.begin(), candidates.end(), compare_candidate);
     candidates.erase(std::unique(candidates.begin(), candidates.end(), compare_candidate_by_post),
         candidates.end()
