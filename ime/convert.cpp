@@ -1051,6 +1051,18 @@ void MzConvClause::sort()
         }
     }
 
+    // 「ー」を「～」に変換したものを追加する。
+    for (size_t i = 0; i < candidates.size(); ++i)
+    {
+        MzConvCandidate& cand = candidates[i];
+        if (cand.post.find(L"ー") != cand.post.npos)
+        {
+            MzConvCandidate copyed = cand;
+            str_replace_all(copyed.post, L"ー", L"～");
+            candidates.push_back(copyed);
+        }
+    }
+
     std::sort(candidates.begin(), candidates.end(), compare_candidate);
     candidates.erase(std::unique(candidates.begin(), candidates.end(), compare_candidate_by_post),
         candidates.end()
