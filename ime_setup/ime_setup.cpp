@@ -175,7 +175,7 @@ HKL GetImeHKL(VOID)
     szHKL[_countof(szHKL) - 1] = UNICODE_NULL;
     if (!error)
     {
-        hKL = (HKL)wcstoul(szHKL, NULL, 16);
+        hKL = (HKL)UlongToHandle(wcstoul(szHKL, NULL, 16));
     }
     RegCloseKey(hKey);
     return hKL;
@@ -190,7 +190,7 @@ BOOL SetImeHKL(HKL hKL)
         return NULL;
 
     WCHAR szHKL[16];
-    wsprintfW(szHKL, L"%08X", (DWORD)hKL);
+    wsprintfW(szHKL, L"%08X", HandleToUlong(hKL));
     DWORD cbHKL = lstrlenW(szHKL) * sizeof(WCHAR);
     error = RegSetValueExW(hKey, L"szHKL", 0, REG_SZ, (PBYTE)szHKL, cbHKL);
     RegCloseKey(hKey);
@@ -230,7 +230,7 @@ HKL FindImeHKL(VOID)
 
         if (lstrcmpiW(szImeFile, L"mzimeja.ime") == 0)
         {
-            hKL = (HKL)wcstoul(szSubKey, NULL, 16);
+            hKL = (HKL)UlongToHandle(wcstoul(szSubKey, NULL, 16));
             break;
         }
     }
@@ -254,7 +254,7 @@ INT DoSetRegistry1(VOID) {
     if (!error)
     {
         WCHAR szSubKey[32];
-        wsprintfW(szSubKey, L"%08X", (DWORD)hKL);
+        wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
 
         HKEY hkLayouts;
         error = CreateRegKey(hKey, szSubKey, &hkLayouts);
@@ -389,7 +389,7 @@ INT DoUnsetRegistry1(VOID) {
     if (result == ERROR_SUCCESS && hKey) {
         HKL hKL = GetImeHKL();
         WCHAR szSubKey[16];
-        wsprintfW(szSubKey, L"%08X", (DWORD)hKL);
+        wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
 
         result = MyDeleteRegKey(hKey, szSubKey);
         if (result == ERROR_SUCCESS) {
