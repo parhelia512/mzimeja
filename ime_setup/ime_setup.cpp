@@ -160,20 +160,113 @@ BOOL DoSetRegSz(HKEY hKey, const WCHAR *pszName, const WCHAR *pszValue) {
 static const WCHAR s_szKeyboardLayouts[] =
         L"SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts";
 
+HKL GetImeHKL(VOID)
+{
+    LSTATUS error;
+    HKEY hKey;
+    error = OpenRegKey(HKEY_CURRENT_USER, L"SOFTWARE\\Katayama Hirofumi MZ\\mzimeja", FALSE, &hKey);
+    if (error != ERROR_SUCCESS)
+        return NULL;
+
+    WCHAR szHKL[16];
+    DWORD cbHKL = sizeof(szHKL);
+    HKL hKL = NULL;
+    error = RegQueryValueExW(hKey, L"szHKL", NULL, NULL, (PBYTE)szHKL, &cbHKL);
+    szHKL[_countof(szHKL) - 1] = UNICODE_NULL;
+    if (!error)
+    {
+        hKL = (HKL)wcstoul(szHKL, NULL, 16);
+    }
+    RegCloseKey(hKey);
+    return hKL;
+}
+
+BOOL SetImeHKL(HKL hKL)
+{
+    LSTATUS error;
+    HKEY hKey;
+    error = CreateRegKey(HKEY_CURRENT_USER, L"SOFTWARE\\Katayama Hirofumi MZ\\mzimeja", &hKey);
+    if (error != ERROR_SUCCESS)
+        return NULL;
+
+    WCHAR szHKL[16];
+    wsprintfW(szHKL, L"%08X", (DWORD)hKL);
+    DWORD cbHKL = lstrlenW(szHKL) * sizeof(WCHAR);
+    error = RegSetValueExW(hKey, L"szHKL", 0, REG_SZ, (PBYTE)szHKL, cbHKL);
+    RegCloseKey(hKey);
+    return !error;
+}
+
+HKL FindImeHKL(VOID)
+{
+    HKEY hKey;
+    LSTATUS error = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, FALSE, &hKey);
+    if (error)
+        return NULL;
+
+    WCHAR szSubKey[MAX_PATH];
+    DWORD cchSubKey;
+    HKEY hSubKey;
+    HKL hKL = NULL;
+    for (DWORD dwIndex = 0; ; ++dwIndex)
+    {
+        cchSubKey = _countof(szSubKey);
+        error = RegEnumKeyExW(hKey, dwIndex, szSubKey, &cchSubKey, NULL, NULL, NULL, NULL);
+        if (error)
+            break;
+
+        error = OpenRegKey(hKey, szSubKey, FALSE, &hSubKey);
+        if (error)
+            break;
+
+        WCHAR szImeFile[32];
+        DWORD cbImeFile = sizeof(szImeFile);
+        error = RegQueryValueExW(hSubKey, L"IME File", NULL, NULL, (PBYTE)szImeFile, &cbImeFile);
+        szImeFile[_countof(szImeFile) - 1] = UNICODE_NULL;
+        RegCloseKey(hSubKey);
+
+        if (error)
+            continue;
+
+        if (lstrcmpiW(szImeFile, L"mzimeja.ime") == 0)
+        {
+            hKL = (HKL)wcstoul(szSubKey, NULL, 16);
+            break;
+        }
+    }
+
+    RegCloseKey(hKey);
+    return hKL;
+}
+
 INT DoSetRegistry1(VOID) {
+    // IMEのHKLを探す。
+    HKL hKL = FindImeHKL();
+    if (!hKL)
+        return -1;
+
+    // IMEのHKLを覚えておく。
+    SetImeHKL(hKL);
+
     BOOL ret = FALSE;
     HKEY hKey;
-    LONG result = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, TRUE, &hKey);
-    if (result == ERROR_SUCCESS && hKey) {
+    LONG error = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, TRUE, &hKey);
+    if (!error)
+    {
+        WCHAR szSubKey[32];
+        wsprintfW(szSubKey, L"%08X", (DWORD)hKL);
+
         HKEY hkLayouts;
-        result = CreateRegKey(hKey, L"E0E20411", &hkLayouts);
-        if (result == ERROR_SUCCESS && hkLayouts) {
-            if (DoSetRegSz(hkLayouts, L"Layout File", L"kbdjpn.kbd") &&
-                DoSetRegSz(hkLayouts, L"Layout Text", DoLoadString(IDS_IMELAYOUTTEXT)) &&
-                DoSetRegSz(hkLayouts, L"Layout Display Name", L"@%SystemRoot%\\system32\\mzimeja.ime,-1024") &&
-                DoSetRegSz(hkLayouts, L"IME File", L"mzimeja.ime"))
+        error = CreateRegKey(hKey, szSubKey, &hkLayouts);
+        if (!error)
+        {
+            if (DoSetRegSz(hkLayouts, L"Layout Text", DoLoadString(IDS_IMELAYOUTTEXT)))
             {
-                ret = TRUE;
+                LPCWSTR pszValue = L"@%SystemRoot%\\system32\\mzimeja.ime,-1024";
+                DWORD cbValue = (lstrlenW(pszValue) + 1) * sizeof(WCHAR);
+                error = RegSetValueExW(hkLayouts, L"Layout Display Name", 0, REG_EXPAND_SZ, (PBYTE)pszValue, cbValue);
+                if (!error)
+                    ret = TRUE;
             }
             RegCloseKey(hkLayouts);
         }
@@ -184,50 +277,39 @@ INT DoSetRegistry1(VOID) {
 
 INT DoSetRegistry2(HKEY hBaseKey) {
     BOOL ret = FALSE;
-    HKEY hKey;
-    LONG result = OpenRegKey(hBaseKey, L"SOFTWARE", TRUE, &hKey);
-    if (result == ERROR_SUCCESS && hKey) {
-        HKEY hkCompany;
-        result = CreateRegKey(hKey, L"Katayama Hirofumi MZ", &hkCompany);
-        if (result == ERROR_SUCCESS && hkCompany) {
-            HKEY hkSoftware;
-            result = CreateRegKey(hkCompany, L"mzimeja", &hkSoftware);
-            if (result == ERROR_SUCCESS && hkSoftware) {
-                TCHAR szBasicDictPath[MAX_PATH];
-                TCHAR szNameDictPath[MAX_PATH];
-                TCHAR szPostalDictPath[MAX_PATH];
-                TCHAR szKanjiPath[MAX_PATH];
-                TCHAR szRadicalPath[MAX_PATH];
-                TCHAR szImePadPath[MAX_PATH];
-                TCHAR szVerInfoPath[MAX_PATH];
-                TCHAR szReadMePath[MAX_PATH];
+    HKEY hkSoftware;
+    LONG result = CreateRegKey(HKEY_CURRENT_USER, L"SOFTWARE\\Katayama Hirofumi MZ\\mzimeja", &hkSoftware);
+    if (result == ERROR_SUCCESS && hkSoftware) {
+        TCHAR szBasicDictPath[MAX_PATH];
+        TCHAR szNameDictPath[MAX_PATH];
+        TCHAR szPostalDictPath[MAX_PATH];
+        TCHAR szKanjiPath[MAX_PATH];
+        TCHAR szRadicalPath[MAX_PATH];
+        TCHAR szImePadPath[MAX_PATH];
+        TCHAR szVerInfoPath[MAX_PATH];
+        TCHAR szReadMePath[MAX_PATH];
 
-                GetBasicDictPathName(szBasicDictPath);
-                GetNameDictPathName(szNameDictPath);
-                GetPostalDictPathName(szPostalDictPath);
-                GetKanjiDataPathName(szKanjiPath);
-                GetRadicalDataPathName(szRadicalPath);
-                GetImePadPathName(szImePadPath);
-                GetVerInfoPathName(szVerInfoPath);
-                GetReadMePathName(szReadMePath);
+        GetBasicDictPathName(szBasicDictPath);
+        GetNameDictPathName(szNameDictPath);
+        GetPostalDictPathName(szPostalDictPath);
+        GetKanjiDataPathName(szKanjiPath);
+        GetRadicalDataPathName(szRadicalPath);
+        GetImePadPathName(szImePadPath);
+        GetVerInfoPathName(szVerInfoPath);
+        GetReadMePathName(szReadMePath);
 
-                if (
-                        DoSetRegSz(hkSoftware, L"BasicDictPathName", szBasicDictPath) &&
-                        DoSetRegSz(hkSoftware, L"NameDictPathName", szNameDictPath) &&
-                        DoSetRegSz(hkSoftware, L"PostalDictPathName", szPostalDictPath) &&
-                        DoSetRegSz(hkSoftware, L"KanjiDataFile", szKanjiPath) &&
-                        DoSetRegSz(hkSoftware, L"RadicalDataFile", szRadicalPath) &&
-                        DoSetRegSz(hkSoftware, L"ImePadFile", szImePadPath) &&
-                        DoSetRegSz(hkSoftware, L"VerInfoFile", szVerInfoPath) &&
-                        DoSetRegSz(hkSoftware, L"ReadMeFile", szReadMePath))
-                {
-                    ret = TRUE;
-                }
-                RegCloseKey(hkSoftware);
-            }
-            RegCloseKey(hkCompany);
+        if (DoSetRegSz(hkSoftware, L"BasicDictPathName", szBasicDictPath) &&
+            DoSetRegSz(hkSoftware, L"NameDictPathName", szNameDictPath) &&
+            DoSetRegSz(hkSoftware, L"PostalDictPathName", szPostalDictPath) &&
+            DoSetRegSz(hkSoftware, L"KanjiDataFile", szKanjiPath) &&
+            DoSetRegSz(hkSoftware, L"RadicalDataFile", szRadicalPath) &&
+            DoSetRegSz(hkSoftware, L"ImePadFile", szImePadPath) &&
+            DoSetRegSz(hkSoftware, L"VerInfoFile", szVerInfoPath) &&
+            DoSetRegSz(hkSoftware, L"ReadMeFile", szReadMePath))
+        {
+            ret = TRUE;
         }
-        RegCloseKey(hKey);
+        RegCloseKey(hkSoftware);
     }
     return (ret ? 0 : -1);
 } // DoSetRegistry2
@@ -305,7 +387,11 @@ INT DoUnsetRegistry1(VOID) {
                                s_szKeyboardLayouts, 0, KEY_ALL_ACCESS, &hKey);
     }
     if (result == ERROR_SUCCESS && hKey) {
-        result = MyDeleteRegKey(hKey, L"E0E20411");
+        HKL hKL = GetImeHKL();
+        WCHAR szSubKey[16];
+        wsprintfW(szSubKey, L"%08X", (DWORD)hKL);
+
+        result = MyDeleteRegKey(hKey, szSubKey);
         if (result == ERROR_SUCCESS) {
             ret = TRUE;
         }
@@ -336,38 +422,9 @@ INT DoUnsetRegistry2(VOID) {
     return (ret ? 0 : -1);
 } // DoUnsetRegistry2
 
-INT DoMakeMZIMEJADefault(VOID)
-{
-    HKEY hKey;
-    LONG error;
-    error = RegOpenKeyExW(HKEY_CURRENT_USER, L"Keyboard Layout\\Preload", 0,
-                          KEY_READ | KEY_WRITE, &hKey);
-    if (error != ERROR_SUCCESS) {
-        return -1;
-    }
-
-    WCHAR szValue[MAX_PATH];
-    for (DWORD dwIndex = 1; dwIndex < 32; ++dwIndex) {
-        ::wsprintfW(szValue, L"%u", dwIndex);
-        error = RegDeleteValueW(hKey, szValue);
-        if (error != ERROR_SUCCESS)
-            break;
-    }
-
-    error = RegSetValueExW(hKey, L"1", 0, REG_SZ, (LPBYTE)L"E0E20411", (8 + 1) * sizeof(WCHAR));
-
-    RegCloseKey(hKey);
-    return (error ? -1 : 0);
-}
-
 //////////////////////////////////////////////////////////////////////////////
 
 INT DoInstall(VOID) {
-    if (0 != DoSetRegistry1()) {
-        // failure
-        ::MessageBoxW(NULL, DoLoadString(IDS_REGFAILED), NULL, MB_ICONERROR);
-        return 2;
-    }
     if (0 != DoSetRegistry2(HKEY_LOCAL_MACHINE) ||
         0 != DoSetRegistry2(HKEY_CURRENT_USER))
     {
@@ -392,6 +449,12 @@ INT DoInstall(VOID) {
         ::wsprintfW(szMsg, DoLoadString(IDS_FAILDOCONTACT), dwError);
         ::MessageBoxW(NULL, szMsg, NULL, MB_ICONERROR);
         return 3;
+    }
+
+    if (0 != DoSetRegistry1()) {
+        // failure
+        ::MessageBoxW(NULL, DoLoadString(IDS_REGFAILED), NULL, MB_ICONERROR);
+        return 2;
     }
 
     HINSTANCE hInputDll = LoadLibraryEx(TEXT("input.dll"), NULL, LOAD_LIBRARY_AS_DATAFILE);
