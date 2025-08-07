@@ -108,4 +108,9 @@ struct DictEntry {
     HinshiBunrui bunrui;    // 品詞分類。
     std::wstring tags;      // タグ。
     Gyou gyou;              // 活用の行。
+    DictEntry()
+    {
+        bunrui = HB_UNKNOWN;
+        gyou = GYOU_NN;
+    }
 };

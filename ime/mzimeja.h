@@ -508,6 +508,8 @@ struct MzConvCandidate {
         : cost(0)
         , word_cost(0)
     {
+        bunrui = HB_UNKNOWN;
+        katsuyou = MIZEN_KEI;
     }
 
     void clear() {

@@ -440,7 +440,7 @@ void DrawTextOneLine(HWND hCompWnd, HDC hDC, const WCHAR *pch,
     // 文字列描画において不透明モードにする。
     ::SetBkMode(hDC, OPAQUE);
 
-    SIZE siz;
+    SIZE siz = { 0, 0 };
     const WCHAR *lpEnd = &pch[cch]; // 文字列終端の位置。
 
     while (pch < lpEnd) { // 一文字ずつ描画する。

@@ -67,6 +67,7 @@ MzIme::MzIme()
 
     m_hIMC = NULL;
     m_lpIMC = NULL;
+    ZeroMemory(m_atoms, sizeof(m_atoms));
 }
 
 // mzimejaの辞書を読み込む。

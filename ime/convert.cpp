@@ -115,6 +115,10 @@ LPCWSTR mz_bunrui_to_string(HinshiBunrui bunrui)
         L"HB_SYMBOL"
     };
     ASSERT(index <= HB_MAX);
+#ifndef NDEBUG
+    if (index <= HB_MAX)
+        return L"";
+#endif
     return s_array[index];
 } // mz_bunrui_to_string
 

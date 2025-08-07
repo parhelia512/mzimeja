@@ -37,6 +37,13 @@ struct KANJI_ENTRY {
     WORD radical_id2;
     WORD strokes;
     std::wstring readings;
+    KANJI_ENTRY()
+    {
+        kanji_id = 0;
+        kanji_char = 0;
+        radical_id2 = 0;
+        strokes = 0;
+    }
 };
 
 struct RADICAL_ENTRY {
@@ -44,6 +51,12 @@ struct RADICAL_ENTRY {
     WORD radical_id2;
     WORD strokes;
     std::wstring readings;
+    RADICAL_ENTRY()
+    {
+        radical_id = 0;
+        radical_id2 = 0;
+        strokes = 0;
+    }
 };
 
 const WCHAR szImePadClassName[] = L"MZIMEPad";
@@ -317,6 +330,8 @@ ImePad::ImePad() {
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
     m_hwndOld = NULL;
+    m_hTabCtrl = NULL;
+    m_hListView = NULL;
 }
 
 ImePad::~ImePad() {
@@ -739,6 +754,7 @@ void ImePad::OnLV1StrokesChanged(HWND hWnd) {
 
     TCHAR sz[32];
     SendMessage(m_hListBox1, LB_GETTEXT, i, (LPARAM)sz);
+    sz[_countof(sz) - 1] = 0;
     int strokes = _ttoi(sz);
 
     LV_ITEMW lv_item;

@@ -55,12 +55,16 @@ struct FootmarkLocation {
     };
 
     FootmarkLocation() : m_file(NULL), m_line(0), m_func(NULL),
-        m_entered(false), m_retval_type(RETVAL_NONE) {
+        m_entered(false), m_retval_type(RETVAL_NONE) 
+    {
+        m_retval_lparam = 0;
     }
 
     FootmarkLocation(const char *file, int line, const char *func) :
         m_file(file), m_line(line), m_func(func), m_entered(true),
-        m_retval_type(RETVAL_NONE) {
+        m_retval_type(RETVAL_NONE) 
+    {
+        m_retval_lparam = 0;
         Enter();
     }
 

@@ -61,7 +61,7 @@ void COMPSTREXTRA::GetLog(LogCompStrExtra& log)
     if (pch && dwCount) {
         while (dwCount--) {
             log.hiragana_clauses.push_back(pch);
-            pch += lstrlenW(pch) + 1;
+            pch += wcslen(pch) + 1;
         }
     }
 
@@ -69,7 +69,7 @@ void COMPSTREXTRA::GetLog(LogCompStrExtra& log)
     if (pch && dwCount) {
         while (dwCount--) {
             log.typing_clauses.push_back(pch);
-            pch += lstrlenW(pch) + 1;
+            pch += wcslen(pch) + 1;
         }
     }
 } // COMPSTREXTRA::GetLog
