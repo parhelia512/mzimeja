@@ -1,6 +1,6 @@
-set VERSION=1.0.0.0
-set DEST_DIR=mzimeja-%VERSION%-low-level-setup
-set OUTPUT=mzimeja-%VERSION%-low-level-setup.exe
+set VERSION=1.0.0.1
+set DEST_DIR=mzimeja-%VERSION%-LL-setup
+set OUTPUT=mzimeja-%VERSION%-LL-setup.exe
 if not exist "%DEST_DIR%" mkdir "%DEST_DIR%"
 if not exist "%DEST_DIR%\x86" mkdir "%DEST_DIR%\x86"
 if exist archive.7z del archive.7z
