@@ -36,9 +36,9 @@ Source: "res\kanji.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\radical.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\postal.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Debug\mzimeja.ime"; DestDir: "{app}\x86"; Flags: ignoreversion 32bit
-Source: "build64\Debug\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit
+Source: "build64\Debug\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit; Check: IsWin64
 Source: "build32\Debug\ime_setup32.exe"; DestDir: "{app}"; Flags: ignoreversion 32bit
-Source: "build64\Debug\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "build64\Debug\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit; Check: IsWin64
 Source: "build32\Debug\imepad.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Debug\dict_compile.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Debug\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion

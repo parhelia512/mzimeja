@@ -22,11 +22,13 @@ VersionInfoVersion=0.9.9.3
 VersionInfoTextVersion=0.9.9.3
 AlwaysRestart=yes
 UninstallRestartComputer=yes
+ArchitecturesAllowed=x86 x64
+ArchitecturesInstallIn64BitMode=x64
 
 [Languages]
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 
-[Files]
+[Files]                                               
 Source: "READMEJP.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "HISTORY.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -36,9 +38,9 @@ Source: "res\kanji.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\radical.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\postal.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Release\mzimeja.ime"; DestDir: "{app}\x86"; Flags: ignoreversion 32bit
-Source: "build64\Release\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit
+Source: "build64\Release\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit; Check: IsWin64
 Source: "build32\Release\ime_setup32.exe"; DestDir: "{app}"; Flags: ignoreversion 32bit
-Source: "build64\Release\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "build64\Release\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit; Check: IsWin64
 Source: "build32\Release\imepad.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Release\dict_compile.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Release\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
