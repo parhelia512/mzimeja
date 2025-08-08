@@ -31,6 +31,10 @@ extern "C" {
 // IME状態ウィンドウを作成する。
 HWND StatusWnd_Create(HWND hWnd, UIEXTRA *lpUIExtra)
 {
+    // ログオンに対しては状態ウィンドウを表示しない。
+    if (TheIME.m_bWinLogOn)
+        return NULL;
+
     const DWORD style = WS_DISABLED | WS_POPUP; // ウィンドウスタイル。
     const DWORD exstyle = WS_EX_WINDOWEDGE | WS_EX_DLGMODALFRAME; // 拡張スタイル。
     HWND hwndStatus = lpUIExtra->hwndStatus;

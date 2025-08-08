@@ -94,6 +94,16 @@
         Array_At((array), (index), __FILE__, __LINE__)
     #define ARRAY_AT_AT(array, index0, index1) \
         ARRAY_AT(ARRAY_AT((array), (index0)), (index1))
+
+    #if (_WIN32_WINNT >= 0x0500)
+        #define OBJECTS_CHECK_POINT() do { \
+            DPRINTA("GDI Objects: %ld, User Objects: %ld\n", \
+                GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS), \
+                GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS)); \
+        } while (0)
+    #else
+        #define OBJECTS_CHECK_POINT()
+    #endif
 #else
     #define DPRINT(fmt, ...) while (0)
     #define DPRINTA(fmt, ...) while (0)
@@ -103,6 +113,7 @@
     #define TRACE_OFF() while (0)
     #define ARRAY_AT(array, index)         ((array)[index])
     #define ARRAY_AT_AT(array, index0, index1) ((array)[index0][index1])
+    #define OBJECTS_CHECK_POINT()
 #endif
 
 #define FootmarkDebugPrint DPRINTA

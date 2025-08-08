@@ -21,6 +21,7 @@ SolidCompression=yes
 VersionInfoVersion=0.9.9.3
 VersionInfoTextVersion=0.9.9.3
 AlwaysRestart=yes
+UninstallRestartComputer=yes
 ArchitecturesAllowed=x64
 
 [Languages]

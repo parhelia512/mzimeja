@@ -380,19 +380,14 @@ cleanup:
 INT DoUnsetRegistry1(VOID) {
     BOOL ret = FALSE;
     HKEY hKey;
-    LONG result = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-                                s_szKeyboardLayouts, 0, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &hKey);
-    if (result != ERROR_SUCCESS) {
-        result = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-                               s_szKeyboardLayouts, 0, KEY_ALL_ACCESS, &hKey);
-    }
-    if (result == ERROR_SUCCESS && hKey) {
+    LSTATUS error = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, TRUE, &hKey);
+    if (!error) {
         HKL hKL = GetImeHKL();
         WCHAR szSubKey[16];
         wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
 
-        result = MyDeleteRegKey(hKey, szSubKey);
-        if (result == ERROR_SUCCESS) {
+        error = MyDeleteRegKey(hKey, szSubKey);
+        if (!error) {
             ret = TRUE;
         }
         RegCloseKey(hKey);
@@ -400,21 +395,13 @@ INT DoUnsetRegistry1(VOID) {
     return (ret ? 0 : -1);
 } // DoUnsetRegistry1
 
-static const WCHAR s_sz_katahiromz[] =
-        L"SOFTWARE\\Katayama Hirofumi MZ";
-
 INT DoUnsetRegistry2(VOID) {
     BOOL ret = FALSE;
     HKEY hKey;
-    LONG result = RegOpenKeyExW(HKEY_CURRENT_USER,
-                                s_sz_katahiromz, 0, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &hKey);
-    if (result != ERROR_SUCCESS) {
-        result = RegOpenKeyExW(HKEY_CURRENT_USER,
-                               s_sz_katahiromz, 0, KEY_ALL_ACCESS, &hKey);
-    }
-    if (result == ERROR_SUCCESS && hKey) {
-        result = MyDeleteRegKey(hKey, L"mzimeja");
-        if (result == ERROR_SUCCESS) {
+    LSTATUS error = OpenRegKey(HKEY_CURRENT_USER, L"SOFTWARE\\Katayama Hirofumi MZ", TRUE, &hKey);
+    if (!error) {
+        error = MyDeleteRegKey(hKey, L"mzimeja");
+        if (!error) {
             ret = TRUE;
         }
         RegCloseKey(hKey);
@@ -472,18 +459,9 @@ INT DoInstall(VOID) {
 } // DoInstall
 
 INT DoUninstall(VOID) {
-    if (0 != DoDeleteFiles()) {
-        // failure
-        ::MessageBoxW(NULL, DoLoadString(IDS_FAILDELETEFILE), NULL, MB_ICONERROR);
-        return 1;
-    }
-
-    if (0 != DoUnsetRegistry1() || 0 != DoUnsetRegistry2()) {
-        // failure
-        ::MessageBoxW(NULL, DoLoadString(IDS_REGDELETEFAIL), NULL, MB_ICONERROR);
-        return 2;
-    }
-
+    DoUnsetRegistry1();
+    DoUnsetRegistry2();
+    DoDeleteFiles();
     return 0;
 } // DoUninstall
 

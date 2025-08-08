@@ -22,6 +22,7 @@ VersionInfoVersion=0.9.9.3
 VersionInfoTextVersion=0.9.9.3
 AlwaysRestart=yes
 ArchitecturesAllowed=x64
+UninstallRestartComputer=yes
 
 [Languages]
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"

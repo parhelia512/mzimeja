@@ -21,6 +21,7 @@ SolidCompression=yes
 VersionInfoVersion=0.9.9.3
 VersionInfoTextVersion=0.9.9.3
 AlwaysRestart=yes
+UninstallRestartComputer=yes
 
 [Languages]
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
