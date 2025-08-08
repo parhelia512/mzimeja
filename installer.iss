@@ -35,11 +35,13 @@ Source: "res\name.dic"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\kanji.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\radical.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\postal.dat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\Release\mzimeja.ime"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\Release\ime_setup.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\Release\imepad.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\Release\dict_compile.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\Release\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build32\Release\mzimeja.ime"; DestDir: "{app}\x86"; Flags: ignoreversion 32bit
+Source: "build64\Release\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit
+Source: "build32\Release\ime_setup32.exe"; DestDir: "{app}"; Flags: ignoreversion 32bit
+Source: "build64\Release\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "build32\Release\imepad.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build32\Release\dict_compile.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build32\Release\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -52,7 +54,7 @@ Name: "{group}\バージョン情報"; Filename: "{app}\verinfo.exe"
 Name: "{group}\アンインストール"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\ime_setup.exe"; Parameters: "/i"
+Filename: "{app}\ime_setup32.exe"; Parameters: "/i"
 
 [UninstallRun]
-Filename: "{app}\ime_setup.exe"; Parameters: "/u"
+Filename: "{app}\ime_setup32.exe"; Parameters: "/u"

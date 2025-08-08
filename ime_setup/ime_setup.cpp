@@ -11,6 +11,7 @@
 #include <cstdlib>    // for __argc, __wargv
 #include <cstring>    // for wcsrchr
 #include <algorithm>  // for std::max
+#include "Wow64.h"
 #include "resource.h"
 
 HINSTANCE g_hInstance;
@@ -43,13 +44,25 @@ LPWSTR FindLocalFile(LPWSTR pszPath, LPCWSTR pszFileName)
     return NULL;
 }
 
-LPWSTR GetSrcImePathName(LPWSTR pszPath) {
-    return FindLocalFile(pszPath, L"mzimeja.ime");
+LPWSTR GetSetupPathName64(LPWSTR pszPath) {
+    return FindLocalFile(pszPath, L"ime_setup64.exe");
+}
+
+LPWSTR GetSrcImePathName32(LPWSTR pszPath) {
+    return FindLocalFile(pszPath, L"x86\\mzimeja.ime");
+}
+LPWSTR GetSrcImePathName64(LPWSTR pszPath) {
+    return FindLocalFile(pszPath, L"x64\\mzimeja.ime");
 }
 
 LPWSTR GetSystemImePathName(LPWSTR pszPath) {
     GetSystemDirectory(pszPath, MAX_PATH);
     wcscat(pszPath, L"\\mzimeja.ime");
+    return pszPath;
+}
+LPWSTR GetSystemImePathNameWow64(LPWSTR pszPath) {
+    GetWindowsDirectory(pszPath, MAX_PATH);
+    wcscat(pszPath, L"\\SysWow64\\mzimeja.ime");
     return pszPath;
 }
 
@@ -129,15 +142,25 @@ INT DoCopyFiles(VOID) {
     //////////////////////////////////////////////////////////
     // {app}\mzimeja.ime --> C:\Windows\system32\mzimeja.ime
 
-    // source
-    GetSrcImePathName(szPathSrc);
-    // dest
+#ifdef _WIN64
+    GetSrcImePathName64(szPathSrc);
+#else
+    GetSrcImePathName32(szPathSrc);
+#endif
     GetSystemImePathName(szPathDest);
-    // copy
     BOOL b1 = CopyFile(szPathSrc, szPathDest, FALSE);
     if (!b1) {
         return 2;
     }
+
+#ifdef _WIN64
+    GetSrcImePathName32(szPathSrc);
+    GetSystemImePathNameWow64(szPathDest);
+    BOOL b2 = CopyFile(szPathSrc, szPathDest, FALSE);
+    if (!b2) {
+        return 3;
+    }
+#endif
 
     return 0;
 } // DoCopyFiles
@@ -145,6 +168,9 @@ INT DoCopyFiles(VOID) {
 INT DoDeleteFiles(VOID) {
     WCHAR szPath[MAX_PATH];
     if (!DeleteFileW(GetSystemImePathName(szPath))) {
+        return 1;
+    }
+    if (!DeleteFileW(GetSystemImePathNameWow64(szPath))) {
         return 1;
     }
     return 0;
@@ -157,8 +183,7 @@ BOOL DoSetRegSz(HKEY hKey, const WCHAR *pszName, const WCHAR *pszValue) {
     return result == ERROR_SUCCESS;
 }
 
-static const WCHAR s_szKeyboardLayouts[] =
-        L"SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts";
+static const WCHAR s_szKeyboardLayouts[] = L"SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts";
 
 HKL GetImeHKL(VOID)
 {
@@ -521,7 +546,7 @@ INT DoInstall(VOID) {
     }
     else
     {
-        WinExec("rundll32.exe shell32.dll,Control_RunDLL intl.cpl,,5", SW_SHOWNORMAL);
+        ShellExecuteW(NULL, NULL, L"rundll32.exe", L"shell32.dll,Control_RunDLL intl.cpl,,5", NULL, SW_SHOWNORMAL);
     }
 
     return 0;
@@ -563,24 +588,47 @@ DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 //////////////////////////////////////////////////////////////////////////////
 
-extern "C"
-INT WINAPI
-wWinMain(
-        HINSTANCE hInstance,
-        HINSTANCE hPrevInstance,
-        LPWSTR lpCmdLine,
-        INT nCmdShow)
+INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
 {
+    TCHAR szText[128];
+
     g_hInstance = hInstance;
 
+#ifndef _WIN64
+    if (IsWow64())
+    {
+        WCHAR szPath[MAX_PATH];
+        if (!GetSetupPathName64(szPath))
+        {
+            LoadString(hInstance, IDS_64BITNOTSUPPORTED, szText, _countof(szText));
+            MessageBox(NULL, szText, TEXT("MZ-IME"), MB_ICONERROR);
+            return -1;
+        }
+
+        SHELLEXECUTEINFOW sei = { sizeof(sei), SEE_MASK_NOCLOSEPROCESS };
+        sei.lpFile = szPath;
+        if (__argc == 2)
+            sei.lpParameters = wargv[1];
+        sei.nShow = SW_SHOWNORMAL;
+        if (ShellExecuteExW(&sei))
+        {
+            WaitForSingleObject(sei.hProcess, INFINITE);
+            DWORD dwExitCode;
+            GetExitCodeProcess(sei.hProcess, &dwExitCode);
+            CloseHandle(sei.hProcess);
+            return (INT)dwExitCode;
+        }
+        return -2;
+    }
+#endif
+
     int ret;
-    TCHAR szText[128];
-    switch (__argc) {
+    switch (argc) {
     case 2:
-        if (lstrcmpiW(__wargv[1], L"/i") == 0) {
+        if (lstrcmpiW(wargv[1], L"/i") == 0) {
             return DoInstall();
         }
-        if (lstrcmpiW(__wargv[1], L"/u") == 0) {
+        if (lstrcmpiW(wargv[1], L"/u") == 0) {
             return DoUninstall();
         }
         break;
@@ -612,6 +660,27 @@ wWinMain(
     }
 
     return 0;
+}
+
+extern "C"
+INT WINAPI
+wWinMain(
+        HINSTANCE hInstance,
+        HINSTANCE hPrevInstance,
+        LPWSTR lpCmdLine,
+        INT nCmdShow)
+{
+    // Wow64リダイレクションを無効化する。
+    PVOID OldValue;
+    BOOL bRedirected = DisableWow64FsRedirection(&OldValue);
+
+    // メイン処理。
+    INT ret = DoMain(hInstance, __argc, __wargv);
+
+    // Wow64リダイレクションを元に戻す。
+    if (bRedirected) RevertWow64FsRedirection(OldValue);
+
+    return ret;
 } // wWinMain
 
 //////////////////////////////////////////////////////////////////////////////

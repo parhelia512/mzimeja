@@ -13,6 +13,7 @@
 #define IDS_REGSETUPFAIL                    8
 #define IDS_SETUPOK                         9
 #define IDS_SETUPFAIL                       10
+#define IDS_64BITNOTSUPPORTED               11
 
 #ifdef APSTUDIO_INVOKED
     #ifndef APSTUDIO_READONLY_SYMBOLS

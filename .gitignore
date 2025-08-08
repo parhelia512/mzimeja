@@ -30,7 +30,9 @@ Debug
 Makefile
 Release
 TMP1.$$$
-build
+build/
+build32/
+build64/
 ipch
 objfre_w2k_x86
 x64

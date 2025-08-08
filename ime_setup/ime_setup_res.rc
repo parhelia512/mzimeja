@@ -26,6 +26,7 @@ STRINGTABLE
     IDS_REGSETUPFAIL, "Registry setup failed (#2)."
     IDS_SETUPOK, "MZ-IME setup succeeded."
     IDS_SETUPFAIL, "MZ-IME setup failed."
+    IDS_64BITNOTSUPPORTED, "64-bit is not supported for this setup."
 }
 
 //////////////////////////////////////////////////////////////////////////////
