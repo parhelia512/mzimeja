@@ -1,25 +1,25 @@
 cd
-if exist build\Debug\dict_compile.exe goto label2
-if exist build\Release\dict_compile.exe goto label3
-if exist ..\build\Release\dict_compile.exe goto label4
-if exist build\dict_compile.exe goto label1
+if exist build32\Debug\dict_compile.exe goto label2
+if exist build32\Release\dict_compile.exe goto label3
+if exist ..\build32\Release\dict_compile.exe goto label4
+if exist build32\dict_compile.exe goto label1
 echo ERROR: dict_compile.exe not found
 exit /b 1
 
 :label1
-set DICT_COMPILE=build\dict_compile.exe
+set DICT_COMPILE=build32\dict_compile.exe
 goto label5
 
 :label2
-set DICT_COMPILE=build\Debug\dict_compile.exe
+set DICT_COMPILE=build32\Debug\dict_compile.exe
 goto label5
 
 :label3
-set DICT_COMPILE=build\Release\dict_compile.exe
+set DICT_COMPILE=build32\Release\dict_compile.exe
 goto label5
 
 :label4
-set DICT_COMPILE=..\build\Release\dict_compile.exe
+set DICT_COMPILE=..\build32\Release\dict_compile.exe
 goto label5
 
 :label5
