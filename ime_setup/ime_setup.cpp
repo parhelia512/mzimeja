@@ -93,7 +93,7 @@ LPWSTR GetReadMePathName(LPWSTR pszPath) {
 
 LONG OpenRegKey(HKEY hKey, LPCWSTR pszSubKey, BOOL bWrite, HKEY *phSubKey) {
     LONG result;
-    REGSAM sam = (bWrite ? KEY_WRITE : KEY_READ);
+    REGSAM sam = (bWrite ? KEY_ALL_ACCESS : KEY_READ);
     result = ::RegOpenKeyExW(hKey, pszSubKey, 0, sam | KEY_WOW64_64KEY, phSubKey);
     if (result != ERROR_SUCCESS) {
         result = ::RegOpenKeyExW(hKey, pszSubKey, 0, sam, phSubKey);
@@ -378,20 +378,89 @@ cleanup:
 } // MyDeleteRegKey
 
 INT DoUnsetRegistry1(VOID) {
-    BOOL ret = FALSE;
+    HKL hKL = GetImeHKL();
+    if (!hKL)
+        return -1;
+
     HKEY hKey;
-    LSTATUS error = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, TRUE, &hKey);
-    if (!error) {
-        HKL hKL = GetImeHKL();
+    LSTATUS error;
+
+    // Preloadレジストリエントリを変更する。
+    error = OpenRegKey(HKEY_CURRENT_USER, L"Keyboard Layout\\Preload", TRUE, &hKey);
+    if (!error)
+    {
+        HKL ahKLs[128];
+        ZeroMemory(ahKLs, sizeof(ahKLs));
+
+        // まずは全部読み込む。
+        for (DWORD i = 0; i < _countof(ahKLs); ++i)
+        {
+            WCHAR szName[64];
+            wsprintfW(szName, L"%u", i + 1);
+
+            WCHAR szKL[32];
+            DWORD cbKL = sizeof(szKL);
+            error = RegQueryValueExW(hKey, szName, NULL, NULL, (PBYTE)szKL, &cbKL);
+            szKL[_countof(szKL) - 1] = 0;
+            if (error)
+                break;
+
+            ahKLs[i] = (HKL)UlongToHandle(wcstoul(szKL, NULL, 16));
+        }
+
+        // エントリをすべて削除。
+        for (DWORD i = 0; ahKLs[i]; ++i)
+        {
+            WCHAR szName[64];
+            wsprintfW(szName, L"%u", i + 1);
+            error = RegDeleteValueW(hKey, szName);
+            if (error)
+                break;
+        }
+
+        // hKLを探し、それを配列から除去する。
+        INT k = 0;
+        for (INT i = 0; ahKLs[i]; ++i)
+        {
+            ahKLs[k] = ahKLs[i];
+            if (ahKLs[i] != hKL)
+                ++k;
+        }
+        ahKLs[k] = NULL;
+
+        // 配列に従ってPreloadエントリを書き込む。
+        for (DWORD i = 0; ahKLs[i]; ++i)
+        {
+            WCHAR szName[64];
+            wsprintfW(szName, L"%u", i + 1);
+
+            WCHAR szKL[32];
+            wsprintfW(szKL, L"%08X", ahKLs[i]);
+            DWORD cbKL = (lstrlenW(szKL) + 1) * sizeof(WCHAR);
+
+            error = RegSetValueExW(hKey, szName, 0, REG_SZ, (PBYTE)szKL, cbKL);
+            if (error)
+                break;
+        }
+
+        RegCloseKey(hKey);
+    }
+
+    // "Keyboard Layouts" からターゲットのIMEを削除する。
+    BOOL ret = FALSE;
+    error = OpenRegKey(HKEY_LOCAL_MACHINE, s_szKeyboardLayouts, TRUE, &hKey);
+    if (!error)
+    {
         WCHAR szSubKey[16];
         wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
 
         error = MyDeleteRegKey(hKey, szSubKey);
-        if (!error) {
+        if (!error)
             ret = TRUE;
-        }
+
         RegCloseKey(hKey);
     }
+
     return (ret ? 0 : -1);
 } // DoUnsetRegistry1
 
