@@ -132,8 +132,8 @@ MODE5ICON ICON "res/1041_Icon_MODE5ICON.ico"
 // RT_VERSION
 
 1 VERSIONINFO
-FILEVERSION     0, 9, 9, 3
-PRODUCTVERSION  0, 9, 9, 3
+FILEVERSION     1, 0, 0, 0
+PRODUCTVERSION  1, 0, 0, 0
 FILEOS          0x0004
 FILETYPE        0x3
 FILESUBTYPE     0xB
@@ -143,13 +143,13 @@ FILESUBTYPE     0xB
         BLOCK "041103A4"
         {
             VALUE "CompanyName", "片山博文MZ\0"
-            VALUE "FileDescription", "MZ-IME日本語入力 0.9.9.3\0"
-            VALUE "FileVersion", "0.9.9.3\0"
+            VALUE "FileDescription", "MZ-IME日本語入力 1.0.0.0\0"
+            VALUE "FileVersion", "1.0.0.0\0"
             VALUE "InternalName", "mzimeja\0"
             VALUE "LegalCopyright", "Copyright (C) 2016-2025 片山博文MZ.\0"
             VALUE "OriginalFilename", "mzimeja.ime\0"
             VALUE "ProductName", "MZ-IME日本語入力\0"
-            VALUE "ProductVersion", "0.9.9.3\0"
+            VALUE "ProductVersion", "1.0.0.0\0"
         }
     }
     BLOCK "VarFileInfo"
