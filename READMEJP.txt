@@ -21,7 +21,7 @@ MZ-IMEの特徴
 動作環境
 --------
 
- * Windows 2000 / XP / Vista / Server 2003 / 10 / 11 / ReactOS
+ * Windows 2000 / XP / Server 2003 / Vista / 7 / 10 / 11 / ReactOS
  * メインメモリー 256MB以上
 
 Windows 2000にインストールしたいときは、低レベル セットアップ (mzimeja-...-low-level-setup) をお使いください。
