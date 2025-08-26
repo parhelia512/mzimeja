@@ -24,6 +24,7 @@ AlwaysRestart=yes
 UninstallRestartComputer=yes
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
+DisableDirPage=yes
 
 [Languages]
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
@@ -60,3 +61,17 @@ Filename: "{app}\ime_setup32.exe"; Parameters: "/i"
 
 [UninstallRun]
 Filename: "{app}\ime_setup32.exe"; Parameters: "/u"
+
+[Code]
+function InitializeSetup(): Boolean;
+begin
+  if FileExists(ExpandConstant('{app}\ime_setup32.exe')) then
+  begin
+    MsgBox('既に MZ-IME がインストールされています。', 'MZ-IME エラー', MB_OK);
+    Result := False;
+  end
+  else
+  begin
+    Result := True;
+  end
+end;
