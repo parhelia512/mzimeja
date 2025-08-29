@@ -2202,6 +2202,18 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
     } while (0);
 
+    // な形容詞の連用形。
+    // 「穏健な」→「穏健に」
+    do {
+        if (tail.empty() || tail[0] != L'に') break;
+        node.katsuyou = RENYOU_KEI;
+        node.pre = fields[I_FIELD_PRE] + L'に';
+        node.post = fields[I_FIELD_POST] + L'に';
+        node.bunrui = HB_FUKUSHI;
+        AddNode(index, node);
+        node.bunrui = HB_NAKEIYOUSHI;
+    } while (0);
+
     // な形容詞の仮定形。
     // 「巨大な」→「巨大なら」
     do {
@@ -3178,13 +3190,13 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
 
     // 名詞＋「する」、名詞＋「すれ」、名詞＋「せよ」、名詞＋「しろ」、名詞＋「せい」でサ変動詞に。
     if (tail.size() >= 2 &&
-        (tail.substr(tail.size() - 2) == L"する" || tail.substr(tail.size() - 2) == L"すれ" ||
-         tail.substr(tail.size() - 2) == L"せよ" || tail.substr(tail.size() - 2) == L"しろ" ||
-         tail.substr(tail.size() - 2) == L"せい"))
+        (tail.substr(0, 2) == L"する" || tail.substr(0, 2) == L"すれ" ||
+         tail.substr(0, 2) == L"せよ" || tail.substr(0, 2) == L"しろ" ||
+         tail.substr(0, 2) == L"せい"))
     {
         WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += tail.substr(tail.size() - 2);
-        new_fields[I_FIELD_POST] += tail.substr(tail.size() - 2);
+        new_fields[I_FIELD_PRE] += tail.substr(0, 2);
+        new_fields[I_FIELD_POST] += tail.substr(0, 2);
         DoSahenDoushi(index, new_fields, deltaCost - 60);
         // 「するよ」「するな」「せいよ」「せいな」
         if (tail.substr(tail.size() - 2) == L"する" || tail.substr(tail.size() - 2) == L"せい") {
@@ -3192,10 +3204,28 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
             new_fields[I_FIELD_POST] += L'よ';
             DoSahenDoushi(index, new_fields, deltaCost - 60);
             new_fields = fields;
-            new_fields[I_FIELD_PRE] += tail.substr(tail.size() - 2) + L'な';
-            new_fields[I_FIELD_POST] += tail.substr(tail.size() - 2) + L'な';
+            new_fields[I_FIELD_PRE] += tail.substr(0, 2) + L'な';
+            new_fields[I_FIELD_POST] += tail.substr(0, 2) + L'な';
             DoSahenDoushi(index, new_fields, deltaCost - 60);
         }
+    }
+
+    // 名詞＋「しとく」で五段動詞に。
+    if (tail.size() >= 3 &&
+        (tail.substr(0, 3) == L"しとか" ||
+         tail.substr(0, 3) == L"しとこ" ||
+         tail.substr(0, 3) == L"しとき" ||
+         tail.substr(0, 3) == L"しとい" ||
+         tail.substr(0, 3) == L"しとく" ||
+         tail.substr(0, 3) == L"しとけ"))
+    {
+        WStrings new_fields = fields;
+        new_fields[I_FIELD_PRE] += tail.substr(0, 3);
+        new_fields[I_FIELD_POST] += tail.substr(0, 3);
+        DoGodanDoushi(index, new_fields, deltaCost - 60);
+        new_fields[I_FIELD_PRE] += L'よ';
+        new_fields[I_FIELD_POST] += L'よ';
+        DoGodanDoushi(index, new_fields, deltaCost - 60);
     }
 
     // 名詞＋「な」でな形容詞に。
