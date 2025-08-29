@@ -461,6 +461,8 @@ INT LatticeNode::WordCost() const
         ret += 30;
     if (h == HB_SETTOUJI)
         ret += 200;
+    if (h == HB_SYMBOL)
+        ret += 200;
 
     if (HasTag(L"[数単位]"))
         ret += 10;
@@ -2133,6 +2135,16 @@ void Lattice::DoNakeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
         node.bunrui = HB_NAKEIYOUSHI;
     } while (0);
+
+    // 「破壊的な(な形容詞)」→「破壊的すぎる(一段動詞)」
+    if (tail.size() >= 2 && tail[0] == L'す' && tail[1] == L'ぎ') {
+        WStrings new_fields = fields;
+        new_fields[I_FIELD_PRE] = fields[I_FIELD_PRE] + L"すぎ";
+        new_fields[I_FIELD_POST] = fields[I_FIELD_POST] + L"すぎ";
+        DoIchidanDoushi(index, new_fields, deltaCost);
+        new_fields[I_FIELD_POST] = fields[I_FIELD_POST] + L"過ぎ";
+        DoIchidanDoushi(index, new_fields, deltaCost);
+    }
 
     // な形容詞の連用形。
     // 「巨大な」→「巨大だっ(た)」

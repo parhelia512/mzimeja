@@ -190,6 +190,8 @@ int wmain(int argc, wchar_t **argv)
         return 1;
     }
 
+    DoEntry(L"はかいてきすぎる", L"テスト|です");
+
     // マニュアルテスト。
     IME_ManualTest();
 
