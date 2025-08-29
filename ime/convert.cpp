@@ -462,7 +462,7 @@ INT LatticeNode::WordCost() const
     if (h == HB_SETTOUJI)
         ret += 200;
     if (h == HB_SYMBOL)
-        ret += 200;
+        ret += 300;
 
     if (HasTag(L"[数単位]"))
         ret += 10;
