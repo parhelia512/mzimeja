@@ -190,11 +190,11 @@ int wmain(int argc, wchar_t **argv)
         return 1;
     }
 
-    // 自動テスト。
-    IME_AutoTest();
-
     // マニュアルテスト。
     IME_ManualTest();
+
+    // 自動テスト。
+    IME_AutoTest();
 
     g_basic_dict.Unload();
 
