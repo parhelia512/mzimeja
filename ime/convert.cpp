@@ -3210,24 +3210,6 @@ void Lattice::DoMeishi(size_t index, const WStrings& fields, INT deltaCost)
         }
     }
 
-    // 名詞＋「しとく」で五段動詞に。
-    if (tail.size() >= 3 &&
-        (tail.substr(0, 3) == L"しとか" ||
-         tail.substr(0, 3) == L"しとこ" ||
-         tail.substr(0, 3) == L"しとき" ||
-         tail.substr(0, 3) == L"しとい" ||
-         tail.substr(0, 3) == L"しとく" ||
-         tail.substr(0, 3) == L"しとけ"))
-    {
-        WStrings new_fields = fields;
-        new_fields[I_FIELD_PRE] += tail.substr(0, 3);
-        new_fields[I_FIELD_POST] += tail.substr(0, 3);
-        DoGodanDoushi(index, new_fields, deltaCost - 60);
-        new_fields[I_FIELD_PRE] += L'よ';
-        new_fields[I_FIELD_POST] += L'よ';
-        DoGodanDoushi(index, new_fields, deltaCost - 60);
-    }
-
     // 名詞＋「な」でな形容詞に。
     if (tail.size() >= 1 && tail[0] == L'な') {
         DoNakeiyoushi(index, fields, deltaCost + 80);
