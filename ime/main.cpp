@@ -544,7 +544,6 @@ LPCTSTR mz_find_local_file(LPCTSTR name)
     if (::PathFileExists(s_szPath))
         return s_szPath;
 
-    ASSERT(0);
     return NULL;
 }
 

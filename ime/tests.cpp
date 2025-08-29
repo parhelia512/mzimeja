@@ -182,6 +182,8 @@ int wmain(int argc, wchar_t **argv)
     std::setlocale(LC_CTYPE, "");
 
     LPCTSTR pathname = mz_find_local_file(L"basic.dic");
+    if (!pathname)
+        pathname = mz_find_local_file(L"res/basic.dic");
     //LPCTSTR pathname = mz_find_local_file(L"testdata.dic");
     if (!g_basic_dict.Load(pathname, L"BasicDictObject")) {
         ASSERT(0);
