@@ -22,6 +22,8 @@ VersionInfoVersion=1.0.0.1
 VersionInfoTextVersion=1.0.0.1
 AlwaysRestart=yes
 UninstallRestartComputer=yes
+ArchitecturesAllowed=x86 x64
+ArchitecturesInstallIn64BitMode=x64
 DisableDirPage=yes
 
 [Languages]
