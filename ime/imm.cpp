@@ -24,8 +24,10 @@ BOOL WINAPI ImeInquire(LPIMEINFO lpIMEInfo, TCHAR *lpszClassName,
                     dwSystemInfoFlags);
 
     lpIMEInfo->dwPrivateDataSize = sizeof(UIEXTRA);
-    lpIMEInfo->fdwProperty = IME_PROP_KBD_CHAR_FIRST | IME_PROP_NEED_ALTKEY |
-                             IME_PROP_UNICODE | IME_PROP_AT_CARET;
+    lpIMEInfo->fdwProperty =
+        IME_PROP_NEED_ALTKEY | // Altキーが必要
+        IME_PROP_UNICODE | // Unicode実装
+        IME_PROP_AT_CARET; // 変換ウィンドウ（合成文字列／候補などの UI）が「キャレット位置（入力カーソル位置）」に表示されるタイプの IME である
     lpIMEInfo->fdwConversionCaps = IME_CMODE_LANGUAGE | IME_CMODE_FULLSHAPE |
                                    IME_CMODE_ROMAN | IME_CMODE_CHARCODE;
     lpIMEInfo->fdwSentenceCaps = 0;
