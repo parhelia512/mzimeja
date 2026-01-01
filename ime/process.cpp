@@ -520,13 +520,6 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
             case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
                 ret = TRUE;
                 break;
-            case VK_OEM_3:
-                // Alt+~ toggle for US/German keyboards
-                // Alt+~ による US/ドイツ語キーボードのトグル
-                if (!fShift && !fCtrl) {
-                    ret = TRUE;
-                }
-                break;
             }
         } else if (fCtrl) {
             // Ctrl key is down
