@@ -32,7 +32,7 @@ Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 [Files]
 Source: "READMEJP.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "HISTORY.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "ChangeLog.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\basic.dic"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\name.dic"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\kanji.dat"; DestDir: "{app}"; Flags: ignoreversion
@@ -51,7 +51,7 @@ Source: "build32\Debug\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 Name: "{group}\READMEJP.txt"; Filename: "{app}\READMEJP.txt"
 Name: "{group}\LICENSE.txt"; Filename: "{app}\LICENSE.txt"
-Name: "{group}\HISTORY.txt"; Filename: "{app}\HISTORY.txt"
+Name: "{group}\ChangeLog.txt"; Filename: "{app}\ChangeLog.txt"
 Name: "{group}\MZ-IMEパッド"; Filename: "{app}\imepad.exe"
 Name: "{group}\バージョン情報"; Filename: "{app}\verinfo.exe"
 Name: "{group}\アンインストール"; Filename: "{uninstallexe}"
