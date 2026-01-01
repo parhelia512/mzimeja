@@ -9,11 +9,6 @@ extern "C" {
 
 //////////////////////////////////////////////////////////////////////////////
 
-#define IGNORE_REPEAT 100 // 連続入力を防ぐ間隔(ミリ秒)。
-
-DWORD g_dwTick0 = 0;
-UINT g_uOldVK0 = 0;
-
 // A function which handles WM_IME_KEYDOWN.
 // WM_IME_KEYDOWNを処理する関数。
 BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
@@ -22,17 +17,6 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
     FOOTMARK_FORMAT("(%p, %p, %p, %u)\n", hIMC, wParam, lpbKeyState, (INT)imode);
     InputContext *lpIMC;
     BYTE vk = (BYTE)wParam;
-
-    // 連続入力を防ぐ。
-    DWORD dwTick = GetTickCount();
-    LONG delta = dwTick - g_dwTick0;
-    g_dwTick0 = dwTick;
-    UINT uOldVK = g_uOldVK0;
-    g_uOldVK0 = vk;
-    if (delta < IGNORE_REPEAT && vk == uOldVK) {
-        DPRINTA("IMEKeyDownHandler: KEY REPEAT??\n");
-        FOOTMARK_RETURN_INT(TRUE);
-    }
 
     // check open
     BOOL bOpen = FALSE;
@@ -433,20 +417,8 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
 
     WORD wKeyFlags = HIWORD(lKeyData);
     BOOL bKeyUp = (wKeyFlags & KF_UP);
-    BOOL bRepeat = (wKeyFlags & KF_REPEAT);
-    if (bKeyUp || bRepeat)
+    if (bKeyUp)
         FOOTMARK_RETURN_INT(FALSE);
-
-    // 連続入力を防ぐ。
-    DWORD dwTick = GetTickCount();
-    LONG delta = dwTick - g_dwTick1;
-    g_dwTick1 = dwTick;
-    UINT uOldVK = g_uOldVK1;
-    g_uOldVK1 = vKey;
-    if (delta < IGNORE_REPEAT && uOldVK == vKey) {
-        DPRINTA("ImeProcessKey: KEY REPEAT??\n");
-        FOOTMARK_RETURN_INT(TRUE);
-    }
 
     WCHAR wch = MapVirtualKeyExW(vKey, MAPVK_VK_TO_CHAR, GetKeyboardLayout(0));
 
