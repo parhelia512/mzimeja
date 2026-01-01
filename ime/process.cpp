@@ -104,6 +104,22 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
         }
         break;
 
+    case VK_OEM_3:
+        // Alt+~ (VK_OEM_3) toggle for US/German keyboards
+        // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
+        if (bAlt && !bShift && !bCtrl) {
+            if (bOpen) {
+                // IME ON -> OFF: Switch to half-width ASCII mode
+                // IME ON -> OFF: 半角英数モードに切り替え
+                SetInputMode(hIMC, IMODE_HALF_ASCII);
+            } else {
+                // IME OFF -> ON: Switch to full-width Hiragana mode
+                // IME OFF -> ON: 全角ひらがなモードに切り替え
+                SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+            }
+        }
+        break;
+
     case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
         if (bAlt) {
             SetRomanMode(hIMC, !IsRomanMode(hIMC));
@@ -417,16 +433,24 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
 
     WORD wKeyFlags = HIWORD(lKeyData);
     BOOL bKeyUp = (wKeyFlags & KF_UP);
+    
+    // According to IMM specification, ImeProcessKey should return FALSE for key-up events
+    // to let the application handle them, unless the IME specifically needs to process them.
+    // Most IMEs only process key-down events.
+    // IMM 仕様により、ImeProcessKey はキーアップイベントに対して FALSE を返し、
+    // IME が特に処理する必要がない限り、アプリケーションに処理させるべきです。
+    // ほとんどの IME はキーダウンイベントのみを処理します。
     if (bKeyUp)
         FOOTMARK_RETURN_INT(FALSE);
 
+    // wch is used for debugging output only (showing what character the key produces)
+    // 注: wch はデバッグ出力専用（キーがどの文字を生成するかを表示）
     WCHAR wch = MapVirtualKeyExW(vKey, MAPVK_VK_TO_CHAR, GetKeyboardLayout(0));
 
     DPRINTA("ImeProcessKey: vKey:%u (0x%X), wch:%lc\n", vKey, vKey, wch);
 
-    InputContext *lpIMC = TheIME.LockIMC(hIMC);
-    BOOL fOpen = lpIMC->IsOpen();
-
+    // Check modifier keys first (no need for lpIMC)
+    // 修飾キーを先にチェック（lpIMC は不要）
     BOOL fAlt = (wKeyFlags & KF_ALTDOWN) ||
                 (lpbKeyState[VK_MENU] & 0x80) || 
                 (lpbKeyState[VK_LMENU] & 0x80) || 
@@ -438,6 +462,32 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
                   (lpbKeyState[VK_LSHIFT] & 0x80) ||
                   (lpbKeyState[VK_RSHIFT] & 0x80);
 
+    // Lock input context and safely get open status
+    // 入力コンテキストをロックし、安全にオープン状態を取得
+    InputContext *lpIMC = TheIME.LockIMC(hIMC);
+    if (lpIMC == NULL) {
+        // For toggle keys, we still need to handle them even without IMC
+        // トグルキーは IMC なしでも処理する必要がある
+        switch (vKey) {
+        case VK_KANJI: case VK_OEM_AUTO: case VK_OEM_ENLW:
+            if (!fShift && !fCtrl) ret = TRUE;
+            break;
+        case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
+            ret = TRUE;
+            break;
+        case VK_OEM_3:
+            // Alt+~ (VK_OEM_3) toggle for US/German keyboards
+            // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
+            if (fAlt && !fShift && !fCtrl) {
+                ret = TRUE;
+            }
+            break;
+        }
+        FOOTMARK_RETURN_INT(ret);
+    }
+
+    BOOL fOpen = lpIMC->IsOpen();
+
     switch (vKey) {
     case VK_KANJI: case VK_OEM_AUTO: case VK_OEM_ENLW:
         if (!fShift && !fCtrl) ret = TRUE;
@@ -445,14 +495,19 @@ BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
     case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
         ret = TRUE;
         break;
+    case VK_OEM_3:
+        // Alt+~ (VK_OEM_3) toggle for US/German keyboards
+        // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
+        if (fAlt && !fShift && !fCtrl) {
+            ret = TRUE;
+        }
+        break;
     case VK_OEM_ATTN:
         if (fOpen && !fCtrl && !fShift) {
             ret = TRUE;
         }
         break;
     default:
-        if (lpIMC == NULL)
-            FOOTMARK_RETURN_INT(FALSE);
         break;
     }
 
@@ -582,8 +637,19 @@ UINT WINAPI ImeToAsciiEx(UINT uVKey, UINT uScanCode, CONST LPBYTE lpbKeyState,
     FOOTMARK_FORMAT("(%u (0x%X), 0x%X, %p, %p, 0x%X, %p)\n",
                     uVKey, uVKey, uScanCode, lpbKeyState, lpTransBuf, fuState, hIMC);
 
+    // Set up the message buffer for this key translation
+    // このキー変換のためのメッセージバッファを設定
     TheIME.m_lpCurTransKey = lpTransBuf;
     TheIME.m_uNumTransKey = 0;
+
+    // NOTE: According to IMM documentation, uScanCode is supposed to be the scan code only.
+    // However, this implementation treats it as containing lParam-like flags (bit 0x10000000).
+    // The bit 0x10000000 in lParam indicates key transition state (0=key down, 1=key up).
+    // This appears to be passing extended lParam data rather than pure scan code.
+    // 注: IMM ドキュメントによると、uScanCode はスキャンコードのみであるべきですが、
+    // この実装では lParam のようなフラグ (bit 0x10000000) を含むものとして扱っています。
+    // lParam の bit 0x10000000 はキー遷移状態を示します (0=キーダウン, 1=キーアップ)。
+    // これは純粋なスキャンコードではなく、拡張 lParam データを渡しているようです。
     BOOL bKeyUp = (uScanCode & 0x10000000);
 
     if (hIMC) {
@@ -592,12 +658,17 @@ UINT WINAPI ImeToAsciiEx(UINT uVKey, UINT uScanCode, CONST LPBYTE lpbKeyState,
             IMEKeyDownHandler(hIMC, uVKey, lpbKeyState, imode);
         }
 
+        // Check for message buffer overflow
+        // メッセージバッファのオーバーフローをチェック
         if (TheIME.m_fOverflowKey) {
             DPRINTA("***************************************\n");
             DPRINTA("*   TransKey OVER FLOW Messages!!!    *\n");
             DPRINTA("*                by MZIMEJA.IME       *\n");
             DPRINTA("***************************************\n");
         }
+        
+        // Return value must match lpTransBuf->uMsgCount
+        // 戻り値は lpTransBuf->uMsgCount と一致する必要があります
         ret = TheIME.m_uNumTransKey;
     }
 
