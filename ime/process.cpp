@@ -70,7 +70,7 @@ DoProcessKey(
             }
         }
         break;
-    case VK_OEM_ATTN: case VK_PROCESSKEY: // 英数キー
+    case VK_OEM_ATTN: // 英数キー
         if (!bShift && !bCtrl) {
             if (bDoAction) {
                 INPUT_MODE imode = GetInputMode(hIMC);
@@ -372,14 +372,14 @@ ImeProcessKey(
     }
 
     BOOL ret = FALSE;
-	InputContext *lpIMC = NULL;
-	if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
-		// キー判定
-		if (!(lpbKeyState[VK_MENU] & 0x80)) { // Altキーが押されていない？
-			ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, FALSE);
-		}
-		TheIME.UnlockIMC(hIMC);
-	}
+    InputContext *lpIMC = NULL;
+    if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
+        // キー判定
+        if (!(lpbKeyState[VK_MENU] & 0x80)) { // Altキーが押されていない？
+            ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, FALSE);
+        }
+        TheIME.UnlockIMC(hIMC);
+    }
 
     return ret;
 }
@@ -407,7 +407,7 @@ ImeToAsciiEx(
 
             TheIME.m_lpCurTransKey = NULL;
         }
-		TheIME.UnlockIMC(hIMC);
+        TheIME.UnlockIMC(hIMC);
     }
 
     if (TheIME.m_fOverflowKey) {
