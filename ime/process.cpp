@@ -323,6 +323,9 @@ DoProcessKey(
         break;
     default:
         {
+            if (bCtrl || bAlt)
+                FOOTMARK_RETURN_INT(FALSE); // 処理しない
+
             // 可能ならキーをひらがなにする。
             WCHAR chTranslated = 0;
             if (!bRoman) {
