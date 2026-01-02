@@ -17,7 +17,8 @@ add_library(libime STATIC
     uicand.cpp
     uicomp.cpp
     uiguide.cpp
-    uistate.cpp)
+    uistate.cpp
+    vksub.cpp)
 set_target_properties(libime PROPERTIES PREFIX "")
 
 # mzimeja.ime

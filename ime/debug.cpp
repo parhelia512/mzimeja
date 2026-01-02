@@ -10,10 +10,12 @@
 extern "C"
 {
 
+#define USE_LOGFILE
+//#undef USE_LOGFILE
+
 //////////////////////////////////////////////////////////////////////////////
 // デバッグ用。
 
-#ifndef NDEBUG
 BOOL g_bTrace = TRUE;   // この変数がFALSEのときはデバッグ出力しない。
 
 // printf関数と同じ文法でデバッグ出力を行う関数。
@@ -29,7 +31,7 @@ void DebugPrintA(const char *lpszFormat, ...)
     StringCchVPrintfA(szMsgA, _countof(szMsgA), lpszFormat, marker);
     va_end(marker);
 
-#if defined(USE_LOGFILE) && !defined(NDEBUG)
+#ifdef USE_LOGFILE
     FILE *fout = fopen("C:\\mzimeja.log", "a");
     fprintf(fout, "%s", szMsgA);
     fclose(fout);
@@ -51,7 +53,7 @@ void DebugPrintW(const WCHAR *lpszFormat, ...)
     StringCchVPrintfW(szMsg, _countof(szMsg), lpszFormat, marker);
     va_end(marker);
 
-#if defined(USE_LOGFILE) && !defined(NDEBUG)
+#ifdef USE_LOGFILE
     FILE *fout = fopen("C:\\mzimeja.log", "a");
     fprintf(fout, "%ls", szMsg);
     fclose(fout);
@@ -71,7 +73,6 @@ void DebugAssert(const char *file, int line, const char *exp)
     MessageBoxW(NULL, szText, L"Assertion Failure", MB_ICONERROR);
 #endif
 }
-#endif  // ndef NDEBUG
 
 //////////////////////////////////////////////////////////////////////////////
 

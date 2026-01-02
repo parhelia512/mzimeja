@@ -42,77 +42,65 @@
 // For debugging.
 // デバッグ用。
 
-#ifndef NDEBUG
-    extern "C" {
-        extern BOOL g_bTrace;
-        void DebugPrintA(const char *lpszFormat, ...);
-        void DebugPrintW(const WCHAR *lpszFormat, ...);
-        void DebugAssert(const char *file, int line, const char *exp);
-    } // extern "C"
-    #define DPRINTA(fmt, ...) DebugPrintA("%s (%d): " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define DPRINTW(fmt, ...) DebugPrintW(L"%hs (%d): " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-    #ifdef UNICODE
-        #define DPRINT DebugPrintW
-        #define DebugPrint DebugPrintW
-    #else
-        #define DPRINT DebugPrintA
-        #define DebugPrint DebugPrintA
-    #endif
-    #define ASSERT(exp) ((exp) ? (void)0 : DebugAssert(__FILE__, __LINE__, #exp))
-    #define TRACE_ON()    do { g_bTrace = TRUE; } while (0)
-    #define TRACE_OFF()   do { g_bTrace = FALSE; } while (0)
-
-    /* ArrayAt for std::vector */
-    template <typename T_ITEM>
-    T_ITEM& Array_At(std::vector<T_ITEM>& array, size_t index, const char *file, int line) {
-        if (index >= array.size())
-            DebugAssert(file, line, "index >= array.size()");
-        return array[index];
-    }
-    template <typename T_ITEM>
-    const T_ITEM& Array_At(const std::vector<T_ITEM>& array, size_t index, const char *file, int line) {
-        if (index >= array.size())
-            DebugAssert(file, line, "index >= array.size()");
-        return array[index];
-    }
-
-    /* ArrayAt for raw array */
-    template <typename T_ITEM, size_t t_size>
-    T_ITEM& Array_At(T_ITEM (&array)[t_size], size_t index, const char *file, int line) {
-        if (index >= t_size)
-            DebugAssert(file, line, "index >= t_size");
-        return array[index];
-    }
-    template <typename T_ITEM, size_t t_size>
-    const T_ITEM& Array_At(const T_ITEM (&array)[t_size], size_t index, const char *file, int line) {
-        if (index >= t_size)
-            DebugAssert(file, line, "index >= t_size");
-        return array[index];
-    }
-
-    #define ARRAY_AT(array, index) \
-        Array_At((array), (index), __FILE__, __LINE__)
-    #define ARRAY_AT_AT(array, index0, index1) \
-        ARRAY_AT(ARRAY_AT((array), (index0)), (index1))
-
-    #if (_WIN32_WINNT >= 0x0500)
-        #define OBJECTS_CHECK_POINT() do { \
-            DPRINTA("GDI Objects: %ld, User Objects: %ld\n", \
-                GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS), \
-                GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS)); \
-        } while (0)
-    #else
-        #define OBJECTS_CHECK_POINT()
-    #endif
+extern "C" {
+    extern BOOL g_bTrace;
+    void DebugPrintA(const char *lpszFormat, ...);
+    void DebugPrintW(const WCHAR *lpszFormat, ...);
+    void DebugAssert(const char *file, int line, const char *exp);
+} // extern "C"
+#define DPRINTA(fmt, ...) DebugPrintA("%s (%d): " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#define DPRINTW(fmt, ...) DebugPrintW(L"%hs (%d): " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#ifdef UNICODE
+    #define DPRINT DebugPrintW
+    #define DebugPrint DebugPrintW
 #else
-    #define DPRINT(fmt, ...) while (0)
-    #define DPRINTA(fmt, ...) while (0)
-    #define DPRINTW(fmt, ...) while (0)
-    #define ASSERT(exp) while (0)
-    #define TRACE_ON() while (0)
-    #define TRACE_OFF() while (0)
-    #define ARRAY_AT(array, index)         ((array)[index])
-    #define ARRAY_AT_AT(array, index0, index1) ((array)[index0][index1])
+    #define DPRINT DebugPrintA
+    #define DebugPrint DebugPrintA
+#endif
+#define ASSERT(exp) ((exp) ? (void)0 : DebugAssert(__FILE__, __LINE__, #exp))
+#define TRACE_ON()    do { g_bTrace = TRUE; } while (0)
+#define TRACE_OFF()   do { g_bTrace = FALSE; } while (0)
+
+/* ArrayAt for std::vector */
+template <typename T_ITEM>
+T_ITEM& Array_At(std::vector<T_ITEM>& array, size_t index, const char *file, int line) {
+    if (index >= array.size())
+        DebugAssert(file, line, "index >= array.size()");
+    return array[index];
+}
+template <typename T_ITEM>
+const T_ITEM& Array_At(const std::vector<T_ITEM>& array, size_t index, const char *file, int line) {
+    if (index >= array.size())
+        DebugAssert(file, line, "index >= array.size()");
+    return array[index];
+}
+
+/* ArrayAt for raw array */
+template <typename T_ITEM, size_t t_size>
+T_ITEM& Array_At(T_ITEM (&array)[t_size], size_t index, const char *file, int line) {
+    if (index >= t_size)
+        DebugAssert(file, line, "index >= t_size");
+    return array[index];
+}
+template <typename T_ITEM, size_t t_size>
+const T_ITEM& Array_At(const T_ITEM (&array)[t_size], size_t index, const char *file, int line) {
+    if (index >= t_size)
+        DebugAssert(file, line, "index >= t_size");
+    return array[index];
+}
+
+#define ARRAY_AT(array, index) \
+    Array_At((array), (index), __FILE__, __LINE__)
+#define ARRAY_AT_AT(array, index0, index1) \
+    ARRAY_AT(ARRAY_AT((array), (index0)), (index1))
+
+#if (_WIN32_WINNT >= 0x0500)
+    #define OBJECTS_CHECK_POINT() do { \
+        DPRINTA("GDI Objects: %ld, User Objects: %ld\n", \
+            GetGuiResources(GetCurrentProcess(), GR_GDIOBJECTS), \
+            GetGuiResources(GetCurrentProcess(), GR_USEROBJECTS)); \
+    } while (0)
+#else
     #define OBJECTS_CHECK_POINT()
 #endif
 

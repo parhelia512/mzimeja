@@ -37,6 +37,7 @@ DoProcessKey(
     InputContext *lpIMC,
     WPARAM wParam,
     CONST LPBYTE lpbKeyState,
+    BOOL bKeyUp,
     BOOL bDoAction)
 {
     FOOTMARK_FORMAT("(%p, %p, %p)\n", lpIMC, wParam, lpbKeyState);
@@ -55,6 +56,12 @@ DoProcessKey(
     BOOL bCtrl = (lpbKeyState[VK_CONTROL] & 0x80);
     BOOL bCapsLock = (lpbKeyState[VK_CAPITAL] & 0x80);
     BOOL bRoman = IsRomanMode(hIMC);
+
+    DPRINTA("%s (0x%02X), bOpen:%d, bAlt:%d, bKeyUp:%d\n", get_vk_name(vk), vk, bOpen, bAlt, bKeyUp);
+
+    if (bKeyUp) {
+        FOOTMARK_RETURN_INT(FALSE);
+    }
 
     switch (vk) {
     case VK_SPACE: // スペース キー
@@ -356,28 +363,21 @@ ImeProcessKey(
     LPARAM lKeyData,
     CONST LPBYTE lpbKeyState)
 {
-    if (lKeyData & 0x80000000) // Is key up?
-        return FALSE;
-
     // 日本語キーボードの場合、AltとDBEキーの組み合わせを無視（Alt+[半/全]を含む）。
     // Alt+[半/全]の処理はOSに任せる。
     if (HIWORD(lKeyData) & KF_ALTDOWN)
     {
         LANGID wLangID = LOWORD(GetKeyboardLayout(0));
-        if (wLangID == MAKELANGID(LANG_JAPANESE, SUBLANG_DEFAULT))
-        {
-            if (isDbeKey(vKey))
-                return FALSE;
-        }
+        if (wLangID == MAKELANGID(LANG_JAPANESE, SUBLANG_DEFAULT) && isDbeKey(vKey))
+            return FALSE;
     }
 
+    // キー判定
     BOOL ret = FALSE;
     InputContext *lpIMC = NULL;
     if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
-        // キー判定
-        if (!(lpbKeyState[VK_MENU] & 0x80)) { // Altキーが押されていない？
-            ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, FALSE);
-        }
+        BOOL bKeyUp = (lKeyData & 0x80000000);
+        ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, bKeyUp, FALSE);
         TheIME.UnlockIMC(hIMC);
     }
 
@@ -401,12 +401,10 @@ ImeToAsciiEx(
 
     InputContext *lpIMC;
     if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
-        if (lpIMC->fOpen) {
-            if (!(uScanCode & 0x8000)) // Not key up?
-                DoProcessKey(hIMC, lpIMC, uVKey, lpbKeyState, TRUE);
+        BOOL bKeyUp = (uScanCode & 0x8000);
+        DoProcessKey(hIMC, lpIMC, uVKey, lpbKeyState, bKeyUp, TRUE);
 
-            TheIME.m_lpCurTransKey = NULL;
-        }
+        TheIME.m_lpCurTransKey = NULL;
         TheIME.UnlockIMC(hIMC);
     }
 
