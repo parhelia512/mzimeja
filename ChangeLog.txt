@@ -88,5 +88,4 @@
     - キーリピートの余分な処理を削除。
     - 英語やドイツ語の Alt+~ をサポート。
     - HISTORY.txtをChangeLog.txtに改名。
-    - IME_PROP_KBD_CHAR_FIRSTフラグを取り除く。
-    - ImmSetOpenStatusを使ってIMEKeyDownHandlerの処理を単純化。
+    - [半/全]の処理をOSに任せる。

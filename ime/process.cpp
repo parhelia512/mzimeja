@@ -7,160 +7,135 @@
 
 extern "C" {
 
+// 仮想キー判定関数群
+inline BOOL isAlphaKey(UINT vKey) {
+    return ('A' <= vKey && vKey <= 'Z');
+}
+inline BOOL isNumericKey(UINT vKey) {
+    return ('0' <= vKey && vKey <= '9');
+}
+inline BOOL isAlphaNumericKey(UINT vKey) {
+    return isAlphaKey(vKey) || isNumericKey(vKey);
+}
+inline BOOL isNumPadKey(UINT vKey) {
+    return VK_NUMPAD0 <= vKey && vKey <= VK_DIVIDE;
+}
+inline BOOL isDbeKey(UINT vKey) {
+#ifndef VK_DBE_ALPHANUMERIC
+    const UINT VK_DBE_ALPHANUMERIC = 0xF0;
+    const UINT VK_DBE_ENTERDLGCONVERSIONMODE = 0xFD;
+#endif
+    return vKey == VK_KANJI || vKey == VK_CONVERT ||
+           (VK_DBE_ALPHANUMERIC <= vKey && vKey <= VK_DBE_ENTERDLGCONVERSIONMODE);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
-// A function which handles WM_IME_KEYDOWN.
-// WM_IME_KEYDOWNを処理する関数。
-BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
-                       INPUT_MODE imode)
+BOOL
+DoProcessKey(
+    HIMC hIMC,
+    InputContext *lpIMC,
+    WPARAM wParam,
+    CONST LPBYTE lpbKeyState,
+    BOOL bDoAction)
 {
-    FOOTMARK_FORMAT("(%p, %p, %p, %u)\n", hIMC, wParam, lpbKeyState, (INT)imode);
-    InputContext *lpIMC;
-    BYTE vk = (BYTE)wParam;
+    FOOTMARK_FORMAT("(%p, %p, %p)\n", lpIMC, wParam, lpbKeyState);
+    BYTE vk = (BYTE)wParam; // 仮想キー
 
-    // check open
-    BOOL bOpen = FALSE;
-    if (hIMC) {
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            bOpen = lpIMC->IsOpen();
-            TheIME.UnlockIMC(hIMC);
-        }
-    }
+    if (vk == VK_SHIFT || vk == VK_CONTROL)
+        FOOTMARK_RETURN_INT(FALSE); // 処理しない
 
-    // check modifiers
-    BOOL bAlt = (lpbKeyState[VK_MENU] & 0x80) ||
-                (lpbKeyState[VK_LMENU] & 0x80) ||
-                (lpbKeyState[VK_RMENU] & 0x80);
-    BOOL bShift = (lpbKeyState[VK_SHIFT] & 0x80) ||
-                  (lpbKeyState[VK_LSHIFT] & 0x80) ||
-                  (lpbKeyState[VK_RSHIFT] & 0x80);
-    BOOL bCtrl = (lpbKeyState[VK_CONTROL] & 0x80) ||
-                 (lpbKeyState[VK_LCONTROL] & 0x80) ||
-                 (lpbKeyState[VK_RCONTROL] & 0x80);
+    if (!bDoAction && isAlphaNumericKey(vk) || isNumPadKey(vk))
+        FOOTMARK_RETURN_INT(TRUE); // 処理すべき
+
+    BOOL bOpen = lpIMC->IsOpen();
+    BOOL bCompStr = lpIMC->HasCompStr();
+    BOOL bAlt = (lpbKeyState[VK_MENU] & 0x80);
+    BOOL bShift = (lpbKeyState[VK_SHIFT] & 0x80);
+    BOOL bCtrl = (lpbKeyState[VK_CONTROL] & 0x80);
     BOOL bCapsLock = (lpbKeyState[VK_CAPITAL] & 0x80);
     BOOL bRoman = IsRomanMode(hIMC);
 
-    // Is Ctrl down? Ctrlキーが押されているか？
-    if (bCtrl) {
-        if (bOpen) {
-            if (vk == VK_SPACE) {
-                lpIMC = TheIME.LockIMC(hIMC);
-                if (lpIMC) {
-                    if (lpIMC->HasCompStr()) {
-                        lpIMC->AddChar(L' ', L'\0');
-                    }
-                }
-                FOOTMARK_RETURN_INT(TRUE);
-            }
-        }
-        FOOTMARK_RETURN_INT(FALSE);
-    }
-
-    // Get translated char. 可能なら文字をひらがなにする。
-    WCHAR chTranslated = 0;
-    if (!bRoman) {
-        chTranslated = mz_vkey_to_hiragana(vk, bShift);
-    }
-
-    // Get typed character. 可能ならキー入力を文字にする。
-    WCHAR chTyped;
-    if (vk == VK_PACKET) {
-        chTyped = chTranslated = HIWORD(wParam);
-    } else {
-        chTyped = mz_typing_key_to_char(vk, bShift, bCapsLock);
-    }
-
-    if (chTranslated || chTyped) { // 入力キーを変換できたら
-        lpIMC = TheIME.LockIMC(hIMC); // 入力コンテキストをロック。
-        ASSERT(lpIMC != NULL);
-        if (lpIMC) {
-            // 候補情報があり、候補の選択であれば、候補を選択。
-            // さもなければ文字を追加。
-            if (lpIMC->HasCandInfo() && L'1' <= chTyped && chTyped <= L'9') {
-                lpIMC->SelectCand(chTyped - L'1');
-            } else {
-                lpIMC->AddChar(chTyped, chTranslated);
-            }
-            TheIME.UnlockIMC(hIMC); // 入力コンテキストのロックを解除。
-        }
-        FOOTMARK_RETURN_INT(TRUE);
-    }
-
     switch (vk) {
-    case VK_KANJI:
-    case VK_OEM_AUTO:
-    case VK_OEM_ENLW:
-        // Simply toggle the IME open status
-        // IMEの開閉状態を単純にトグルする
-        ImmSetOpenStatus(hIMC, !bOpen);
-        break;
-
-    case VK_OEM_ATTN:
-        // This one closes IME (specific behavior for this key)
-        // これはIMEを閉じる（このキー固有の動作）
-        ImmSetOpenStatus(hIMC, FALSE);
-        break;
-
-    case VK_OEM_3:
-        // Alt+~ (VK_OEM_3) toggle for US/German keyboards
-        // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
-        if (bAlt && !bShift && !bCtrl) {
-            ImmSetOpenStatus(hIMC, !bOpen);
-        }
-        break;
-
-    case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-        if (bAlt) {
-            SetRomanMode(hIMC, !IsRomanMode(hIMC));
-            break;
-        }
-        if (!bOpen) {
-            ImmSetOpenStatus(hIMC, TRUE);
-        }
-        switch (imode) {
-        case IMODE_FULL_HIRAGANA:
-            if (bShift) SetInputMode(hIMC, IMODE_FULL_KATAKANA);
-            break;
-        case IMODE_FULL_KATAKANA:
-            if (!bShift) SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
-            break;
-        case IMODE_FULL_ASCII:
-        case IMODE_HALF_ASCII:
-            if (bShift) {
-                SetInputMode(hIMC, IMODE_FULL_KATAKANA);
+    case VK_SPACE: // スペース キー
+        if (bDoAction) {
+            if (bOpen && bCtrl) { // Ctrl+Spaceは、半角スペース
+                lpIMC->AddChar(' ', UNICODE_NULL);
             } else {
-                SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+                if (bCompStr) { // 変換
+                    lpIMC->Convert(bShift);
+                } else { // 全角スペース (U+3000: '　')
+                    TheIME.GenerateMessage(WM_IME_CHAR, 0x3000, 1);
+                }
             }
-            break;
-        case IMODE_HALF_KANA:
-            if (!bShift) {
-                SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
-            }
-            break;
-        default:
-            break;
         }
         break;
-
-    case VK_ESCAPE:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_OEM_ATTN: case VK_PROCESSKEY: // 英数キー
+        if (!bShift && !bCtrl) {
+            if (bDoAction) {
+                INPUT_MODE imode = GetInputMode(hIMC);
+                ImmSetOpenStatus(hIMC, TRUE);
+                if (bOpen && imode == IMODE_FULL_HIRAGANA)
+                    SetInputMode(hIMC, IMODE_FULL_ASCII);
+                else
+                    SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+            }
+        }
+        break;
+    case VK_OEM_3: // '~'
+        // 英語キーボードなどの Alt+~ を処理する
+        if (bAlt && !bShift && !bCtrl) {
+            if (bDoAction) ImmSetOpenStatus(hIMC, !bOpen);
+        } else {
+            FOOTMARK_RETURN_INT(FALSE);
+        }
+        break;
+    case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB: // [カナ/かな]キー
+        if (bDoAction) {
+            // Altキーと一緒に押されていたらローマ字モードを切り替える
+            if (bAlt) { // Alt+[ローマ字]
+                SetRomanMode(hIMC, !bRoman);
+            }
+            // IMEを開く
+            if (!bOpen)
+                ImmSetOpenStatus(hIMC, TRUE);
+            // 入力モードの状態に応じて入力モードを切り替える
+            INPUT_MODE imode = GetInputMode(hIMC);
+            switch (imode) {
+            case IMODE_FULL_HIRAGANA:
+                if (bShift) SetInputMode(hIMC, IMODE_FULL_KATAKANA);
+                break;
+            case IMODE_FULL_KATAKANA:
+                if (!bShift) SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+                break;
+            case IMODE_FULL_ASCII: case IMODE_HALF_ASCII:
+                if (bShift)
+                    SetInputMode(hIMC, IMODE_FULL_KATAKANA);
+                else
+                    SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+                break;
+            case IMODE_HALF_KANA:
+                if (!bShift)
+                    SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
+                break;
+            default:
+                break;
+            }
+        }
+        break;
+    case VK_ESCAPE: // Escキー
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->Escape();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_ESCAPE, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_ESCAPE, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_DELETE:
-    case VK_BACK:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_DELETE: case VK_BACK: // DelキーまたはBkSpキー
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->DeleteChar(vk == VK_BACK);
             } else {
                 if (vk == VK_BACK) {
@@ -171,125 +146,85 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
                     TheIME.GenerateMessage(WM_IME_KEYUP, VK_DELETE, 0x80000000);
                 }
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_SPACE:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
-                lpIMC->Convert(bShift);
-            } else {
-                // add ideographic space
-                TheIME.GenerateMessage(WM_IME_CHAR, 0x3000, 1);
-            }
-            TheIME.UnlockIMC(hIMC);
-        }
-        break;
-
-    case VK_CONVERT:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
+    case VK_CONVERT: // [変換]キー
+        if (bDoAction) {
             lpIMC->Convert(bShift);
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_NONCONVERT:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_NONCONVERT: // [無変換]キー
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeHiragana();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_NONCONVERT, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_NONCONVERT, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F5:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
+    case VK_F5: // F5はコード変換
+        if (bDoAction) {
             lpIMC->ConvertCode();
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F6:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_F6: // F6はひらがな変換
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeHiragana();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F6, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_F6, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F7:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_F7: // F7はカタカナ変換
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeKatakana();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F7, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_F7, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F8:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_F8: // F8は半角変換
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeHankaku();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F8, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_F8, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F9:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_F9: // F9は全角英数変換
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeZenEisuu();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F9, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_F9, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_F10:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_F10: // F10は半角英数変換
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MakeHanEisuu();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F10, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_F10, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_RETURN:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
+    case VK_RETURN: // Enterキー
+        if (bDoAction) {
             if (lpIMC->Conversion() & IME_CMODE_CHARCODE) {
                 // code input
                 lpIMC->CancelText();
             } else {
-                if (lpIMC->HasCompStr()) {
+                if (bCompStr) {
                     lpIMC->MakeResult();
                 } else {
                     // add new line
@@ -297,373 +232,192 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
                     TheIME.GenerateMessage(WM_IME_KEYUP, VK_RETURN, 0xC0000001);
                 }
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_LEFT:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_LEFT: // [←]
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveLeft(bShift);
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_LEFT, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_LEFT, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_RIGHT:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_RIGHT: // [→]
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveRight(bShift);
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_RIGHT, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_RIGHT, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_UP:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_UP: // [↑]
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveUp();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_UP, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_UP, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_DOWN:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_DOWN: // [↓]
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveDown();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_DOWN, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_DOWN, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
     case VK_PRIOR: // Page Up
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->PageUp();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_PRIOR, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_PRIOR, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
     case VK_NEXT: // Page Down
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->PageDown();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_NEXT, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_NEXT, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
-    case VK_HOME:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+    case VK_HOME: // [Home]キー
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveHome();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_HOME, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_HOME, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
     case VK_END:
-        lpIMC = TheIME.LockIMC(hIMC);
-        if (lpIMC) {
-            if (lpIMC->HasCompStr()) {
+        if (bDoAction) {
+            if (bCompStr) {
                 lpIMC->MoveEnd();
             } else {
                 TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_END, 1);
                 TheIME.GenerateMessage(WM_IME_KEYUP, VK_END, 0xC0000001);
             }
-            TheIME.UnlockIMC(hIMC);
         }
         break;
-
     default:
-        FOOTMARK_RETURN_INT(FALSE);
+        {
+            // 可能ならキーをひらがなにする。
+            WCHAR chTranslated = 0;
+            if (!bRoman) {
+                chTranslated = mz_vkey_to_hiragana(vk, bShift);
+            }
+
+            // 可能ならキーを文字にする。
+            WCHAR chTyped;
+            if (vk == VK_PACKET) {
+                chTyped = chTranslated = HIWORD(wParam);
+            } else {
+                chTyped = mz_typing_key_to_char(vk, bShift, bCapsLock);
+            }
+
+            if (chTranslated || chTyped) { // キーを変換できたら
+                if (bDoAction) {
+                    if (lpIMC->HasCandInfo() && L'1' <= chTyped && chTyped <= L'9') {
+                        // 候補情報があり、候補の選択であれば、候補を選択。
+                        lpIMC->SelectCand(chTyped - L'1');
+                    } else {
+                        // さもなければ文字を追加。
+                        lpIMC->AddChar(chTyped, chTranslated);
+                    }
+                }
+                FOOTMARK_RETURN_INT(TRUE); // 処理すべき／処理した
+            }
+        }
+        FOOTMARK_RETURN_INT(FALSE); // 処理しない
     }
-    FOOTMARK_RETURN_INT(TRUE);
-} // IMEKeyDownHandler
 
-UINT g_uOldVK1 = 0;
-DWORD g_dwTick1 = 0;
+    FOOTMARK_RETURN_INT(TRUE); // 処理すべき／処理した
+}
 
-BOOL WINAPI ImeProcessKey(HIMC hIMC, UINT vKey, LPARAM lKeyData,
-                          CONST LPBYTE lpbKeyState)
+BOOL WINAPI
+ImeProcessKey(
+    HIMC hIMC,
+    UINT vKey,
+    LPARAM lKeyData,
+    CONST LPBYTE lpbKeyState)
 {
+    if (lKeyData & 0x80000000) // Is key up?
+        return FALSE;
+
+    // 日本語キーボードの場合、AltとDBEキーの組み合わせを無視（Alt+[半/全]を含む）。
+    // Alt+[半/全]の処理はOSに任せる。
+    if (HIWORD(lKeyData) & KF_ALTDOWN)
+    {
+        LANGID wLangID = LOWORD(GetKeyboardLayout(0));
+        if (wLangID == MAKELANGID(LANG_JAPANESE, SUBLANG_DEFAULT))
+        {
+            if (isDbeKey(vKey))
+                return FALSE;
+        }
+    }
+
     BOOL ret = FALSE;
-    FOOTMARK_FORMAT("(%p, %u (0x%X), 0x%lX, %p)\n",
-                    hIMC, vKey, vKey, lKeyData, lpbKeyState);
+	InputContext *lpIMC = NULL;
+	if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
+		// キー判定
+		if (!(lpbKeyState[VK_MENU] & 0x80)) { // Altキーが押されていない？
+			ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, FALSE);
+		}
+		TheIME.UnlockIMC(hIMC);
+	}
 
-    WORD wKeyFlags = HIWORD(lKeyData);
-    BOOL bKeyUp = (wKeyFlags & KF_UP);
-    
-    // According to IMM specification, ImeProcessKey should return FALSE for key-up events
-    // to let the application handle them, unless the IME specifically needs to process them.
-    // Most IMEs only process key-down events.
-    // IMM 仕様により、ImeProcessKey はキーアップイベントに対して FALSE を返し、
-    // IME が特に処理する必要がない限り、アプリケーションに処理させるべきです。
-    // ほとんどの IME はキーダウンイベントのみを処理します。
-    if (bKeyUp)
-        FOOTMARK_RETURN_INT(FALSE);
+    return ret;
+}
 
-    // wch is used for debugging output only (showing what character the key produces)
-    // 注: wch はデバッグ出力専用（キーがどの文字を生成するかを表示）
-    WCHAR wch = MapVirtualKeyExW(vKey, MAPVK_VK_TO_CHAR, GetKeyboardLayout(0));
-
-    DPRINTA("ImeProcessKey: vKey:%u (0x%X), wch:%lc\n", vKey, vKey, wch);
-
-    // Check modifier keys first (no need for lpIMC)
-    // 修飾キーを先にチェック（lpIMC は不要）
-    BOOL fAlt = (wKeyFlags & KF_ALTDOWN) ||
-                (lpbKeyState[VK_MENU] & 0x80) || 
-                (lpbKeyState[VK_LMENU] & 0x80) || 
-                (lpbKeyState[VK_RMENU] & 0x80);
-    BOOL fCtrl = (lpbKeyState[VK_CONTROL] & 0x80) ||
-                 (lpbKeyState[VK_LCONTROL] & 0x80) ||
-                 (lpbKeyState[VK_RCONTROL] & 0x80);
-    BOOL fShift = (lpbKeyState[VK_SHIFT] & 0x80) ||
-                  (lpbKeyState[VK_LSHIFT] & 0x80) ||
-                  (lpbKeyState[VK_RSHIFT] & 0x80);
-
-    // Lock input context and safely get open status
-    // 入力コンテキストをロックし、安全にオープン状態を取得
-    InputContext *lpIMC = TheIME.LockIMC(hIMC);
-    if (lpIMC == NULL) {
-        // For toggle keys, we still need to handle them even without IMC
-        // トグルキーは IMC なしでも処理する必要がある
-        switch (vKey) {
-        case VK_KANJI: case VK_OEM_AUTO: case VK_OEM_ENLW:
-            if (!fShift && !fCtrl) ret = TRUE;
-            break;
-        case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-            ret = TRUE;
-            break;
-        case VK_OEM_3:
-            // Alt+~ (VK_OEM_3) toggle for US/German keyboards
-            // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
-            if (fAlt && !fShift && !fCtrl) {
-                ret = TRUE;
-            }
-            break;
-        }
-        FOOTMARK_RETURN_INT(ret);
-    }
-
-    BOOL fOpen = lpIMC->IsOpen();
-
-    switch (vKey) {
-    case VK_KANJI: case VK_OEM_AUTO: case VK_OEM_ENLW:
-        if (!fShift && !fCtrl) ret = TRUE;
-        break;
-    case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-        ret = TRUE;
-        break;
-    case VK_OEM_3:
-        // Alt+~ (VK_OEM_3) toggle for US/German keyboards
-        // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
-        if (fAlt && !fShift && !fCtrl) {
-            ret = TRUE;
-        }
-        break;
-    case VK_OEM_ATTN:
-        if (fOpen && !fCtrl && !fShift) {
-            ret = TRUE;
-        }
-        break;
-    default:
-        break;
-    }
-
-    if (!ret && fOpen) {
-        BOOL fCompStr = lpIMC->HasCompStr();
-        BOOL fCandInfo = lpIMC->HasCandInfo();
-        if (fAlt) {
-            // Alt key is down
-            switch (vKey) {
-            case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-                ret = TRUE;
-                break;
-            }
-        } else if (fCtrl) {
-            // Ctrl key is down
-            if (fCompStr) {
-                switch (vKey) {
-                case VK_UP: case VK_DOWN:
-                case VK_LEFT: case VK_RIGHT:
-                    // widely move
-                    ret = TRUE;
-                    break;
-                }
-            }
-        } else if (fShift) {
-            // Shift key is down
-            switch (vKey) {
-            case VK_LEFT: case VK_RIGHT: case VK_SPACE:
-            case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-                ret = TRUE;
-                break;
-            }
-        }
-        if (!ret) {
-            if (vKey == VK_F5) {
-                ret = TRUE;
-            }
-            if (fCompStr) {
-                switch (vKey) {
-                case VK_F6: // make composition fullwidth Hiragana
-                case VK_F7: // make composition fullwidth Katakana
-                case VK_F8: // make composition halfwidth Katakana
-                case VK_F9: // make composition fullwidth alphanumeric
-                case VK_F10: // make composition halfwidth alphanumeric
-                case VK_ESCAPE: // close composition
-                    if (!fCtrl && !fAlt) {
-                        ret = TRUE;
-                    }
-                    break;
-                }
-            }
-            switch (vKey) {
-            case VK_OEM_PLUS: case VK_OEM_MINUS: case VK_OEM_PERIOD:
-            case VK_OEM_COMMA:
-            case VK_OEM_1: case VK_OEM_2: case VK_OEM_3: case VK_OEM_4:
-            case VK_OEM_5: case VK_OEM_6: case VK_OEM_7: case VK_OEM_8:
-            case VK_OEM_9: case VK_OEM_102:
-            case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB:
-            case VK_OEM_ATTN:
-                // OEM keys
-                if (!fCtrl && !fAlt) {
-                    ret = TRUE;
-                }
-                break;
-            case VK_ADD: case VK_SUBTRACT:
-            case VK_MULTIPLY: case VK_DIVIDE:
-            case VK_SEPARATOR: case VK_DECIMAL:
-                // numpad keys
-                if (!fCtrl && !fAlt) {
-                    ret = TRUE;
-                }
-                break;
-            case VK_HOME: case VK_END:
-            case VK_UP: case VK_DOWN: case VK_LEFT: case VK_RIGHT:
-                // arrow and moving key
-                if (!fCtrl && !fAlt) {
-                    ret = TRUE;
-                }
-                break;
-            case VK_SPACE:
-                if (!fCtrl || fCompStr) ret = TRUE;
-                break;
-            case VK_BACK: case VK_DELETE: case VK_RETURN:
-            case VK_CONVERT: case VK_NONCONVERT:
-                // special keys
-                if (!fCtrl && !fAlt) {
-                    ret = TRUE;
-                }
-                break;
-            default:
-                if ('0' <= vKey && vKey <= '9') { // numbers
-                    if (!fCtrl && !fAlt) {
-                        ret = TRUE;
-                    }
-                } else if ('A' <= vKey && vKey <= 'Z') { // alphabets
-                    if (!fCtrl && !fAlt) {
-                        ret = TRUE;
-                    }
-                } else if (VK_NUMPAD0 <= vKey && vKey <= VK_NUMPAD9) { // numpad numbers
-                    if (!fCtrl && !fAlt) {
-                        ret = TRUE;
-                    }
-                } else {
-                    if (fCandInfo) {
-                        switch (vKey) {
-                        case VK_PRIOR: case VK_NEXT:
-                            // next or previous page of candidates
-                            if (!fCtrl && !fAlt) {
-                                ret = TRUE;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    TheIME.UnlockIMC(hIMC);
-    FOOTMARK_RETURN_INT(ret);
-} // ImeProcessKey
-
-UINT WINAPI ImeToAsciiEx(UINT uVKey, UINT uScanCode, CONST LPBYTE lpbKeyState,
-                         LPTRANSMSGLIST lpTransBuf, UINT fuState, HIMC hIMC)
+UINT WINAPI
+ImeToAsciiEx(
+    UINT uVKey,
+    UINT uScanCode,
+    CONST LPBYTE lpbKeyState,
+    LPTRANSMSGLIST lpTransBuf,
+    UINT fuState,
+    HIMC hIMC)
 {
-    UINT ret = 0;
     FOOTMARK_FORMAT("(%u (0x%X), 0x%X, %p, %p, 0x%X, %p)\n",
                     uVKey, uVKey, uScanCode, lpbKeyState, lpTransBuf, fuState, hIMC);
 
-    // Set up the message buffer for this key translation
-    // このキー変換のためのメッセージバッファを設定
     TheIME.m_lpCurTransKey = lpTransBuf;
     TheIME.m_uNumTransKey = 0;
 
-    // NOTE: According to IMM documentation, uScanCode is supposed to be the scan code only.
-    // However, this implementation treats it as containing lParam-like flags (bit 0x10000000).
-    // The bit 0x10000000 in lParam indicates key transition state (0=key down, 1=key up).
-    // This appears to be passing extended lParam data rather than pure scan code.
-    // 注: IMM ドキュメントによると、uScanCode はスキャンコードのみであるべきですが、
-    // この実装では lParam のようなフラグ (bit 0x10000000) を含むものとして扱っています。
-    // lParam の bit 0x10000000 はキー遷移状態を示します (0=キーダウン, 1=キーアップ)。
-    // これは純粋なスキャンコードではなく、拡張 lParam データを渡しているようです。
-    BOOL bKeyUp = (uScanCode & 0x10000000);
+    InputContext *lpIMC;
+    if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
+        if (lpIMC->fOpen) {
+            if (!(uScanCode & 0x8000)) // Not key up?
+                DoProcessKey(hIMC, lpIMC, uVKey, lpbKeyState, TRUE);
 
-    if (hIMC) {
-        if (!bKeyUp) {
-            INPUT_MODE imode = GetInputMode(hIMC);
-            IMEKeyDownHandler(hIMC, uVKey, lpbKeyState, imode);
+            TheIME.m_lpCurTransKey = NULL;
         }
-
-        // Check for message buffer overflow
-        // メッセージバッファのオーバーフローをチェック
-        if (TheIME.m_fOverflowKey) {
-            DPRINTA("***************************************\n");
-            DPRINTA("*   TransKey OVER FLOW Messages!!!    *\n");
-            DPRINTA("*                by MZIMEJA.IME       *\n");
-            DPRINTA("***************************************\n");
-        }
-        
-        // Return value must match lpTransBuf->uMsgCount
-        // 戻り値は lpTransBuf->uMsgCount と一致する必要があります
-        ret = TheIME.m_uNumTransKey;
+		TheIME.UnlockIMC(hIMC);
     }
 
-    TheIME.m_lpCurTransKey = NULL;
-    FOOTMARK_RETURN_INT(ret);
+    if (TheIME.m_fOverflowKey) {
+        DPRINTA("***************************************\n");
+        DPRINTA("*   TransKey OVER FLOW Messages!!!    *\n");
+        DPRINTA("*                by MZIMEJA.IME       *\n");
+        DPRINTA("***************************************\n");
+    }
+
+    FOOTMARK_RETURN_INT(TheIME.m_uNumTransKey);
 } // ImeToAsciiEx
 
 //////////////////////////////////////////////////////////////////////////////
