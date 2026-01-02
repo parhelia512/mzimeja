@@ -21,15 +21,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 // FootmarkLocation and FootmarkPrintCallStack (on debugging)
 
-#ifndef NDEBUG
-    #include <vector>   // for std::vector
-    #include <string>   // for std::string and std::wstring
-    #include <cassert>  // for assert
-    #ifdef _WIN32
-        #ifndef _INC_WINDOWS
-            #include <windows.h>
-        #endif
+#include <vector>   // for std::vector
+#include <string>   // for std::string and std::wstring
+#include <cassert>  // for assert
+
+#ifdef _WIN32
+    #ifndef _INC_WINDOWS
+        #include <windows.h>
     #endif
+#endif
 
 struct FootmarkLocation {
     const char *m_file;
@@ -115,7 +115,6 @@ inline void FootmarkLocation::Leave() {
 #endif
     }
 }
-#endif  // ndef NDEBUG
 
 ///////////////////////////////////////////////////////////////////////////////
 // FOOTMARK* Macros
