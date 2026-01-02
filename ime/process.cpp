@@ -91,32 +91,22 @@ BOOL IMEKeyDownHandler(HIMC hIMC, WPARAM wParam, BYTE *lpbKeyState,
     case VK_KANJI:
     case VK_OEM_AUTO:
     case VK_OEM_ENLW:
-        if (bOpen) {
-            SetInputMode(hIMC, IMODE_HALF_ASCII);
-        } else {
-            SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
-        }
+        // Simply toggle the IME open status
+        // IMEの開閉状態を単純にトグルする
+        ImmSetOpenStatus(hIMC, !bOpen);
         break;
 
     case VK_OEM_ATTN:
-        if (bOpen && !bShift && !bCtrl) {
-            SetInputMode(hIMC, IMODE_HALF_ASCII);
-        }
+        // This one closes IME (specific behavior for this key)
+        // これはIMEを閉じる（このキー固有の動作）
+        ImmSetOpenStatus(hIMC, FALSE);
         break;
 
     case VK_OEM_3:
         // Alt+~ (VK_OEM_3) toggle for US/German keyboards
         // Alt+~ (VK_OEM_3) による US/ドイツ語キーボードのトグル
         if (bAlt && !bShift && !bCtrl) {
-            if (bOpen) {
-                // IME ON -> OFF: Switch to half-width ASCII mode
-                // IME ON -> OFF: 半角英数モードに切り替え
-                SetInputMode(hIMC, IMODE_HALF_ASCII);
-            } else {
-                // IME OFF -> ON: Switch to full-width Hiragana mode
-                // IME OFF -> ON: 全角ひらがなモードに切り替え
-                SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
-            }
+            ImmSetOpenStatus(hIMC, !bOpen);
         }
         break;
 

@@ -352,7 +352,7 @@ LONG NotifyCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     case IMN_SETCONVERSIONMODE: // 変換モードがセットされる。
         DPRINTA("IMN_SETCONVERSIONMODE\n");
-        lpIMC = TheIME.LockIMC(hIMC); // 入力コンテキストをロックする。
+        lpIMC = TheIME.LockIMC(hIMC);
         if (lpIMC) {
             // ローマ字モードを保存。
             if (lpIMC->Conversion() & IME_CMODE_ROMAN) {
@@ -360,9 +360,17 @@ LONG NotifyCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
             } else {
                 Config_SetDWORD(L"IsNonRoman", TRUE);
             }
-            TheIME.UnlockIMC(hIMC); // 入力コンテキストのロックを解除。
+
+            // Save the current input mode when IME is open
+            // IMEが開いている時、現在の入力モードを保存
+            if (lpIMC->IsOpen()) {
+                INPUT_MODE imode = GetInputMode(hIMC);
+                Config_SetDWORD(L"LastInputMode", imode);
+            }
+
+            TheIME.UnlockIMC(hIMC);
         }
-        StatusWnd_Update(lpUIExtra); // 余剰情報を更新。
+        StatusWnd_Update(lpUIExtra);
         break;
 
     case IMN_SETSENTENCEMODE:
@@ -405,6 +413,25 @@ LONG NotifyCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     case IMN_SETOPENSTATUS: // IMEのON/OFFを切り替え。
         DPRINTA("IMN_SETOPENSTATUS\n");
+        lpIMC = TheIME.LockIMC(hIMC);
+        if (lpIMC) {
+            BOOL bNewOpen = lpIMC->IsOpen();
+
+            // When IME is turned ON, set appropriate input mode
+            // IMEがONになった時、適切な入力モードを設定
+            if (bNewOpen) {
+                // Restore the last used mode, or default to Full Hiragana
+                // 最後に使用したモードを復元、またはデフォルトの全角ひらがなに
+                DWORD dwLastMode = Config_GetDWORD(L"LastInputMode", IMODE_FULL_HIRAGANA);
+                SetInputMode(hIMC, (INPUT_MODE)dwLastMode);
+            } else {
+                // When IME is turned OFF, switch to Half ASCII mode
+                // IMEがOFFになった時、半角英数モードに切り替え
+                SetInputMode(hIMC, IMODE_HALF_ASCII);
+            }
+
+            TheIME.UnlockIMC(hIMC);
+        }
         StatusWnd_Update(lpUIExtra); // 状態ウィンドウを更新する。
         break;
 
