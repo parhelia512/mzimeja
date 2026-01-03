@@ -58,6 +58,11 @@ DoProcessKey(
     }
 
     switch (vk) {
+    case VK_KANJI: case VK_DBE_DBCSCHAR: case VK_DBE_SBCSCHAR: // [半角／全角]キー
+        if (bDoAction) {
+            ImmSetOpenStatus(hIMC, !bOpen);
+        }
+        break;
     case VK_SPACE: // スペース キー
         if (bDoAction) {
             if (bOpen && bCtrl) { // Ctrl+Spaceは、半角スペース
@@ -360,15 +365,6 @@ ImeProcessKey(
     LPARAM lKeyData,
     CONST LPBYTE lpbKeyState)
 {
-    // 日本語キーボードの場合、AltとDBEキーの組み合わせを無視（Alt+[半/全]を含む）。
-    // Alt+[半/全]の処理はOSに任せる。
-    if (HIWORD(lKeyData) & KF_ALTDOWN)
-    {
-        LANGID wLangID = LOWORD(GetKeyboardLayout(0));
-        if (wLangID == MAKELANGID(LANG_JAPANESE, SUBLANG_DEFAULT) && isDbeKey(vKey))
-            return FALSE;
-    }
-
     // キー判定
     BOOL ret = FALSE;
     InputContext *lpIMC = NULL;

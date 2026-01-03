@@ -10,8 +10,8 @@
 extern "C"
 {
 
-#define USE_LOGFILE
-//#undef USE_LOGFILE
+//#define USE_LOGFILE
+#undef USE_LOGFILE
 
 //////////////////////////////////////////////////////////////////////////////
 // デバッグ用。
