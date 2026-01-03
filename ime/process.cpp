@@ -21,10 +21,6 @@ inline BOOL isNumPadKey(UINT vKey) {
     return VK_NUMPAD0 <= vKey && vKey <= VK_DIVIDE;
 }
 inline BOOL isDbeKey(UINT vKey) {
-#ifndef VK_DBE_ALPHANUMERIC
-    const UINT VK_DBE_ALPHANUMERIC = 0xF0;
-    const UINT VK_DBE_ENTERDLGCONVERSIONMODE = 0xFD;
-#endif
     return vKey == VK_KANJI || vKey == VK_CONVERT ||
            (VK_DBE_ALPHANUMERIC <= vKey && vKey <= VK_DBE_ENTERDLGCONVERSIONMODE);
 }
@@ -77,7 +73,7 @@ DoProcessKey(
             }
         }
         break;
-    case VK_OEM_ATTN: // 英数キー
+    case VK_DBE_ALPHANUMERIC: // 英数キー
         if (!bShift && !bCtrl) {
             if (bDoAction) {
                 INPUT_MODE imode = GetInputMode(hIMC);
@@ -97,7 +93,7 @@ DoProcessKey(
             FOOTMARK_RETURN_INT(FALSE);
         }
         break;
-    case VK_OEM_COPY: case VK_OEM_FINISH: case VK_OEM_BACKTAB: // [カナ/かな]キー
+    case VK_DBE_HIRAGANA: case VK_DBE_KATAKANA: case VK_DBE_ROMAN: // [カナ/かな]キー
         if (bDoAction) {
             // Altキーと一緒に押されていたらローマ字モードを切り替える
             if (bAlt) { // Alt+[ローマ字]
@@ -323,7 +319,7 @@ DoProcessKey(
         break;
     default:
         {
-            if (bCtrl || bAlt)
+            if (bCtrl || bAlt || !bOpen)
                 FOOTMARK_RETURN_INT(FALSE); // 処理しない
 
             // 可能ならキーをひらがなにする。
