@@ -42,10 +42,10 @@ DoProcessKey(
     if (vk == VK_SHIFT || vk == VK_CONTROL)
         FOOTMARK_RETURN_INT(FALSE); // 処理しない
 
-    if (!bDoAction && isAlphaNumericKey(vk) || isNumPadKey(vk))
+    BOOL bOpen = lpIMC->IsOpen();
+    if (!bDoAction && bOpen && (isAlphaNumericKey(vk) || isNumPadKey(vk)))
         FOOTMARK_RETURN_INT(TRUE); // 処理すべき
 
-    BOOL bOpen = lpIMC->IsOpen();
     BOOL bCompStr = lpIMC->HasCompStr();
     BOOL bAlt = (lpbKeyState[VK_MENU] & 0x80);
     BOOL bShift = (lpbKeyState[VK_SHIFT] & 0x80);
@@ -319,7 +319,7 @@ DoProcessKey(
         break;
     default:
         {
-            if (bCtrl || bAlt || !bOpen)
+            if (!bOpen || bCtrl || bAlt)
                 FOOTMARK_RETURN_INT(FALSE); // 処理しない
 
             // 可能ならキーをひらがなにする。
