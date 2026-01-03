@@ -57,9 +57,9 @@ Name: "{group}\バージョン情報"; Filename: "{app}\verinfo.exe"
 Name: "{group}\アンインストール"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\ime_setup32.exe"; Parameters: "/i"
+Filename: "{app}\ime_setup32.exe"; Parameters: "/i"; Check: not(IsWin64)
 Filename: "{app}\ime_setup64.exe"; Parameters: "/i"; Check: IsWin64
 
 [UninstallRun]
-Filename: "{app}\ime_setup32.exe"; Parameters: "/u"
+Filename: "{app}\ime_setup32.exe"; Parameters: "/u"; Check: not(IsWin64)
 Filename: "{app}\ime_setup64.exe"; Parameters: "/u"; Check: IsWin64
