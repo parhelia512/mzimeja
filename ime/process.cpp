@@ -36,11 +36,11 @@ DoProcessKey(
     BOOL bKeyUp,
     BOOL bDoAction)
 {
-    FOOTMARK_FORMAT("(%p, %p, %p)\n", lpIMC, wParam, lpbKeyState);
+    DPRINTA("(%p, %p, %p)\n", lpIMC, wParam, lpbKeyState);
     BYTE vk = (BYTE)wParam; // 仮想キー
 
     if (vk == VK_SHIFT || vk == VK_CONTROL)
-        FOOTMARK_RETURN_INT(FALSE); // 処理しない
+        return FALSE; // 処理しない
 
     BOOL bOpen = lpIMC->IsOpen();
     BOOL bCompStr = lpIMC->HasCompStr();
@@ -51,7 +51,7 @@ DoProcessKey(
     BOOL bRoman = IsRomanMode(hIMC);
 
     if (bKeyUp) {
-        FOOTMARK_RETURN_INT(FALSE);
+        return FALSE;
     }
 
     switch (vk) {
@@ -62,7 +62,7 @@ DoProcessKey(
         break;
     case VK_SPACE: // スペース キー
         if (!bOpen)
-            FOOTMARK_RETURN_INT(FALSE); // IMEが閉じている場合は処理しない
+            return FALSE; // IMEが閉じている場合は処理しない
         if (bCtrl) { // Ctrlが押されている？
             if (bDoAction) {
                 // Ctrl+Spaceは、半角スペース
@@ -97,16 +97,16 @@ DoProcessKey(
     case VK_OEM_3: // '~'
         // 英語キーボードなどの Alt+~ を処理する
         if (bAlt && !bShift && !bCtrl) {
-            if (bDoAction) ImmSetOpenStatus(hIMC, !bOpen);
+            if (bDoAction)
+                ImmSetOpenStatus(hIMC, !bOpen);
         } else {
-            FOOTMARK_RETURN_INT(FALSE); // 処理しない
+            return FALSE; // 処理しない
         }
         break;
     case VK_DBE_ROMAN: // ローマ字
         if (bDoAction) {
-            if (bOpen) {
+            if (bOpen)
                 SetRomanMode(hIMC, !bRoman);
-            }
         }
         break;
     case VK_DBE_HIRAGANA: case VK_DBE_KATAKANA: // [カナ/かな]キー
@@ -136,200 +136,183 @@ DoProcessKey(
         }
         break;
     case VK_ESCAPE: // Escキー
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->Escape();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_ESCAPE, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_ESCAPE, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_DELETE: case VK_BACK: // DelキーまたはBkSpキー
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->DeleteChar(vk == VK_BACK);
-            } else {
-                if (vk == VK_BACK) {
-                    TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_BACK);
-                    TheIME.GenerateMessage(WM_IME_KEYUP, VK_BACK, 0x80000000);
-                } else {
-                    TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_DELETE);
-                    TheIME.GenerateMessage(WM_IME_KEYUP, VK_DELETE, 0x80000000);
-                }
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_CONVERT: // [変換]キー
-        if (bDoAction) {
-            lpIMC->Convert(bShift);
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
+                lpIMC->Convert(bShift);
+            }
+        } else {
+            // TODO: 再変換
+            return FALSE; // 処理しない
         }
         break;
     case VK_NONCONVERT: // [無変換]キー
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeHiragana();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_NONCONVERT, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_NONCONVERT, 0xC0000001);
             }
         }
         break;
     case VK_F5: // F5はコード変換
-        if (bDoAction) {
-            lpIMC->ConvertCode();
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
+                lpIMC->ConvertCode();
+            }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_F6: // F6はひらがな変換
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeHiragana();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F6, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_F6, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_F7: // F7はカタカナ変換
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeKatakana();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F7, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_F7, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_F8: // F8は半角変換
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeHankaku();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F8, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_F8, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_F9: // F9は全角英数変換
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeZenEisuu();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F9, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_F9, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_F10: // F10は半角英数変換
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MakeHanEisuu();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_F10, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_F10, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_RETURN: // Enterキー
-        if (bDoAction) {
-            if (lpIMC->Conversion() & IME_CMODE_CHARCODE) {
-                // code input
-                lpIMC->CancelText();
-            } else {
-                if (bCompStr) {
-                    lpIMC->MakeResult();
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
+                if (lpIMC->Conversion() & IME_CMODE_CHARCODE) {
+                    lpIMC->CancelText();
                 } else {
-                    // add new line
-                    TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_RETURN, 1);
-                    TheIME.GenerateMessage(WM_IME_KEYUP, VK_RETURN, 0xC0000001);
+                    lpIMC->MakeResult();
                 }
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_LEFT: // [←]
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveLeft(bShift);
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_LEFT, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_LEFT, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_RIGHT: // [→]
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveRight(bShift);
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_RIGHT, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_RIGHT, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_UP: // [↑]
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveUp();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_UP, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_UP, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_DOWN: // [↓]
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveDown();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_DOWN, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_DOWN, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_PRIOR: // Page Up
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->PageUp();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_PRIOR, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_PRIOR, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_NEXT: // Page Down
-        if (bDoAction) {
-            if (bCompStr) {
-                lpIMC->PageDown();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_NEXT, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_NEXT, 0xC0000001);
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
+                lpIMC->PageUp();
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_HOME: // [Home]キー
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveHome();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_HOME, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_HOME, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_END: // [End]キー
-        if (bDoAction) {
-            if (bCompStr) {
+        if (bOpen && bCompStr) {
+            if (bDoAction) {
                 lpIMC->MoveEnd();
-            } else {
-                TheIME.GenerateMessage(WM_IME_KEYDOWN, VK_END, 1);
-                TheIME.GenerateMessage(WM_IME_KEYUP, VK_END, 0xC0000001);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     default:
         {
             if (!bOpen || bCtrl || bAlt)
-                FOOTMARK_RETURN_INT(FALSE); // 処理しない
+                return FALSE; // 処理しない
 
             // 可能ならキーをひらがなにする。
             WCHAR chTranslated = 0;
@@ -355,13 +338,13 @@ DoProcessKey(
                         lpIMC->AddChar(chTyped, chTranslated);
                     }
                 }
-                FOOTMARK_RETURN_INT(TRUE); // 処理すべき／処理した
+                return TRUE; // 処理すべき／処理した
             }
         }
-        FOOTMARK_RETURN_INT(FALSE); // 処理しない
+        return FALSE; // 処理しない
     }
 
-    FOOTMARK_RETURN_INT(TRUE); // 処理すべき／処理した
+    return TRUE; // 処理すべき／処理した
 }
 
 BOOL WINAPI
