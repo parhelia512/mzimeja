@@ -37,26 +37,14 @@ HKEY Config_OpenAppKey(VOID)
 // レジストリのアプリキーを作成する。
 HKEY Config_CreateAppKey(VOID)
 {
-    // 会社名キーを作成する。
-    HKEY hCompanyKey;
-    LONG error = ::RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Katayama Hirofumi MZ"),
-                                  0, NULL, 0, KEY_READ | KEY_WRITE, NULL, &hCompanyKey, NULL);
-    if (error) {
-        DPRINTA("error: 0x%08lX\n", error);
-        return NULL;
-    }
-
-    // アプリキーを開く。
     HKEY hAppKey;
-    error = ::RegCreateKeyEx(hCompanyKey, TEXT("mzimeja"), 0, NULL, 0,
-                             KEY_READ | KEY_WRITE, NULL, &hAppKey, NULL);
+    LSTATUS error = ::RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\Katayama Hirofumi MZ\\mzimeja"),
+                                     0, NULL, 0, KEY_READ | KEY_WRITE, NULL, &hAppKey, NULL);
     if (error) {
         DPRINTA("error: 0x%08lX\n", error);
-        ::RegCloseKey(hCompanyKey);
         return NULL;
     }
 
-    ::RegCloseKey(hCompanyKey);
     return hAppKey;
 }
 
