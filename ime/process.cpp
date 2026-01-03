@@ -64,13 +64,19 @@ DoProcessKey(
         }
         break;
     case VK_SPACE: // スペース キー
-        if (bDoAction) {
-            if (bCtrl) {
-                if (bOpen && bCompStr)
-                    lpIMC->AddChar(' ', UNICODE_NULL); // Ctrl+Spaceは、半角スペース
-                else
-                    FOOTMARK_RETURN_INT(FALSE);
-            } else {
+        if (!bOpen)
+            FOOTMARK_RETURN_INT(FALSE); // IMEが閉じている場合は処理しない
+        if (bCtrl) { // Ctrlが押されている？
+            if (bDoAction) {
+                // Ctrl+Spaceは、半角スペース
+                if (bCompStr) {
+                    lpIMC->AddChar(' ', UNICODE_NULL);
+                } else {
+                    TheIME.GenerateMessage(WM_IME_CHAR, L' ', 1);
+                }
+            }
+        } else { // Ctrlが押されていない？
+            if (bDoAction) {
                 if (bCompStr) { // 変換
                     lpIMC->Convert(bShift);
                 } else { // 全角スペース (U+3000: '　')
@@ -96,7 +102,7 @@ DoProcessKey(
         if (bAlt && !bShift && !bCtrl) {
             if (bDoAction) ImmSetOpenStatus(hIMC, !bOpen);
         } else {
-            FOOTMARK_RETURN_INT(FALSE);
+            FOOTMARK_RETURN_INT(FALSE); // 処理しない
         }
         break;
     case VK_DBE_ROMAN: // ローマ字
@@ -313,7 +319,7 @@ DoProcessKey(
             }
         }
         break;
-    case VK_END:
+    case VK_END: // [End]キー
         if (bDoAction) {
             if (bCompStr) {
                 lpIMC->MoveEnd();
