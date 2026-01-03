@@ -11,6 +11,14 @@
 
 const DWORD c_dwMilliseconds = 8000;
 
+static const LPCWSTR s_weekdays[] = {
+    L"Sun", L"Mon", L"Tue", L"Wed", L"Thu", L"Fri", L"Sat"
+};
+static const LPCWSTR s_months[] = {
+    L"Jan", L"Feb", L"Mar", L"Apr", L"May", L"Jun",
+    L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec"
+};
+
 // 辞書。
 Dict g_basic_dict;
 Dict g_name_dict;
@@ -1006,7 +1014,7 @@ void MzConvClause::add(const LatticeNode *node)
     }
     MzConvCandidate cand;
     cand.pre = node->pre;
-    cand.post = mz_translate_string(node->post);
+    cand.post = node->post;
     cand.cost = node->subtotal_cost;
     cand.word_cost = node->WordCost();
     cand.bunruis.insert(node->bunrui);
@@ -1137,283 +1145,280 @@ bool LatticeNode::IsKeiyoushi() const
 //////////////////////////////////////////////////////////////////////////////
 // Lattice - ラティス
 
-// 追加情報。
-void Lattice::AddExtraNodes()
-{
-    FOOTMARK();
-    static const LPCWSTR s_weekdays[] = {
-        L"Sun", L"Mon", L"Tue", L"Wed", L"Thu", L"Fri", L"Sat"
-    };
-    static const LPCWSTR s_months[] = {
-        L"Jan", L"Feb", L"Mar", L"Apr", L"May", L"Jun",
-        L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec"
-    };
+void Lattice::SetDay(const SYSTEMTIME& st, LONGLONG delta) {
+    SYSTEMTIME st2;
+
+    if (delta == 0) {
+        st2 = st;
+    } else {
+        FILETIME ft;
+        SystemTimeToFileTime(&st, &ft);
+        LARGE_INTEGER li;
+        li.LowPart = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        li.QuadPart += delta;
+        ft.dwLowDateTime = li.LowPart;
+        ft.dwHighDateTime = li.HighPart;
+        FileTimeToSystemTime(&ft, &st2);
+    }
+
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
 
     WCHAR sz[128];
+    StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
 
-    // 現在の日時を取得する。
-    SYSTEMTIME st;
-    ::GetLocalTime(&st);
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
 
-    // 今日（today）
-    if (m_pre == L"きょう") {
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+
+    StringCchPrintfW(sz, _countof(sz), L"%u年%02u月%02u日", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u/%02u/%02u", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u/%u/%u", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u.%02u.%02u", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u.%u.%u", st2.wYear, st2.wMonth, st2.wDay);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u",
+                     s_weekdays[st2.wDayOfWeek], s_months[st2.wMonth - 1],
+                     st2.wDay, st2.wYear);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+}
+
+void Lattice::SetMonth(const SYSTEMTIME& st, LONGLONG delta) {
+    SYSTEMTIME st2;
+    if (delta == 0) {
+        st2 = st;
+    } else {
+        FILETIME ft;
+        SystemTimeToFileTime(&st, &ft);
+        LARGE_INTEGER li;
+        li.LowPart = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        li.QuadPart += delta;
+        ft.dwLowDateTime = li.LowPart;
+        ft.dwHighDateTime = li.HighPart;
+        FileTimeToSystemTime(&ft, &st2);
+    }
+
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    WCHAR sz[128];
+    StringCchPrintfW(sz, _countof(sz), L"%u年%u月", st2.wYear, st2.wMonth);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+
+    StringCchPrintfW(sz, _countof(sz), L"%u年%02u月", st2.wYear, st2.wMonth);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+}
+
+void Lattice::SetYear(const SYSTEMTIME& st) {
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    WCHAR sz[128];
+    StringCchPrintfW(sz, _countof(sz), L"%u年", st.wYear);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+}
+
+void Lattice::SetTime(const SYSTEMTIME& st) {
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    if (m_pre == L"ただいま") {
+        fields[I_FIELD_POST] = L"ただ今";
+        DoFields(0, fields, +1000);
+        fields[I_FIELD_POST] = L"只今";
+        DoFields(0, fields, +1000);
+    }
+
+    WCHAR sz[128];
+    StringCchPrintfW(sz, _countof(sz), L"%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+
+    StringCchPrintfW(sz, _countof(sz), L"%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+    DoFields(0, fields, +10);
+
+    fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+    DoFields(0, fields, +10);
+
+    if (st.wHour >= 12) {
+        StringCchPrintfW(sz, _countof(sz), L"午後%u時%u分%u秒", st.wHour - 12, st.wMinute, st.wSecond);
+        fields[I_FIELD_POST] = sz;
+        DoFields(0, fields);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+        DoFields(0, fields, +10);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+        DoFields(0, fields, +10);
+
+        StringCchPrintfW(sz, _countof(sz), L"午後%02u時%02u分%02u秒", st.wHour - 12, st.wMinute, st.wSecond);
+        fields[I_FIELD_POST] = sz;
+        DoFields(0, fields);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+        DoFields(0, fields, +10);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+        DoFields(0, fields, +10);
+    } else {
+        StringCchPrintfW(sz, _countof(sz), L"午前%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
+        fields[I_FIELD_POST] = sz;
+        DoFields(0, fields);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+        DoFields(0, fields, +10);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+        DoFields(0, fields, +10);
+
+        StringCchPrintfW(sz, _countof(sz), L"午前%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
+        fields[I_FIELD_POST] = sz;
+        DoFields(0, fields);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
+        DoFields(0, fields, +10);
+
+        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
+        DoFields(0, fields, +10);
+    }
+
+    StringCchPrintfW(sz, _countof(sz), L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+}
+
+void Lattice::SetDateTime(const SYSTEMTIME& st) {
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    WCHAR sz[128];
+    StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日%u時%u分%u秒",
+                     st.wYear, st.wMonth, st.wDay,
+                     st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u年%02u月%02u日%02u時%02u分%02u秒",
+                     st.wYear, st.wMonth, st.wDay,
+                     st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u %02u:%02u:%02u",
+                     st.wYear, st.wMonth, st.wDay,
+                     st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+
+    StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u %02u:%02u:%02u",
+                     s_weekdays[st.wDayOfWeek], s_months[st.wMonth - 1],
+                     st.wDay, st.wYear,
+                     st.wHour, st.wMinute, st.wSecond);
+    fields[I_FIELD_POST] = sz;
+    DoFields(0, fields);
+}
+
+void Lattice::SetUser() {
+    WCHAR sz[128];
+    DWORD dwSize = _countof(sz);
+    if (::GetUserNameW(sz, &dwSize)) {
         WStrings fields(NUM_FIELDS);
         fields[I_FIELD_PRE] = m_pre;
         fields[I_FIELD_HINSHI].resize(1);
         fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年%02u月%02u日", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u/%02u/%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u/%u/%u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u.%02u.%02u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u.%u.%u", st.wYear, st.wMonth, st.wDay);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%02u/%02u/%04u", st.wMonth, st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u/%u/%04u", st.wMonth, st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u",
-                         s_weekdays[st.wDayOfWeek], s_months[st.wMonth - 1],
-                         st.wDay, st.wYear);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        return;
-    }
-
-    // 今年（this year）
-    if (m_pre == L"ことし") {
-        WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年", st.wYear);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        return;
-    }
-
-    // 今月（this month）
-    if (m_pre == L"こんげつ") {
-        WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年%u月", st.wYear, st.wMonth);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年%02u月", st.wYear, st.wMonth);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        return;
-    }
-
-    // 現在の時刻（current time）
-    if (m_pre == L"じこく" || m_pre == L"ただいま") {
-        WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-
-        if (m_pre == L"ただいま") {
-            fields[I_FIELD_POST] = L"ただ今";
-            DoFields(0, fields);
-            fields[I_FIELD_POST] = L"只今";
-            DoFields(0, fields);
-        }
-
-        StringCchPrintfW(sz, _countof(sz), L"%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        StringCchPrintfW(sz, _countof(sz), L"%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-        DoFields(0, fields, +10);
-
-        fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-        DoFields(0, fields, +10);
-
-        if (st.wHour >= 12) {
-            StringCchPrintfW(sz, _countof(sz), L"午後%u時%u分%u秒", st.wHour - 12, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
-            DoFields(0, fields);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-            DoFields(0, fields, +10);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-            DoFields(0, fields, +10);
-
-            StringCchPrintfW(sz, _countof(sz), L"午後%02u時%02u分%02u秒", st.wHour - 12, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
-            DoFields(0, fields);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-            DoFields(0, fields, +10);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-            DoFields(0, fields, +10);
-        } else {
-            StringCchPrintfW(sz, _countof(sz), L"午前%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
-            DoFields(0, fields);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-            DoFields(0, fields, +10);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-            DoFields(0, fields, +10);
-
-            StringCchPrintfW(sz, _countof(sz), L"午前%02u時%02u分%02u秒", st.wHour, st.wMinute, st.wSecond);
-            fields[I_FIELD_POST] = sz;
-            DoFields(0, fields);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(sz);
-            DoFields(0, fields, +10);
-
-            fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(sz);
-            DoFields(0, fields, +10);
-        }
-
-        StringCchPrintfW(sz, _countof(sz), L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-        return;
-    }
-
-    if (m_pre == L"にちじ") { // date and time
-        WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-
-        StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日%u時%u分%u秒",
-                         st.wYear, st.wMonth, st.wDay,
-                         st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u年%02u月%02u日%02u時%02u分%02u秒",
-                         st.wYear, st.wMonth, st.wDay,
-                         st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%04u-%02u-%02u %02u:%02u:%02u",
-                         st.wYear, st.wMonth, st.wDay,
-                         st.wHour, st.wMinute, st.wSecond);
-        fields[I_FIELD_POST] = sz;
-        DoFields(0, fields);
-
-        StringCchPrintfW(sz, _countof(sz), L"%s %s %02u %04u %02u:%02u:%02u",
-                         s_weekdays[st.wDayOfWeek], s_months[st.wMonth - 1],
-                         st.wDay, st.wYear,
-                         st.wHour, st.wMinute, st.wSecond);
         fields[I_FIELD_POST] = sz;
         DoFields(0, fields);
     }
+}
 
-    if (m_pre == L"じぶん") { // myself
-        DWORD dwSize = _countof(sz);
-        if (::GetUserNameW(sz, &dwSize)) {
-            WStrings fields(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre;
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-            fields[I_FIELD_POST] = sz;
-            DoFields(0, fields);
-        }
-        return;
+void Lattice::SetParens() {
+    WStrings items;
+    str_split(items, TheIME.LoadSTR(IDS_PAREN), std::wstring(L"\t"));
+
+    WStrings fields(NUM_FIELDS);
+    fields[I_FIELD_PRE] = m_pre;
+    fields[I_FIELD_HINSHI].resize(1);
+    fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+    for (size_t i = 0; i < items.size(); ++i) {
+        std::wstring& item = items[i];
+        fields[I_FIELD_POST] = item;
+        DoFields(0, fields);
     }
+}
 
-    // カッコ (parens, brackets, braces, ...)
-    if (m_pre == L"かっこ") {
-        WStrings items;
-        str_split(items, TheIME.LoadSTR(IDS_PAREN), std::wstring(L"\t"));
-
-        WStrings fields(NUM_FIELDS);
-        fields[I_FIELD_PRE] = m_pre;
-        fields[I_FIELD_HINSHI].resize(1);
-        fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-        for (size_t i = 0; i < items.size(); ++i) {
-            std::wstring& item = items[i];
-            fields[I_FIELD_POST] = item;
-            DoFields(0, fields);
-        }
-        return;
-    }
-
-    // 記号（symbols）
+void Lattice::SetSymbols() {
     static const WCHAR *s_words[] = {
         L"きごう",      // IDS_SYMBOLS
         L"けいせん",    // IDS_KEISEN
@@ -1465,6 +1470,102 @@ void Lattice::AddExtraNodes()
             return;
         }
     }
+}
+
+// 追加情報。
+void Lattice::AddExtraNodes()
+{
+    FOOTMARK();
+
+    // 現在の日時を取得する。
+    SYSTEMTIME st;
+    ::GetLocalTime(&st);
+
+    // 今日（today）
+    if (m_pre == L"きょう") {
+        SetDay(st, 0);
+        return;
+    }
+
+    static const LONGLONG ONE_DAY_FT = 24LL * 60 * 60 * 10000000; // 864000000000
+    static const LONGLONG ONE_MONTH_FT = ONE_DAY_FT * 30;
+
+    // 昨日（yesterday）
+    if (m_pre == L"きのう") {
+        SetDay(st, -ONE_DAY_FT);
+        return;
+    }
+
+    // 明日（tomorrow）
+    if (m_pre == L"あす" || m_pre == L"あした") {
+        SetDay(st, +ONE_DAY_FT);
+        return;
+    }
+
+    // 今年（this year）
+    if (m_pre == L"ことし") {
+        SetYear(st);
+        return;
+    }
+
+    // 去年（last year）
+    if (m_pre == L"きょねん") {
+        SYSTEMTIME st2 = st;
+        st2.wYear -= 1;
+        SetYear(st2);
+        return;
+    }
+
+    // 来年（next year）
+    if (m_pre == L"らいねん") {
+        SYSTEMTIME st2 = st;
+        st2.wYear += 1;
+        SetYear(st2);
+        return;
+    }
+
+    // 今月（this month）
+    if (m_pre == L"こんげつ") {
+        SetMonth(st, 0);
+        return;
+    }
+
+    // 先月（last month）
+    if (m_pre == L"せんげつ") {
+        SetMonth(st, -ONE_MONTH_FT);
+        return;
+    }
+
+    // 来月（next month）
+    if (m_pre == L"らいげつ") {
+        SetMonth(st, +ONE_MONTH_FT);
+        return;
+    }
+
+    // 現在の時刻（current time）
+    if (m_pre == L"じこく" || m_pre == L"ただいま") {
+        SetTime(st);
+        return;
+    }
+
+    if (m_pre == L"にちじ") { // date and time
+        SetDateTime(st);
+        return;
+    }
+
+    if (m_pre == L"じぶん") { // myself
+        SetUser();
+        return;
+    }
+
+    // カッコ (parens, brackets, braces, ...)
+    if (m_pre == L"かっこ") {
+        SetParens();
+        return;
+    }
+
+    // 記号（symbols）
+    SetSymbols();
 } // Lattice::AddExtraNodes
 
 // 辞書からノード群を追加する。
@@ -3786,6 +3887,7 @@ BOOL MzIme::ConvertMultiClause(const std::wstring& str, MzConvResult& result, BO
     // ラティスを作成し、結果を作成する。
     Lattice lattice;
     lattice.AddNodesForMulti(pre);
+    lattice.AddExtraNodes();
     lattice.UpdateLinksAndBranches();
     lattice.CutUnlinkedNodes();
     lattice.AddComplement();

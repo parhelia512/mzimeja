@@ -461,6 +461,14 @@ struct Lattice {
     BOOL AddNodesForMulti(const std::wstring& pre);
     BOOL AddNodesForSingle(const std::wstring& pre);
     void AddExtraNodes();
+    void SetDay(const SYSTEMTIME& st, LONGLONG delta = 0);
+    void SetMonth(const SYSTEMTIME& st, LONGLONG delta = 0);
+    void SetYear(const SYSTEMTIME& st);
+    void SetTime(const SYSTEMTIME& st);
+    void SetDateTime(const SYSTEMTIME& st);
+    void SetUser();
+    void SetParens();
+    void SetSymbols();
 
     BOOL AddNodesFromDict(size_t index, const WCHAR *dict_data);
     BOOL AddNodesFromDict(const WCHAR *dict_data);
