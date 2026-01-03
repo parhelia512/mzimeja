@@ -74,11 +74,11 @@ DoProcessKey(
             }
         } else { // Ctrlが押されていない？
             if (bDoAction) {
-                if (bCompStr) { // 変換
-                    lpIMC->Convert(bShift);
+                if (bCompStr) {
+                    lpIMC->Convert(bShift); // 変換
                 } else {
                     if (Config_GetDWORD(TEXT("bNoFullwidthSpace"), FALSE)) // 全角スペース禁止？
-                        TheIME.GenerateMessage(WM_IME_CHAR, ' ', 1); // 半角スペース (U+3000: '　')
+                        TheIME.GenerateMessage(WM_IME_CHAR, ' ', 1); // 半角スペース (' ')
                     else
                         TheIME.GenerateMessage(WM_IME_CHAR, 0x3000, 1); // 全角スペース (U+3000: '　')
                 }
