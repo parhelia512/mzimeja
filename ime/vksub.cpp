@@ -1,5 +1,7 @@
 #include "vksub.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <strsafe.h>
 
 extern "C"
 const char *get_vk_name(unsigned int vk) {
@@ -220,7 +222,7 @@ const char *get_vk_name(unsigned int vk) {
     default:
         {
             static char s_buf[32];
-            sprintf(s_buf, "(%u)", vk);
+            StringCchPrintfA(s_buf, _countof(s_buf), "(%u)", vk);
             return s_buf;
         }
     }
