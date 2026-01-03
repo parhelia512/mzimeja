@@ -43,9 +43,6 @@ DoProcessKey(
         FOOTMARK_RETURN_INT(FALSE); // 処理しない
 
     BOOL bOpen = lpIMC->IsOpen();
-    if (!bDoAction && bOpen && (isAlphaNumericKey(vk) || isNumPadKey(vk)))
-        FOOTMARK_RETURN_INT(TRUE); // 処理すべき
-
     BOOL bCompStr = lpIMC->HasCompStr();
     BOOL bAlt = !!(lpbKeyState[VK_MENU] & 0x80);
     BOOL bShift = !!(lpbKeyState[VK_SHIFT] & 0x80);
