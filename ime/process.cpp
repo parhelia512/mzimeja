@@ -65,8 +65,11 @@ DoProcessKey(
         break;
     case VK_SPACE: // スペース キー
         if (bDoAction) {
-            if (bOpen && bCtrl) { // Ctrl+Spaceは、半角スペース
-                lpIMC->AddChar(' ', UNICODE_NULL);
+            if (bCtrl) {
+                if (bOpen && bCompStr)
+                    lpIMC->AddChar(' ', UNICODE_NULL); // Ctrl+Spaceは、半角スペース
+                else
+                    FOOTMARK_RETURN_INT(FALSE);
             } else {
                 if (bCompStr) { // 変換
                     lpIMC->Convert(bShift);
