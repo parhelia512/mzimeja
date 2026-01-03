@@ -416,20 +416,18 @@ LONG NotifyCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
         lpIMC = TheIME.LockIMC(hIMC);
         if (lpIMC) {
             BOOL bNewOpen = lpIMC->IsOpen();
-
             // When IME is turned ON, set appropriate input mode
             // IMEがONになった時、適切な入力モードを設定
             if (bNewOpen) {
                 // Restore the last used mode, or default to Full Hiragana
                 // 最後に使用したモードを復元、またはデフォルトの全角ひらがなに
                 DWORD dwLastMode = Config_GetDWORD(L"LastInputMode", IMODE_FULL_HIRAGANA);
-                SetInputMode(hIMC, (INPUT_MODE)dwLastMode);
+                SetInputMode(hIMC, (INPUT_MODE)dwLastMode, FALSE);
             } else {
                 // When IME is turned OFF, switch to Half ASCII mode
                 // IMEがOFFになった時、半角英数モードに切り替え
-                SetInputMode(hIMC, IMODE_HALF_ASCII);
+                SetInputMode(hIMC, IMODE_HALF_ASCII, FALSE);
             }
-
             TheIME.UnlockIMC(hIMC);
         }
         StatusWnd_Update(lpUIExtra); // 状態ウィンドウを更新する。

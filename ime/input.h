@@ -29,7 +29,7 @@ BOOL        IsInputModeOpen(INPUT_MODE imode);
 INPUT_MODE  InputModeFromConversionMode(BOOL bOpen, DWORD dwConversion);
 INPUT_MODE  NextInputMode(INPUT_MODE imode);
 INPUT_MODE  GetInputMode(HIMC hIMC);
-void        SetInputMode(HIMC hIMC, INPUT_MODE imode);
+void        SetInputMode(HIMC hIMC, INPUT_MODE imode, BOOL bOpenClose = TRUE);
 BOOL        IsRomanMode(HIMC hIMC);
 void        SetRomanMode(HIMC hIMC, BOOL bRoman);
 UINT        CommandFromInputMode(INPUT_MODE imode);

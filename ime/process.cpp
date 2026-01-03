@@ -47,13 +47,11 @@ DoProcessKey(
         FOOTMARK_RETURN_INT(TRUE); // 処理すべき
 
     BOOL bCompStr = lpIMC->HasCompStr();
-    BOOL bAlt = (lpbKeyState[VK_MENU] & 0x80);
-    BOOL bShift = (lpbKeyState[VK_SHIFT] & 0x80);
-    BOOL bCtrl = (lpbKeyState[VK_CONTROL] & 0x80);
-    BOOL bCapsLock = (lpbKeyState[VK_CAPITAL] & 0x80);
+    BOOL bAlt = !!(lpbKeyState[VK_MENU] & 0x80);
+    BOOL bShift = !!(lpbKeyState[VK_SHIFT] & 0x80);
+    BOOL bCtrl = !!(lpbKeyState[VK_CONTROL] & 0x80);
+    BOOL bCapsLock = !!(lpbKeyState[VK_CAPITAL] & 0x80);
     BOOL bRoman = IsRomanMode(hIMC);
-
-    DPRINTA("%s (0x%02X), bOpen:%d, bAlt:%d, bKeyUp:%d\n", get_vk_name(vk), vk, bOpen, bAlt, bKeyUp);
 
     if (bKeyUp) {
         FOOTMARK_RETURN_INT(FALSE);
@@ -93,15 +91,15 @@ DoProcessKey(
             FOOTMARK_RETURN_INT(FALSE);
         }
         break;
-    case VK_DBE_HIRAGANA: case VK_DBE_KATAKANA: case VK_DBE_ROMAN: // [カナ/かな]キー
+    case VK_DBE_ROMAN: // ローマ字
         if (bDoAction) {
-            // Altキーと一緒に押されていたらローマ字モードを切り替える
-            if (bAlt) { // Alt+[ローマ字]
+            if (bOpen) {
                 SetRomanMode(hIMC, !bRoman);
             }
-            // IMEを開く
-            if (!bOpen)
-                ImmSetOpenStatus(hIMC, TRUE);
+        }
+        break;
+    case VK_DBE_HIRAGANA: case VK_DBE_KATAKANA: // [カナ/かな]キー
+        if (bDoAction) {
             // 入力モードの状態に応じて入力モードを切り替える
             INPUT_MODE imode = GetInputMode(hIMC);
             switch (imode) {
@@ -375,7 +373,7 @@ ImeProcessKey(
     BOOL ret = FALSE;
     InputContext *lpIMC = NULL;
     if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
-        BOOL bKeyUp = (lKeyData & 0x80000000);
+        BOOL bKeyUp = !!(lKeyData & 0x80000000);
         ret = DoProcessKey(hIMC, lpIMC, vKey, lpbKeyState, bKeyUp, FALSE);
         TheIME.UnlockIMC(hIMC);
     }
@@ -400,7 +398,7 @@ ImeToAsciiEx(
 
     InputContext *lpIMC;
     if (hIMC && (lpIMC = TheIME.LockIMC(hIMC))) {
-        BOOL bKeyUp = (uScanCode & 0x8000);
+        BOOL bKeyUp = !!(uScanCode & 0x8000);
         DoProcessKey(hIMC, lpIMC, uVKey, lpbKeyState, bKeyUp, TRUE);
 
         TheIME.m_lpCurTransKey = NULL;
