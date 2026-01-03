@@ -44,10 +44,6 @@ LPWSTR FindLocalFile(LPWSTR pszPath, LPCWSTR pszFileName)
     return NULL;
 }
 
-LPWSTR GetSetupPathName64(LPWSTR pszPath) {
-    return FindLocalFile(pszPath, L"ime_setup64.exe");
-}
-
 LPWSTR GetSrcImePathName32(LPWSTR pszPath) {
     return FindLocalFile(pszPath, L"x86\\mzimeja.ime");
 }
@@ -593,34 +589,6 @@ INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
     TCHAR szText[128];
 
     g_hInstance = hInstance;
-
-#ifndef _WIN64
-    if (IsWow64())
-    {
-        WCHAR szPath[MAX_PATH];
-        if (!GetSetupPathName64(szPath))
-        {
-            LoadString(hInstance, IDS_64BITNOTSUPPORTED, szText, _countof(szText));
-            MessageBox(NULL, szText, TEXT("MZ-IME"), MB_ICONERROR);
-            return -1;
-        }
-
-        SHELLEXECUTEINFOW sei = { sizeof(sei), SEE_MASK_NOCLOSEPROCESS };
-        sei.lpFile = szPath;
-        if (__argc == 2)
-            sei.lpParameters = wargv[1];
-        sei.nShow = SW_SHOWNORMAL;
-        if (ShellExecuteExW(&sei))
-        {
-            WaitForSingleObject(sei.hProcess, INFINITE);
-            DWORD dwExitCode;
-            GetExitCodeProcess(sei.hProcess, &dwExitCode);
-            CloseHandle(sei.hProcess);
-            return (INT)dwExitCode;
-        }
-        return -2;
-    }
-#endif
 
     int ret;
     switch (argc) {

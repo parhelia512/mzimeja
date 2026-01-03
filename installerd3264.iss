@@ -1,5 +1,5 @@
 ; Installer Settings for Inno Setup
-; (Release Version)
+; (Debug Version)
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -22,7 +22,7 @@ VersionInfoVersion=1.0.0.2
 VersionInfoTextVersion=1.0.0.2
 AlwaysRestart=yes
 UninstallRestartComputer=yes
-ArchitecturesAllowed=x86 x64
+ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 DisableDirPage=yes
 
@@ -38,10 +38,10 @@ Source: "res\name.dic"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\kanji.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\radical.dat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\postal.dat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build32\Debug\mzimeja.ime"; DestDir: "{app}\x86"; Flags: ignoreversion 32bit
-Source: "build64\Debug\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion 64bit; Check: IsWin64
-Source: "build32\Debug\ime_setup32.exe"; DestDir: "{app}"; Flags: ignoreversion 32bit
-Source: "build64\Debug\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit; Check: IsWin64
+Source: "build32\Debug\mzimeja.ime"; DestDir: "{app}\x86"; Flags: ignoreversion
+Source: "build64\Debug\mzimeja.ime"; DestDir: "{app}\x64"; Flags: ignoreversion; Check: IsWin64
+Source: "build32\Debug\ime_setup32.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build64\Debug\ime_setup64.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsWin64
 Source: "build32\Debug\imepad.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Debug\dict_compile.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build32\Debug\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -58,20 +58,8 @@ Name: "{group}\アンインストール"; Filename: "{uninstallexe}"
 
 [Run]
 Filename: "{app}\ime_setup32.exe"; Parameters: "/i"
+Filename: "{app}\ime_setup64.exe"; Parameters: "/i"; Check: IsWin64
 
 [UninstallRun]
 Filename: "{app}\ime_setup32.exe"; Parameters: "/u"
-
-[Code]
-function InitializeSetup(): Boolean;
-begin
-  if FileExists(ExpandConstant('{app}\ime_setup32.exe')) then
-  begin
-    MsgBox('既に MZ-IME がインストールされています。', 'MZ-IME エラー', MB_OK);
-    Result := False;
-  end
-  else
-  begin
-    Result := True;
-  end
-end;
+Filename: "{app}\ime_setup64.exe"; Parameters: "/u"; Check: IsWin64
