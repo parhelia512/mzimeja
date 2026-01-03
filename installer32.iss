@@ -1,25 +1,29 @@
 ; Installer Settings for Inno Setup
 ; (Release Version)
 
+#define MyAppName "MZ-IME日本語入力"
+#define MyAppVersion "1.0.0.3"
+#define MyAppPublisher "片山博文MZ"
+
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{2FCD745D-F3C2-4115-B537-D6AE6E066B82}
-AppName=MZ-IME日本語入力
-AppVerName=MZ-IME日本語入力 1.0.0.3
-AppPublisher=片山博文MZ
+AppName={#MyAppName}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
 AppPublisherURL=https://katahiromz.fc2.page/
 AppSupportURL=https://katahiromz.fc2.page/mzimeja
 AppUpdatesURL=https://katahiromz.fc2.page/mzimeja
 DefaultDirName={pf}\mzimeja
-DefaultGroupName=MZ-IME日本語入力
+DefaultGroupName={#MyAppName}
 OutputDir=.
-OutputBaseFilename=mzimeja32-1.0.0.3-setup
+OutputBaseFilename=mzimeja32-{#MyAppVersion}-setup
 Compression=lzma
 SolidCompression=yes
-VersionInfoVersion=1.0.0.3
-VersionInfoTextVersion=1.0.0.3
+VersionInfoVersion={#MyAppVersion}
+VersionInfoTextVersion={#MyAppVersion}
 AlwaysRestart=yes
 UninstallRestartComputer=yes
 ArchitecturesAllowed=x86
