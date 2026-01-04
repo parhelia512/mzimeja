@@ -21,6 +21,7 @@
 #include <cassert>          // for assert
 #include <cstring>          // for C string
 
+#include "Wow64.h"
 #include "../str.hpp"       // for str_*
 
 #include "resource.h"
@@ -95,6 +96,7 @@ HWND m_hListBox1;
 HWND m_hListBox2;
 WNDPROC m_fnTabCtrlOldWndProcOld;
 HWND m_hwndOld;
+DWORD m_dwAttachedToThreadId;
 void MySendInput(WCHAR ch);
 
 // images
@@ -116,6 +118,7 @@ void DeleteAllFonts();
 BOOL OnCreate(HWND hWnd);
 void OnSize(HWND hWnd);
 void OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
+void OnDestroy(HWND hWnd);
 void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
 void OnEraseBkGnd(HWND hWnd);
@@ -154,10 +157,10 @@ static std::wstring GetSettingString(LPCWSTR pszSettingName) {
     HKEY hKey;
     LONG result;
     WCHAR szValue[MAX_PATH * 2];
-    result = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, s_szRegKey,
+    result = ::RegOpenKeyExW(HKEY_CURRENT_USER, s_szRegKey,
                              0, KEY_READ | KEY_WOW64_64KEY, &hKey);
     if (result != ERROR_SUCCESS) {
-        result = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, s_szRegKey,
+        result = ::RegOpenKeyExW(HKEY_CURRENT_USER, s_szRegKey,
                                  0, KEY_READ, &hKey);
     }
     if (result == ERROR_SUCCESS && hKey) {
@@ -330,6 +333,7 @@ ImePad::ImePad() {
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
     m_hwndOld = NULL;
+    m_dwAttachedToThreadId = 0;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
 }
@@ -670,7 +674,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
 
     // create list view
     style = WS_CHILD | LVS_ICON;
-    exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
+    exstyle = WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)4, g_hInst, NULL);
@@ -805,15 +809,17 @@ void ImePad::OnLV2StrokesChanged(HWND hWnd) {
 }
 
 void ImePad::OnTimer(HWND hWnd) {
-    static DWORD s_dwThreadID = ::GetWindowThreadProcessId(hWnd, NULL);
+    DWORD dwThreadID = ::GetWindowThreadProcessId(hWnd, NULL);
     HWND hwndTarget = ::GetForegroundWindow();
-    if (hwndTarget == hWnd && m_hwndOld != NULL) {
-        ::SetForegroundWindow(m_hwndOld);
-    } else {
+    if (hwndTarget != hWnd) {
         if (hwndTarget != m_hwndOld) {
             DWORD dwTargetThreadID;
             dwTargetThreadID = ::GetWindowThreadProcessId(hwndTarget, NULL);
-            ::AttachThreadInput(s_dwThreadID, dwTargetThreadID, TRUE);
+            if (m_dwAttachedToThreadId && m_dwAttachedToThreadId != dwTargetThreadID) {
+                ::AttachThreadInput(dwThreadID, m_dwAttachedToThreadId, FALSE);
+            }
+            ::AttachThreadInput(dwThreadID, dwTargetThreadID, TRUE);
+            m_dwAttachedToThreadId = dwTargetThreadID;
             m_hwndOld = hwndTarget;
         }
     }
@@ -840,6 +846,21 @@ void ImePad::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         EndDialog(hWnd, IDCANCEL);
         return;
     }
+}
+
+void ImePad::OnDestroy(HWND hWnd) {
+    KillTimer(hWnd, 666);
+
+    if (m_dwAttachedToThreadId) {
+        DWORD dwThreadID = GetWindowThreadProcessId(hWnd, NULL);
+        ::AttachThreadInput(dwThreadID, m_dwAttachedToThreadId, FALSE);
+        m_dwAttachedToThreadId = 0;
+    }
+
+    m_hwndOld = NULL;
+
+    ::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
+    ::SetWindowLongPtr(m_hTabCtrl, GWLP_USERDATA, 0);
 }
 
 void ImePad::MySendInput(WCHAR ch) {
@@ -928,9 +949,7 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         break;
 
     case WM_DESTROY:
-        KillTimer(hWnd, 666);
-        ::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
-        ::SetWindowLongPtr(pImePad->m_hTabCtrl, GWLP_USERDATA, 0);
+        pImePad->OnDestroy(hWnd);
         delete pImePad;
         PostQuitMessage(0);
         break;
@@ -956,20 +975,7 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-extern "C"
-INT WINAPI
-wWinMain(
-        HINSTANCE hInstance,
-        HINSTANCE hPrevInstance,
-        LPWSTR lpCmdLine,
-        INT nCmdShow)
-{
-    HWND hwndFound = ::FindWindowW(szImePadClassName, LoadStringDx(IDM_IME_PAD));
-    if (hwndFound) {
-        ::FlashWindow(hwndFound, TRUE);
-        return 0;
-    }
-
+INT AppMain(HINSTANCE hInstance, LPWSTR lpCmdLine, INT nCmdShow) {
     g_hInst = hInstance;
     ::InitCommonControls();
 
@@ -1008,6 +1014,29 @@ wWinMain(
     }
 
     return INT(msg.wParam);
+}
+
+extern "C"
+INT WINAPI
+wWinMain(
+        HINSTANCE hInstance,
+        HINSTANCE hPrevInstance,
+        LPWSTR lpCmdLine,
+        INT nCmdShow)
+{
+    HWND hwndFound = ::FindWindowW(szImePadClassName, LoadStringDx(IDM_IME_PAD));
+    if (hwndFound) {
+        ::FlashWindow(hwndFound, TRUE);
+        return 0;
+    }
+
+    PVOID OldValue;
+    DisableWow64FsRedirection(&OldValue);
+
+    INT ret = AppMain(hInstance, lpCmdLine, nCmdShow);
+
+    RevertWow64FsRedirection(OldValue);
+    return ret;
 } // wWinMain
 
 //////////////////////////////////////////////////////////////////////////////
