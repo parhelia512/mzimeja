@@ -76,6 +76,7 @@ public:
     static BOOL Create(HWND hwndParent);
     static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
     static LRESULT CALLBACK TabCtrlWndProc(HWND, UINT, WPARAM, LPARAM);
+    static LRESULT CALLBACK ListViewWndProc(HWND, UINT, WPARAM, LPARAM);
 
 protected:
     HWND m_hWnd;
@@ -97,6 +98,9 @@ protected:
     HWND m_hListBox1;
     HWND m_hListBox2;
     WNDPROC m_fnTabCtrlOldWndProcOld;
+    WNDPROC m_fnListViewOldWndProc;
+    WNDPROC m_fnListBox1OldWndProc;
+    WNDPROC m_fnListBox2OldWndProc;
     HWND m_hwndLastActive;
     BOOL m_bInSizing;
     void MySendInput(WCHAR ch);
@@ -292,9 +296,11 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         {
             RECT rc;
             ::GetClientRect(hWnd, &rc);
-			::FillRect((HDC)wParam, &rc, (HBRUSH)(COLOR_3DFACE + 1));
+            ::FillRect((HDC)wParam, &rc, (HBRUSH)(COLOR_3DFACE + 1));
             return TRUE;
         }
+    case WM_MOUSEACTIVATE:
+        return MA_NOACTIVATE;
     default:
         return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
@@ -316,8 +322,7 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         WS_EX_WINDOWEDGE |
         WS_EX_TOOLWINDOW |
         WS_EX_TOPMOST |
-        //WS_EX_NOACTIVATE | // WinXP‚Å‚Í•sˆÀ’èB‘ã‚í‚è‚ÉWM_MOUSEACTIVATE:MA_NOACTIVATE; ‚ðŽg‚¤
-        0;
+        WS_EX_NOACTIVATE;
 
     HWND hImePad = ::CreateWindowEx(
             exstyle, szImePadClassName, LoadStringDx(IDM_IME_PAD),
@@ -326,7 +331,7 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     assert(hImePad);
 
     RepositionWindow(hImePad);
-    ::ShowWindow(hImePad, SW_SHOWNOACTIVATE);
+    ::ShowWindow(hImePad, SW_SHOWNA);
 
     return hImePad != NULL;
 } // ImePad_Create
@@ -343,6 +348,10 @@ ImePad::ImePad() {
     m_bInSizing = FALSE;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
+    m_fnTabCtrlOldWndProcOld = NULL;
+    m_fnListViewOldWndProc = NULL;
+    m_fnListBox1OldWndProc = NULL;
+    m_fnListBox2OldWndProc = NULL;
 }
 
 ImePad::~ImePad() {
@@ -488,6 +497,29 @@ BOOL ImePad::LoadKanjiAndRadical() {
     }
     assert(0);
     return FALSE;
+}
+
+/*static*/ LRESULT CALLBACK
+ImePad::ListViewWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    ImePad *pImePad = (ImePad *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (!pImePad) return 0;
+
+    WNDPROC oldWndProc = NULL;
+    if (hWnd == pImePad->m_hListView)
+        oldWndProc = pImePad->m_fnListViewOldWndProc;
+    else if (hWnd == pImePad->m_hListBox1)
+        oldWndProc = pImePad->m_fnListBox1OldWndProc;
+    else if (hWnd == pImePad->m_hListBox2)
+        oldWndProc = pImePad->m_fnListBox2OldWndProc;
+
+    switch (uMsg) {
+    case WM_MOUSEACTIVATE:
+        return MA_NOACTIVATE;
+    default:
+        if (oldWndProc)
+            return ::CallWindowProc(oldWndProc, hWnd, uMsg, wParam, lParam);
+    }
+    return 0;
 }
 
 void ImePad::DeleteAllImages() {
@@ -677,6 +709,10 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     m_hListBox1 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)2, g_hInst, NULL);
+    ::SetWindowLongPtr(m_hListBox1, GWLP_USERDATA, (LONG_PTR) this);
+    m_fnListBox1OldWndProc = (WNDPROC)
+                             ::SetWindowLongPtr(m_hListBox1, GWLP_WNDPROC,
+                                                (LONG_PTR) ImePad::ListViewWndProc);
 
     // create list box (radicals)
     style = WS_CHILD | WS_VSCROLL | LBS_OWNERDRAWFIXED |
@@ -687,12 +723,23 @@ BOOL ImePad::OnCreate(HWND hWnd) {
                                    m_hTabCtrl, (HMENU)3, g_hInst, NULL);
     ::SendMessage(m_hListBox2, LB_SETITEMHEIGHT, 0, 24);
 
+    ::SetWindowLongPtr(m_hListBox2, GWLP_USERDATA, (LONG_PTR) this);
+    m_fnListBox2OldWndProc = (WNDPROC)
+                             ::SetWindowLongPtr(m_hListBox2, GWLP_WNDPROC,
+                                                (LONG_PTR) ImePad::ListViewWndProc);
+
     // create list view
     style = WS_CHILD | LVS_ICON | WS_CLIPSIBLINGS;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)4, g_hInst, NULL);
+
+    ::SetWindowLongPtr(m_hListView, GWLP_USERDATA, (LONG_PTR) this);
+    m_fnListViewOldWndProc = (WNDPROC)
+                             ::SetWindowLongPtr(m_hListView, GWLP_WNDPROC,
+                                                (LONG_PTR) ImePad::ListViewWndProc);
+
     // Less flickering
 #ifndef LVS_EX_DOUBLEBUFFER
     #define LVS_EX_DOUBLEBUFFER 0x10000
@@ -880,6 +927,9 @@ void ImePad::OnDestroy(HWND hWnd) {
 
     ::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
     ::SetWindowLongPtr(m_hTabCtrl, GWLP_USERDATA, 0);
+    ::SetWindowLongPtr(m_hListView, GWLP_USERDATA, 0);
+    ::SetWindowLongPtr(m_hListBox1, GWLP_USERDATA, 0);
+    ::SetWindowLongPtr(m_hListBox2, GWLP_USERDATA, 0);
 }
 
 void ImePad::MySendInput(WCHAR ch) {
@@ -959,7 +1009,10 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     case WM_NCACTIVATE:
         // Force active looking
-        return ::DefWindowProc(hWnd, WM_NCACTIVATE, TRUE, lParam);
+        return DefWindowProcW(hWnd, WM_NCACTIVATE, TRUE, 0);
+
+    case WM_MOUSEACTIVATE:
+        return MA_NOACTIVATE;
 
     case WM_SIZE:
         if (pImePad)
@@ -980,9 +1033,6 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         PostQuitMessage(0);
         break;
 
-    case WM_MOUSEACTIVATE:
-        return MA_NOACTIVATE;
-
     case WM_TIMER:
         if (wParam == 666) {
             pImePad->OnTimer(hWnd);
@@ -996,6 +1046,7 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     default:
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
+
     return 0;
 } // ImePad::WindowProc
 
