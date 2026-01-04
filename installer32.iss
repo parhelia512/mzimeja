@@ -64,3 +64,6 @@ Filename: "{app}\ime_setup64.exe"; Parameters: "/i"; Check: IsWin64
 [UninstallRun]
 Filename: "{app}\ime_setup32.exe"; Parameters: "/u"
 Filename: "{app}\ime_setup64.exe"; Parameters: "/u"; Check: IsWin64
+
+[Registry]
+Root: HKCU; Subkey: "Software\Katayama Hirofumi MZ\mzimeja"; Flags: uninsdeletekey
