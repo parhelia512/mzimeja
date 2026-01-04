@@ -98,7 +98,7 @@ protected:
     HWND m_hListBox2;
     WNDPROC m_fnTabCtrlOldWndProcOld;
     HWND m_hwndLastActive;
-    DWORD m_dwAttachedToThreadId;
+    BOOL m_bInSizing;
     void MySendInput(WCHAR ch);
 
     // images
@@ -123,7 +123,6 @@ protected:
     void OnDestroy(HWND hWnd);
     void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
     void OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
-    void OnEraseBkGnd(HWND hWnd);
     void OnLV1StrokesChanged(HWND hWnd);
     void OnLV2StrokesChanged(HWND hWnd);
     void OnTimer(HWND hWnd);
@@ -223,47 +222,47 @@ radical_compare(const RADICAL_ENTRY& entry1, const RADICAL_ENTRY& entry2) {
 }
 
 void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
+    // Double buffering
+    HDC hdcMem = CreateCompatibleDC(lpDraw->hDC);
+    RECT rc = lpDraw->rcItem;
+    OffsetRect(&rc, -rc.left, -rc.top);
+    HBITMAP hbmMem = CreateCompatibleBitmap(lpDraw->hDC, rc.right - rc.left, rc.bottom - rc.top);
+    HGDIOBJ hbmOld = SelectObject(hdcMem, hbmMem);
+    HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+    SelectObject(hdcMem, hFont);
+
     INT id = lpDraw->itemID;
     const RADICAL_ENTRY& entry = m_radical_table[id];
-    RECT rc = lpDraw->rcItem;
     if (lpDraw->itemState & ODS_SELECTED) {
-        ::FillRect(lpDraw->hDC, &rc, (HBRUSH)(COLOR_HIGHLIGHT + 1));
-        ImageList_Draw(m_himlRadical, entry.radical_id - 1, lpDraw->hDC,
-                       rc.left, rc.top, ILD_NORMAL);
-        ::SelectObject(lpDraw->hDC, ::GetStockObject(BLACK_PEN));
-        ::SelectObject(lpDraw->hDC, ::GetStockObject(NULL_BRUSH));
-        ::Rectangle(lpDraw->hDC, rc.left, rc.top, rc.left + 24, rc.top + 24);
+        ::FillRect(hdcMem, &rc, (HBRUSH)(COLOR_HIGHLIGHT + 1));
+        ImageList_Draw(m_himlRadical, entry.radical_id - 1, hdcMem, 0, 0, ILD_NORMAL);
+        ::SelectObject(hdcMem, ::GetStockObject(BLACK_PEN));
+        ::SelectObject(hdcMem, ::GetStockObject(NULL_BRUSH));
+        ::Rectangle(hdcMem, 0, 0, 24, 24);
         rc.left += 24;
-        ::SetBkMode(lpDraw->hDC, TRANSPARENT);
-        ::SetTextColor(lpDraw->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
-        ::DrawText(lpDraw->hDC, entry.readings.c_str(), -1,
+        ::SetBkMode(hdcMem, TRANSPARENT);
+        ::SetTextColor(hdcMem, GetSysColor(COLOR_HIGHLIGHTTEXT));
+        ::DrawText(hdcMem, entry.readings.c_str(), -1,
                    &rc, DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
     } else {
-        ::FillRect(lpDraw->hDC, &rc, (HBRUSH)(COLOR_WINDOW + 1));
-        ImageList_Draw(m_himlRadical, entry.radical_id - 1, lpDraw->hDC,
-                       rc.left, rc.top, ILD_NORMAL);
-        ::SelectObject(lpDraw->hDC, ::GetStockObject(BLACK_PEN));
-        ::SelectObject(lpDraw->hDC, ::GetStockObject(NULL_BRUSH));
-        ::Rectangle(lpDraw->hDC, rc.left, rc.top, rc.left + 24, rc.top + 24);
+        ::FillRect(hdcMem, &rc, (HBRUSH)(COLOR_WINDOW + 1));
+        ImageList_Draw(m_himlRadical, entry.radical_id - 1, hdcMem, 0, 0, ILD_NORMAL);
+        ::SelectObject(hdcMem, ::GetStockObject(BLACK_PEN));
+        ::SelectObject(hdcMem, ::GetStockObject(NULL_BRUSH));
+        ::Rectangle(hdcMem, 0, 0, 24, 24);
         rc.left += 24;
-        ::SetBkMode(lpDraw->hDC, TRANSPARENT);
-        ::SetTextColor(lpDraw->hDC, GetSysColor(COLOR_WINDOWTEXT));
-        ::DrawText(lpDraw->hDC, entry.readings.c_str(), -1,
+        ::SetBkMode(hdcMem, TRANSPARENT);
+        ::SetTextColor(hdcMem, GetSysColor(COLOR_WINDOWTEXT));
+        ::DrawText(hdcMem, entry.readings.c_str(), -1,
                    &rc, DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
     }
-}
 
-void ImePad::OnEraseBkGnd(HWND hWnd) {
-    RECT rc;
-    ::GetClientRect(hWnd, &rc);
+    rc = lpDraw->rcItem;
+    BitBlt(lpDraw->hDC, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, hdcMem, 0, 0, SRCCOPY);
 
-    HDC hDC = ::GetDC(hWnd);
-    ::SetTextColor(hDC, GetSysColor(COLOR_BTNTEXT));
-    ::SetBkMode(hDC, TRANSPARENT);
-    ::SetBkColor(hDC, GetSysColor(COLOR_BTNFACE));
-    ::DrawText(hDC, LoadStringDx(IDM_ONLYJOUYOU), -1,
-               &rc, DT_RIGHT | DT_TOP | DT_SINGLELINE | DT_NOCLIP | DT_NOPREFIX);
-    ::ReleaseDC(hWnd, hDC);
+    SelectObject(hdcMem, hbmOld);
+    DeleteObject(hbmMem);
+    DeleteDC(hdcMem);
 }
 
 /*static*/ LRESULT CALLBACK
@@ -290,9 +289,9 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         break;
     default:
-        break;
+        return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
-    return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
+    return 0;
 } // ImePad::TabCtrlWndProc
 
 //////////////////////////////////////////////////////////////////////////////
@@ -305,7 +304,7 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     rc.left = rc.right - INITIAL_WIDTH - 32;
     rc.top = rc.bottom - INITIAL_HEIGHT - 32;
 
-    DWORD style = WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_ACTIVECAPTION;
+    DWORD style = WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_ACTIVECAPTION | WS_CLIPCHILDREN;
     DWORD exstyle =
         WS_EX_WINDOWEDGE |
         WS_EX_TOOLWINDOW |
@@ -334,7 +333,7 @@ ImePad::ImePad() {
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
     m_hwndLastActive = NULL;
-    m_dwAttachedToThreadId = 0;
+    m_bInSizing = FALSE;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
 }
@@ -644,7 +643,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     DWORD style, exstyle;
 
     // create tab control
-    style = WS_VISIBLE | WS_CHILD | WS_CLIPSIBLINGS | TCS_FOCUSNEVER;
+    style = WS_VISIBLE | WS_CHILD | WS_CLIPSIBLINGS | TCS_FOCUSNEVER | WS_CLIPCHILDREN;
     exstyle = WS_EX_NOACTIVATE;
     m_hTabCtrl = ::CreateWindowEx(exstyle, WC_TABCONTROL, NULL, style,
                                   0, 0, rc.right - rc.left, rc.bottom - rc.top,
@@ -667,7 +666,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     TabCtrl_AdjustRect(m_hTabCtrl, FALSE, &rc);
 
     // create list box (strokes)
-    style = WS_CHILD | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY;
+    style = WS_CHILD | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY | WS_CLIPSIBLINGS;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListBox1 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
@@ -675,7 +674,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
 
     // create list box (radicals)
     style = WS_CHILD | WS_VSCROLL | LBS_OWNERDRAWFIXED |
-            LBS_NOINTEGRALHEIGHT | LBS_NOTIFY;
+            LBS_NOINTEGRALHEIGHT | LBS_NOTIFY | WS_CLIPSIBLINGS;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListBox2 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
@@ -683,11 +682,16 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     ::SendMessage(m_hListBox2, LB_SETITEMHEIGHT, 0, 24);
 
     // create list view
-    style = WS_CHILD | LVS_ICON;
+    style = WS_CHILD | LVS_ICON | WS_CLIPSIBLINGS;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)4, g_hInst, NULL);
+    // Less flickering
+#ifndef LVS_EX_DOUBLEBUFFER
+    #define LVS_EX_DOUBLEBUFFER 0x10000
+#endif
+    ListView_SetExtendedListViewStyleEx(m_hListView, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
 
     // insert items to for strokes
     std::set<WORD> strokes;
@@ -734,7 +738,7 @@ void ImePad::OnSize(HWND hWnd) {
     RECT rc;
     ::GetClientRect(m_hWnd, &rc);
 
-    ::MoveWindow(m_hTabCtrl, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
+    ::MoveWindow(m_hTabCtrl, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, FALSE);
 
     TabCtrl_AdjustRect(m_hTabCtrl, FALSE, &rc);
 
@@ -749,7 +753,7 @@ void ImePad::OnSize(HWND hWnd) {
                                 rc.right - rc.left - cx1, rc.bottom - rc.top, uFlags);
     } else {
         hDWP = ::DeferWindowPos(hDWP, m_hListBox2, NULL, rc.left, rc.top,
-                                cx2, rc.bottom - rc.top, TRUE);
+                                cx2, rc.bottom - rc.top, uFlags);
         hDWP = ::DeferWindowPos(hDWP, m_hListView, NULL, rc.left + cx2, rc.top,
                                 rc.right - rc.left - cx2, rc.bottom - rc.top, uFlags);
     }
@@ -819,6 +823,7 @@ void ImePad::OnLV2StrokesChanged(HWND hWnd) {
         lv_item.iImage = (int)i;
         ListView_InsertItem(m_hListView, &lv_item);
     }
+
     OnSize(m_hWnd);
 }
 
@@ -908,8 +913,8 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         default:
             break;
         }
+        break;
     }
-    break;
     case NM_DBLCLK:
         if (pnmhdr->hwndFrom == m_hListView) {
             INT iItem = ListView_GetNextItem(m_hListView, -1, LVNI_ALL | LVNI_SELECTED);
@@ -947,7 +952,8 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         break;
 
     case WM_SIZE:
-        pImePad->OnSize(hWnd);
+        if (pImePad)
+            pImePad->OnSize(hWnd);
         break;
 
     case WM_NOTIFY:
@@ -981,6 +987,15 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         // Force active looking
         return ::DefWindowProc(hWnd, WM_NCACTIVATE, TRUE, lParam);
 
+    case WM_ENTERSIZEMOVE:
+        pImePad->m_bInSizing = TRUE;
+        break;
+
+    case WM_EXITSIZEMOVE:
+        pImePad->m_bInSizing = FALSE;
+        InvalidateRect(hWnd, NULL, TRUE);
+        break;
+
     default:
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
@@ -1000,7 +1015,7 @@ INT AppMain(HINSTANCE hInstance, LPWSTR lpCmdLine, INT nCmdShow) {
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     wcx.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcx.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
+    wcx.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
     wcx.lpszClassName = szImePadClassName;
     wcx.hIconSm = NULL;
     if (!::RegisterClassEx(&wcx)) {
