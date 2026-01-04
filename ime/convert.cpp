@@ -1533,6 +1533,11 @@ void Lattice::AddExtraNodes()
         SetYear(L"去年", st.wYear - 1);
         return;
     }
+    // 昨年
+    if (m_pre == L"さくねん") {
+        SetYear(L"昨年", st.wYear - 1);
+        return;
+    }
 
     // 来年
     if (m_pre == L"らいねん") {
