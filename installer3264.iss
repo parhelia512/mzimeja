@@ -26,7 +26,7 @@ VersionInfoVersion={#MyAppVersion}
 VersionInfoTextVersion={#MyAppVersion}
 AlwaysRestart=yes
 UninstallRestartComputer=yes
-ArchitecturesAllowed=x64
+ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
 DisableDirPage=yes
 
