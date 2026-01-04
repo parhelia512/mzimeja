@@ -75,6 +75,22 @@ std::wstring mz_translate_string(const std::wstring& str)
     return ret;
 }
 
+// 設定に応じて文字列を変換する。
+std::wstring mz_translate_string_2(const std::wstring& str)
+{
+    BOOL bNoFullwidthSpace = Config_GetDWORD(L"bNoFullwidthSpace", FALSE);
+
+    std::wstring ret = str;
+    for (size_t ich = 0; ich < ret.size(); ++ich) {
+        WCHAR& ch = ret[ich];
+        if (bNoFullwidthSpace && ch == L'　') {
+            ch = L' ';
+        }
+    }
+
+    return ret;
+}
+
 struct KEYVALUE {
     const WCHAR *key;
     const WCHAR *value;

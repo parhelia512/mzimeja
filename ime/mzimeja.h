@@ -393,10 +393,11 @@ BOOL mz_is_comma(WCHAR ch);
 BOOL mz_is_hyphen(WCHAR ch);
 // 設定に応じて文字を変換する。
 WCHAR mz_translate_char(WCHAR ch);
-WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii);
-WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthAscii, BOOL bNoFullwidthSpace);
+WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod);
+WCHAR mz_translate_char(WCHAR ch, BOOL bCommaPeriod, BOOL bNoFullwidthSpace);
 // 設定に応じて文字列を変換する。
 std::wstring mz_translate_string(const std::wstring& str);
+std::wstring mz_translate_string_2(const std::wstring& str);
 
 //////////////////////////////////////////////////////////////////////////////
 // LatticeNode and Lattice.
@@ -461,11 +462,11 @@ struct Lattice {
     BOOL AddNodesForMulti(const std::wstring& pre);
     BOOL AddNodesForSingle(const std::wstring& pre);
     void AddExtraNodes();
-    void SetDay(const SYSTEMTIME& st, LONGLONG delta = 0);
-    void SetMonth(const SYSTEMTIME& st, LONGLONG delta = 0);
-    void SetYear(const SYSTEMTIME& st);
-    void SetTime(const SYSTEMTIME& st);
-    void SetDateTime(const SYSTEMTIME& st);
+    void SetDay(LPCWSTR text, const SYSTEMTIME& st, LONGLONG delta = 0);
+    void SetMonth(LPCWSTR text, const SYSTEMTIME& st, LONGLONG delta = 0);
+    void SetYear(LPCWSTR text, WORD wYear);
+    void SetTime(LPCWSTR text, const SYSTEMTIME& st);
+    void SetDateTime(LPCWSTR text, const SYSTEMTIME& st);
     void SetUser();
     void SetParens();
     void SetSymbols();

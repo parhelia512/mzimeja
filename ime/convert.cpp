@@ -1014,7 +1014,7 @@ void MzConvClause::add(const LatticeNode *node)
     }
     MzConvCandidate cand;
     cand.pre = node->pre;
-    cand.post = node->post;
+    cand.post = mz_translate_string_2(node->post);
     cand.cost = node->subtotal_cost;
     cand.word_cost = node->WordCost();
     cand.bunruis.insert(node->bunrui);
@@ -1145,7 +1145,7 @@ bool LatticeNode::IsKeiyoushi() const
 //////////////////////////////////////////////////////////////////////////////
 // Lattice - ラティス
 
-void Lattice::SetDay(const SYSTEMTIME& st, LONGLONG delta) {
+void Lattice::SetDay(LPCWSTR text, const SYSTEMTIME& st, LONGLONG delta) {
     SYSTEMTIME st2;
 
     if (delta == 0) {
@@ -1166,6 +1166,9 @@ void Lattice::SetDay(const SYSTEMTIME& st, LONGLONG delta) {
     fields[I_FIELD_PRE] = m_pre;
     fields[I_FIELD_HINSHI].resize(1);
     fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    fields[I_FIELD_POST] = text;
+    DoFields(0, fields, -10);
 
     WCHAR sz[128];
     StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日", st2.wYear, st2.wMonth, st2.wDay);
@@ -1215,7 +1218,7 @@ void Lattice::SetDay(const SYSTEMTIME& st, LONGLONG delta) {
     DoFields(0, fields);
 }
 
-void Lattice::SetMonth(const SYSTEMTIME& st, LONGLONG delta) {
+void Lattice::SetMonth(LPCWSTR text, const SYSTEMTIME& st, LONGLONG delta) {
     SYSTEMTIME st2;
     if (delta == 0) {
         st2 = st;
@@ -1235,6 +1238,9 @@ void Lattice::SetMonth(const SYSTEMTIME& st, LONGLONG delta) {
     fields[I_FIELD_PRE] = m_pre;
     fields[I_FIELD_HINSHI].resize(1);
     fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    fields[I_FIELD_POST] = text;
+    DoFields(0, fields, -10);
 
     WCHAR sz[128];
     StringCchPrintfW(sz, _countof(sz), L"%u年%u月", st2.wYear, st2.wMonth);
@@ -1258,14 +1264,17 @@ void Lattice::SetMonth(const SYSTEMTIME& st, LONGLONG delta) {
     DoFields(0, fields, +10);
 }
 
-void Lattice::SetYear(const SYSTEMTIME& st) {
+void Lattice::SetYear(LPCWSTR text, WORD wYear) {
     WStrings fields(NUM_FIELDS);
     fields[I_FIELD_PRE] = m_pre;
     fields[I_FIELD_HINSHI].resize(1);
     fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
 
+    fields[I_FIELD_POST] = text;
+    DoFields(0, fields, -10);
+
     WCHAR sz[128];
-    StringCchPrintfW(sz, _countof(sz), L"%u年", st.wYear);
+    StringCchPrintfW(sz, _countof(sz), L"%u年", wYear);
     fields[I_FIELD_POST] = sz;
     DoFields(0, fields);
 
@@ -1276,18 +1285,14 @@ void Lattice::SetYear(const SYSTEMTIME& st) {
     DoFields(0, fields, +10);
 }
 
-void Lattice::SetTime(const SYSTEMTIME& st) {
+void Lattice::SetTime(LPCWSTR text, const SYSTEMTIME& st) {
     WStrings fields(NUM_FIELDS);
     fields[I_FIELD_PRE] = m_pre;
     fields[I_FIELD_HINSHI].resize(1);
     fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
 
-    if (m_pre == L"ただいま") {
-        fields[I_FIELD_POST] = L"ただ今";
-        DoFields(0, fields, +1000);
-        fields[I_FIELD_POST] = L"只今";
-        DoFields(0, fields, +1000);
-    }
+    fields[I_FIELD_POST] = text;
+    DoFields(0, fields, -10);
 
     WCHAR sz[128];
     StringCchPrintfW(sz, _countof(sz), L"%u時%u分%u秒", st.wHour, st.wMinute, st.wSecond);
@@ -1357,11 +1362,14 @@ void Lattice::SetTime(const SYSTEMTIME& st) {
     DoFields(0, fields);
 }
 
-void Lattice::SetDateTime(const SYSTEMTIME& st) {
+void Lattice::SetDateTime(LPCWSTR text, const SYSTEMTIME& st) {
     WStrings fields(NUM_FIELDS);
     fields[I_FIELD_PRE] = m_pre;
     fields[I_FIELD_HINSHI].resize(1);
     fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+
+    fields[I_FIELD_POST] = text;
+    DoFields(0, fields, -10);
 
     WCHAR sz[128];
     StringCchPrintfW(sz, _countof(sz), L"%u年%u月%u日%u時%u分%u秒",
@@ -1481,75 +1489,86 @@ void Lattice::AddExtraNodes()
     SYSTEMTIME st;
     ::GetLocalTime(&st);
 
-    // 今日（today）
+    // 今日
     if (m_pre == L"きょう") {
-        SetDay(st, 0);
+        SetDay(L"今日", st, 0);
         return;
     }
 
     static const LONGLONG ONE_DAY_FT = 24LL * 60 * 60 * 10000000; // 864000000000
     static const LONGLONG ONE_MONTH_FT = ONE_DAY_FT * 30;
 
-    // 昨日（yesterday）
-    if (m_pre == L"きのう") {
-        SetDay(st, -ONE_DAY_FT);
+    // 昨日
+    if (m_pre == L"きのう" || m_pre == L"さくじつ") {
+        SetDay(L"昨日", st, -ONE_DAY_FT);
         return;
     }
 
-    // 明日（tomorrow）
+    // 明日
     if (m_pre == L"あす" || m_pre == L"あした") {
-        SetDay(st, +ONE_DAY_FT);
+        SetDay(L"明日", st, +ONE_DAY_FT);
         return;
     }
 
-    // 今年（this year）
+    // 明後日
+    if (m_pre == L"あさって") {
+        SetDay(L"明後日", st, +2 * ONE_DAY_FT);
+        return;
+    }
+
+    // 一昨日
+    if (m_pre == L"おととい") {
+        SetDay(L"一昨日", st, -2 * ONE_DAY_FT);
+        return;
+    }
+
+    // 今年
     if (m_pre == L"ことし") {
-        SetYear(st);
+        SetYear(L"今年", st.wYear);
         return;
     }
 
-    // 去年（last year）
+    // 去年
     if (m_pre == L"きょねん") {
-        SYSTEMTIME st2 = st;
-        st2.wYear -= 1;
-        SetYear(st2);
+        SetYear(L"去年", st.wYear - 1);
         return;
     }
 
-    // 来年（next year）
+    // 来年
     if (m_pre == L"らいねん") {
-        SYSTEMTIME st2 = st;
-        st2.wYear += 1;
-        SetYear(st2);
+        SetYear(L"来年", st.wYear + 1);
         return;
     }
 
-    // 今月（this month）
+    // 今月
     if (m_pre == L"こんげつ") {
-        SetMonth(st, 0);
+        SetMonth(L"今月", st, 0);
         return;
     }
 
-    // 先月（last month）
+    // 先月
     if (m_pre == L"せんげつ") {
-        SetMonth(st, -ONE_MONTH_FT);
+        SetMonth(L"先月", st, -ONE_MONTH_FT);
         return;
     }
 
-    // 来月（next month）
+    // 来月
     if (m_pre == L"らいげつ") {
-        SetMonth(st, +ONE_MONTH_FT);
+        SetMonth(L"来月", st, +ONE_MONTH_FT);
         return;
     }
 
-    // 現在の時刻（current time）
-    if (m_pre == L"じこく" || m_pre == L"ただいま") {
-        SetTime(st);
+    // 現在の時刻
+    if (m_pre == L"じこく") {
+        SetTime(L"時刻", st);
+        return;
+    } else if (m_pre == L"ただいま") {
+        SetTime(L"ただ今", st);
         return;
     }
 
     if (m_pre == L"にちじ") { // date and time
-        SetDateTime(st);
+        SetDateTime(L"日時", st);
         return;
     }
 
