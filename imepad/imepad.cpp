@@ -373,11 +373,17 @@ LPWSTR FindLocalFile(LPWSTR pszPath, LPCWSTR pszFileName)
 }
 
 LPWSTR GetKanjiDataPathName(LPWSTR pszPath) {
-    return FindLocalFile(pszPath, L"kanji.dat");
+    LPWSTR path = FindLocalFile(pszPath, L"kanji.dat");
+    if (path) return path;
+    path = FindLocalFile(pszPath, L"res\\kanji.dat");
+    return path;
 }
 
 LPWSTR GetRadicalDataPathName(LPWSTR pszPath) {
-    return FindLocalFile(pszPath, L"radical.dat");
+    LPWSTR path = FindLocalFile(pszPath, L"radical.dat");
+    if (path) return path;
+    path = FindLocalFile(pszPath, L"res\\radical.dat");
+    return path;
 }
 
 BOOL ImePad::LoadKanjiData() {
@@ -386,13 +392,12 @@ BOOL ImePad::LoadKanjiData() {
     }
     char buf[256];
     wchar_t wbuf[256];
-    std::wstring kanji_file = GetSettingString(L"KanjiDataFile");
-    using namespace std;
-    FILE *fp = _wfopen(kanji_file.c_str(), L"rb");
+    WCHAR szPath[MAX_PATH];
+    GetKanjiDataPathName(szPath);
+    FILE *fp = _wfopen(szPath, L"rb");
     if (!fp) {
-        WCHAR szPath[MAX_PATH];
-        GetKanjiDataPathName(szPath);
-        fp = _wfopen(szPath, L"rb");
+        std::wstring kanji_file = GetSettingString(L"KanjiDataFile");
+        fp = _wfopen(kanji_file.c_str(), L"rb");
     }
     if (fp) {
         KANJI_ENTRY entry;
@@ -424,13 +429,12 @@ BOOL ImePad::LoadRadicalData() {
     }
     char buf[256];
     wchar_t wbuf[256];
-    std::wstring radical_file = GetSettingString(L"RadicalDataFile");
-    using namespace std;
-    FILE *fp = _wfopen(radical_file.c_str(), L"rb");
+    WCHAR szPath[MAX_PATH];
+    GetRadicalDataPathName(szPath);
+    FILE *fp = _wfopen(szPath, L"rb");
     if (!fp) {
-        WCHAR szPath[MAX_PATH];
-        GetRadicalDataPathName(szPath);
-        fp = _wfopen(szPath, L"rb");
+        std::wstring radical_file = GetSettingString(L"RadicalDataFile");
+        fp = _wfopen(radical_file.c_str(), L"rb");
     }
     if (fp) {
         RADICAL_ENTRY entry;
