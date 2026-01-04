@@ -39,8 +39,12 @@ std::wstring mz_convert_postal_code(const std::wstring& code)
     if (Config_GetDWORD(L"PostalDictDisabled", FALSE)) // 無効化されている？
         return ret;
 
-    if (!Config_GetSz(L"PostalDictPathName", postal)) // 郵便番号データのパス名を取得できない？
-        return ret;
+    if (!FindAppFile(postal, L"postal.dat") &&
+        !FindAppFile(postal, L"res\\postal.dat") &&
+        !Config_GetSz(L"PostalDictPathName", postal))
+    {
+        return ret; // 郵便番号データのパス名を取得できない？
+    }
 
     DWORD dwTick1 = ::GetTickCount(); // 測定開始。
 

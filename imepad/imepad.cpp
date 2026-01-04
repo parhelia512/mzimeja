@@ -21,6 +21,8 @@
 #include <cassert>          // for assert
 #include <cstring>          // for C string
 
+#include <strsafe.h>		// StringC...
+
 #include "Wow64.h"
 #include "../str.hpp"       // for str_*
 
@@ -95,7 +97,7 @@ HWND m_hListView;
 HWND m_hListBox1;
 HWND m_hListBox2;
 WNDPROC m_fnTabCtrlOldWndProcOld;
-HWND m_hwndOld;
+HWND m_hwndLastActive;
 DWORD m_dwAttachedToThreadId;
 void MySendInput(WCHAR ch);
 
@@ -331,7 +333,7 @@ ImePad::ImePad() {
     m_hNormalFont = NULL;
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
-    m_hwndOld = NULL;
+	m_hwndLastActive = NULL;
     m_dwAttachedToThreadId = 0;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
@@ -682,7 +684,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
 
     // create list view
     style = WS_CHILD | LVS_ICON;
-    exstyle = WS_EX_CLIENTEDGE;
+    exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)4, g_hInst, NULL);
@@ -695,7 +697,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     std::set<WORD>::iterator it, end = strokes.end();
     TCHAR sz[128];
     for (it = strokes.begin(); it != end; ++it) {
-        ::wsprintf(sz, LoadStringDx(IDM_KAKUSUU), *it);
+        StringCchPrintfW(sz, _countof(sz), LoadStringDx(IDM_KAKUSUU), *it);
         ::SendMessage(m_hListBox1, LB_ADDSTRING, 0, (LPARAM)sz);
     }
 
@@ -817,20 +819,22 @@ void ImePad::OnLV2StrokesChanged(HWND hWnd) {
 }
 
 void ImePad::OnTimer(HWND hWnd) {
-    DWORD dwThreadID = ::GetWindowThreadProcessId(hWnd, NULL);
     HWND hwndTarget = ::GetForegroundWindow();
-    if (hwndTarget != hWnd) {
-        if (hwndTarget != m_hwndOld) {
-            DWORD dwTargetThreadID;
-            dwTargetThreadID = ::GetWindowThreadProcessId(hwndTarget, NULL);
-            if (m_dwAttachedToThreadId && m_dwAttachedToThreadId != dwTargetThreadID) {
-                ::AttachThreadInput(dwThreadID, m_dwAttachedToThreadId, FALSE);
-            }
-            ::AttachThreadInput(dwThreadID, dwTargetThreadID, TRUE);
-            m_dwAttachedToThreadId = dwTargetThreadID;
-            m_hwndOld = hwndTarget;
-        }
-    }
+
+    if (hwndTarget == NULL || hwndTarget == hWnd)
+		return;
+
+	if (m_hwndLastActive != hwndTarget) {
+		WCHAR text[MAX_PATH], szCls[MAX_PATH];
+		GetWindowTextW(hwndTarget, text, _countof(text));
+		GetClassNameW(hwndTarget, szCls, _countof(szCls));
+
+		WCHAR str[MAX_PATH];
+		StringCchPrintfW(str, _countof(str), L"[%s] %s\n", szCls, text);
+		OutputDebugStringW(str);
+
+		m_hwndLastActive = hwndTarget;
+	}
 }
 
 void ImePad::OnGetMinMaxInfo(LPMINMAXINFO pmmi) {
@@ -859,22 +863,14 @@ void ImePad::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) {
 void ImePad::OnDestroy(HWND hWnd) {
     KillTimer(hWnd, 666);
 
-    if (m_dwAttachedToThreadId) {
-        DWORD dwThreadID = GetWindowThreadProcessId(hWnd, NULL);
-        ::AttachThreadInput(dwThreadID, m_dwAttachedToThreadId, FALSE);
-        m_dwAttachedToThreadId = 0;
-    }
-
-    m_hwndOld = NULL;
-
     ::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
     ::SetWindowLongPtr(m_hTabCtrl, GWLP_USERDATA, 0);
 }
 
 void ImePad::MySendInput(WCHAR ch) {
-    if (::GetForegroundWindow() == m_hWnd) {
-        ::SetForegroundWindow(m_hwndOld);
-    }
+	if (m_hwndLastActive)
+		::SwitchToThisWindow(m_hwndLastActive, TRUE);
+
     INPUT input;
     input.type = INPUT_KEYBOARD;
     input.ki.wVk = 0;

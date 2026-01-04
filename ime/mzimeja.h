@@ -301,7 +301,7 @@ DWORD Config_GetDWORD(LPCTSTR name, DWORD dwDefault);
 BOOL Config_SetDWORD(LPCTSTR name, DWORD dwValue);
 BOOL Config_GetData(LPCTSTR name, LPVOID pvData, DWORD cbData);
 BOOL Config_SetData(LPCTSTR name, DWORD dwType, LPCVOID pvData, DWORD cbData);
-BOOL Config_GetSz(LPCTSTR name, std::wstring& str);
+BOOL Config_GetSz(LPCTSTR name, std::wstring& str, LPCWSTR def_value = L"");
 BOOL Config_SetSz(LPCTSTR name, LPCTSTR psz);
 INT_PTR CALLBACK WordListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK RegWordDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -309,6 +309,8 @@ INT_PTR CALLBACK ChooseDictDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK GeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK DebugOptionDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL FindLocalFile(std::wstring& path, LPCWSTR filename);
+BOOL FindAppFile(std::wstring& path, LPCTSTR filename);
 
 // immsec.cpp
 SECURITY_ATTRIBUTES *CreateSecurityAttributes(void);

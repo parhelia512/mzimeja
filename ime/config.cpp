@@ -5,6 +5,7 @@
 #include "mzimeja.h"
 #include <prsht.h>
 #include <commctrl.h>
+#include <shlobj.h>
 #include <windowsx.h>
 #include "resource.h"
 
@@ -114,9 +115,10 @@ BOOL Config_SetData(LPCTSTR name, DWORD dwType, LPCVOID pvData, DWORD cbData)
 }
 
 // レジストリから文字列値を読み込む。
-BOOL Config_GetSz(LPCTSTR name, std::wstring& str)
+BOOL Config_GetSz(LPCTSTR name, std::wstring& str, LPCWSTR def_value)
 {
-    str.clear();
+    ASSERT(def_value);
+    str = def_value;
 
     HKEY hKey = Config_OpenAppKey();
     if (!hKey)
@@ -140,6 +142,55 @@ BOOL Config_GetSz(LPCTSTR name, std::wstring& str)
 BOOL Config_SetSz(LPCTSTR name, LPCTSTR psz)
 {
     return Config_SetData(name, REG_SZ, psz, (lstrlen(psz) + 1) * sizeof(TCHAR));
+}
+
+// ローカルのファイルを探す。
+BOOL FindLocalFile(std::wstring& path, LPCWSTR filename) {
+    WCHAR szPath[MAX_PATH];
+    ::GetModuleFileNameW(NULL, szPath, MAX_PATH);
+    PathRemoveFileSpecW(szPath);
+
+    for (INT i = 0; i < 5; ++i) {
+        size_t ich = wcslen(szPath);
+        {
+            PathAppendW(szPath, filename);
+            if (PathFileExistsW(szPath)) {
+                path = szPath;
+                return TRUE;
+            }
+        }
+        szPath[ich] = 0;
+        {
+            PathAppendW(szPath, L"mzimeja");
+            PathAppendW(szPath, filename);
+            if (PathFileExistsW(szPath)) {
+                path = szPath;
+                return TRUE;
+            }
+        }
+        szPath[ich] = 0;
+        PathRemoveFileSpecW(szPath);
+    }
+
+    path.clear();
+    return NULL;
+}
+
+// アプリフォルダのファイルを探す
+BOOL FindAppFile(std::wstring& path, LPCTSTR filename) {
+    LPITEMIDLIST pidl;
+    SHGetSpecialFolderLocation(NULL, CSIDL_PROGRAM_FILES, &pidl);
+    WCHAR szPath[MAX_PATH];
+    SHGetPathFromIDListW(pidl, szPath);
+    CoTaskMemFree(pidl);
+    PathAppendW(szPath, L"mzimeja");
+    PathAppendW(szPath, filename);
+    if (PathFileExistsW(szPath)) {
+        path = szPath;
+        return TRUE;
+    }
+    path.clear();
+    return FALSE;
 }
 
 // IDD_GENERAL - 全般設定プロパティシートページ。

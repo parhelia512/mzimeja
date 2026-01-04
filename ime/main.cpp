@@ -77,7 +77,10 @@ BOOL MzIme::LoadDict()
 
     std::wstring basic;
     if (!Config_GetDWORD(L"BasicDictDisabled", FALSE)) {
-        if (Config_GetSz(L"BasicDictPathName", basic)) {
+        if (FindAppFile(basic, L"basic.dic") ||
+            FindAppFile(basic, L"res\\basic.dic") ||
+            Config_GetSz(L"BasicDictPathName", basic))
+        {
             if (!g_basic_dict.Load(basic.c_str(), L"BasicDictObject")) {
                 ret = FALSE;
             }
@@ -88,7 +91,10 @@ BOOL MzIme::LoadDict()
 
     std::wstring name;
     if (!Config_GetDWORD(L"NameDictDisabled", FALSE)) {
-        if (Config_GetSz(L"NameDictPathName", name)) {
+        if (FindAppFile(basic, L"name.dic") ||
+            FindAppFile(basic, L"res\\name.dic") ||
+            Config_GetSz(L"NameDictPathName", name))
+        {
             if (!g_name_dict.Load(name.c_str(), L"NameDictObject")) {
                 ret = FALSE;
             }
@@ -370,7 +376,7 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
         DPRINTA("IDM_ABOUT\n");
         {
             std::wstring verinfo_file;
-            if (Config_GetSz(L"VerInfoFile", verinfo_file)) {
+            if (FindAppFile(verinfo_file, L"verinfo.exe") || Config_GetSz(L"VerInfoFile", verinfo_file)) {
                 ::ShellExecuteW(NULL, NULL, verinfo_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
             }
         }
@@ -408,7 +414,7 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
         DPRINTA("IDM_IME_PAD\n");
         {
             std::wstring imepad_file;
-            if (Config_GetSz(L"ImePadFile", imepad_file)) {
+            if (FindAppFile(imepad_file, L"imepad.exe") || Config_GetSz(L"ImePadFile", imepad_file)) {
                 ::ShellExecuteW(NULL, NULL, imepad_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
             }
         }
