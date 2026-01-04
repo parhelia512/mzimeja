@@ -288,6 +288,18 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             ::PostMessage(GetParent(hWnd), uMsg, wParam, lParam);
         }
         break;
+    case WM_ERASEBKGND:
+        return TRUE; // Less flickering
+    case WM_PAINT:
+        {
+            // Less flickering with WS_CLIPCHILDREN/WS_CLIPSIBLINGS
+            PAINTSTRUCT ps;
+            if (HDC hdc = BeginPaint(hWnd, &ps)) {
+                ::FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_3DFACE + 1));
+                ::EndPaint(hWnd, &ps);
+            }
+        }
+        break;
     default:
         return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
@@ -951,6 +963,10 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         ::SendMessageW(hWnd, WM_NCACTIVATE, TRUE, 0);
         break;
 
+    case WM_NCACTIVATE:
+        // Force active looking
+        return ::DefWindowProc(hWnd, WM_NCACTIVATE, TRUE, lParam);
+
     case WM_SIZE:
         if (pImePad)
             pImePad->OnSize(hWnd);
@@ -983,19 +999,6 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         pImePad->OnGetMinMaxInfo((LPMINMAXINFO)lParam);
         break;
 
-    case WM_NCACTIVATE:
-        // Force active looking
-        return ::DefWindowProc(hWnd, WM_NCACTIVATE, TRUE, lParam);
-
-    case WM_ENTERSIZEMOVE:
-        pImePad->m_bInSizing = TRUE;
-        break;
-
-    case WM_EXITSIZEMOVE:
-        pImePad->m_bInSizing = FALSE;
-        InvalidateRect(hWnd, NULL, TRUE);
-        break;
-
     default:
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
@@ -1015,7 +1018,7 @@ INT AppMain(HINSTANCE hInstance, LPWSTR lpCmdLine, INT nCmdShow) {
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     wcx.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wcx.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
+    wcx.hbrBackground = (HBRUSH)(COLOR_3DFACE + 1);
     wcx.lpszClassName = szImePadClassName;
     wcx.hIconSm = NULL;
     if (!::RegisterClassEx(&wcx)) {
