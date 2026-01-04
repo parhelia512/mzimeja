@@ -662,25 +662,27 @@ INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
     SHGetPathFromIDListW(pidl, dest_path);
     PathAppendW(dest_path, L"mzimeja");
 
-    if (!StrStrIW(spec, L"Program Files")) { // Not in "Program Files"?
-        CreateDirectoryW(dest_path, NULL);
-        WCHAR params[2 * MAX_PATH];
-        StringCchPrintfW(params, _countof(params),
-            L"/Y /E /H /R \"%s\" \"%s\"", spec, dest_path);
-        if (Execute(L"xcopy", params) != 0)
-            return -1;
+    if (!StrStrIW(spec, L"Program Files")) {
+        if (StrStrIW(dest_path, L"Program Files")) {
+            CreateDirectoryW(dest_path, NULL);
+            WCHAR params[2 * MAX_PATH];
+            StringCchPrintfW(params, _countof(params),
+                L"/Y /E /H /R \"%s\" \"%s\"", spec, dest_path);
+            if (Execute(L"xcopy", params) != 0)
+                return -1;
 #ifdef _WIN64
-        PathAppendW(dest_path, L"ime_setup64.exe");
+            PathAppendW(dest_path, L"ime_setup64.exe");
 #else
-        PathAppendW(dest_path, L"ime_setup32.exe");
+            PathAppendW(dest_path, L"ime_setup32.exe");
 #endif
-        params[0] = 0;
-        for (INT iarg = 1; iarg < argc; ++iarg) {
-            StringCchCat(params, _countof(params), L" \"");
-            StringCchCat(params, _countof(params), wargv[iarg]);
-            StringCchCat(params, _countof(params), L"\"");
+            params[0] = 0;
+            for (INT iarg = 1; iarg < argc; ++iarg) {
+                StringCchCat(params, _countof(params), L" \"");
+                StringCchCat(params, _countof(params), wargv[iarg]);
+                StringCchCat(params, _countof(params), L"\"");
+            }
+            return Execute(dest_path, params);
         }
-        return Execute(dest_path, params);
     }
 
     return DoMain2(hInstance, argc, wargv);
