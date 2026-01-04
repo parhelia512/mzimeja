@@ -938,6 +938,8 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             return -1;
         }
         pImePad->m_hWnd = hWnd;
+        // Force active looking
+        ::SendMessageW(hWnd, WM_NCACTIVATE, TRUE, 0);
         break;
 
     case WM_SIZE:
@@ -970,6 +972,10 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     case WM_GETMINMAXINFO:
         pImePad->OnGetMinMaxInfo((LPMINMAXINFO)lParam);
         break;
+
+    case WM_NCACTIVATE:
+        // Force active looking
+        return ::DefWindowProc(hWnd, WM_NCACTIVATE, TRUE, lParam);
 
     default:
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
