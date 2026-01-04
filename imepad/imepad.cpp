@@ -295,8 +295,7 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     default:
         break;
     }
-    return ::CallWindowProc(
-                   pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
+    return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
 } // ImePad::TabCtrlWndProc
 
 //////////////////////////////////////////////////////////////////////////////
@@ -346,44 +345,49 @@ ImePad::~ImePad() {
 //////////////////////////////////////////////////////////////////////////////
 // loading res/kanji.dat and res/radical.dat
 
-LPWSTR FindLocalFile(LPWSTR pszPath, LPCWSTR pszFileName)
-{
-    ::GetModuleFileNameW(NULL, pszPath, MAX_PATH);
-    PathRemoveFileSpecW(pszPath);
+BOOL FindLocalFile(std::wstring& path, LPCWSTR filename) {
+    WCHAR szPath[MAX_PATH];
+    ::GetModuleFileNameW(NULL, szPath, MAX_PATH);
+    PathRemoveFileSpecW(szPath);
 
-    for (INT i = 0; i < 5; ++i)
-    {
-        size_t ich = wcslen(pszPath);
+    for (INT i = 0; i < 5; ++i) {
+        size_t ich = wcslen(szPath);
         {
-            PathAppendW(pszPath, pszFileName);
-            if (PathFileExistsW(pszPath))
-                return pszPath;
+            PathAppendW(szPath, filename);
+            if (PathFileExistsW(szPath)) {
+                path = szPath;
+                return TRUE;
+            }
         }
-        pszPath[ich] = 0;
+        szPath[ich] = 0;
         {
-            PathAppendW(pszPath, L"mzimeja");
-            PathAppendW(pszPath, pszFileName);
-            if (PathFileExistsW(pszPath))
-                return pszPath;
+            PathAppendW(szPath, L"mzimeja");
+            PathAppendW(szPath, filename);
+            if (PathFileExistsW(szPath)) {
+                path = szPath;
+                return TRUE;
+            }
         }
-        pszPath[ich] = 0;
-        PathRemoveFileSpecW(pszPath);
+        szPath[ich] = 0;
+        PathRemoveFileSpecW(szPath);
     }
+
+    path.clear();
     return NULL;
 }
 
 LPWSTR GetKanjiDataPathName(LPWSTR pszPath) {
-    LPWSTR path = FindLocalFile(pszPath, L"kanji.dat");
-    if (path) return path;
-    path = FindLocalFile(pszPath, L"res\\kanji.dat");
-    return path;
+    std::wstring path;
+    if (FindLocalFile(path, L"kanji.dat") || FindLocalFile(path, L"res\\kanji.dat"))
+        return lstrcpynW(pszPath, path.c_str(), MAX_PATH);
+    return NULL;
 }
 
 LPWSTR GetRadicalDataPathName(LPWSTR pszPath) {
-    LPWSTR path = FindLocalFile(pszPath, L"radical.dat");
-    if (path) return path;
-    path = FindLocalFile(pszPath, L"res\\radical.dat");
-    return path;
+    std::wstring path;
+    if (FindLocalFile(path, L"radical.dat") || FindLocalFile(path, L"res\\radical.dat"))
+        return lstrcpynW(pszPath, path.c_str(), MAX_PATH);
+    return NULL;
 }
 
 BOOL ImePad::LoadKanjiData() {
