@@ -527,9 +527,8 @@ BOOL ImePad::CreateAllFonts() {
 
     LOGFONT lf;
     ZeroMemory(&lf, sizeof(lf));
-    lf.lfHeight = 28;
     lf.lfCharSet = SHIFTJIS_CHARSET;
-    lf.lfQuality = ANTIALIASED_QUALITY;
+    lf.lfQuality = PROOF_QUALITY;
     lf.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
 
     lf.lfHeight = 10;
