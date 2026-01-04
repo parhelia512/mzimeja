@@ -532,22 +532,6 @@ LONG NotifyCommand(HIMC hIMC, HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     case IMN_PRIVATE: // プライベートな通知。
         DPRINTA("IMN_PRIVATE\n");
-        if (HIWORD(lParam) == 0xFACE) {
-            std::wstring imepad_file;
-            if (Config_GetSz(L"ImePadFile", imepad_file)) {
-                ::ShellExecuteW(NULL, NULL, imepad_file.c_str(),
-                                NULL, NULL, SW_SHOWNOACTIVATE);
-            }
-            break;
-        }
-        if (HIWORD(lParam) == 0xDEAD) {
-            std::wstring verinfo_file;
-            if (Config_GetSz(L"VerInfoFile", verinfo_file)) {
-                ::ShellExecuteW(NULL, NULL, verinfo_file.c_str(),
-                                NULL, NULL, SW_SHOWNOACTIVATE);
-            }
-            break;
-        }
         break;
 
     default:

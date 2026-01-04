@@ -367,7 +367,13 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
     case IDM_RECONVERT:
         break;
     case IDM_ABOUT:
-        GenerateMessage(WM_IME_NOTIFY, IMN_PRIVATE, MAKELPARAM(0, 0xDEAD));
+        DPRINTA("IDM_ABOUT\n");
+        {
+            std::wstring verinfo_file;
+            if (Config_GetSz(L"VerInfoFile", verinfo_file)) {
+                ::ShellExecuteW(NULL, NULL, verinfo_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
+            }
+        }
         break;
     case IDM_HIRAGANA:
         SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
@@ -399,7 +405,13 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
     case IDM_ADD_WORD:
         break;
     case IDM_IME_PAD:
-        GenerateMessage(WM_IME_NOTIFY, IMN_PRIVATE, MAKELPARAM(0, 0xFACE));
+        DPRINTA("IDM_IME_PAD\n");
+        {
+            std::wstring imepad_file;
+            if (Config_GetSz(L"ImePadFile", imepad_file)) {
+                ::ShellExecuteW(NULL, NULL, imepad_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
+            }
+        }
         break;
     case IDM_IME_PROPERTY:
         ImeConfigure(GetKeyboardLayout(0), NULL, IME_CONFIG_GENERAL, NULL);
