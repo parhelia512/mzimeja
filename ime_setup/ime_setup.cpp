@@ -7,10 +7,12 @@
 #define NOMINMAX
 #include <windows.h>
 #include <shlwapi.h>
+#include <shlobj.h>
 #include <dlgs.h>
 #include <cstdlib>    // for __argc, __wargv
 #include <cstring>    // for wcsrchr
 #include <algorithm>  // for std::max
+#include <strsafe.h>
 #include "Wow64.h"
 #include "resource.h"
 
@@ -53,12 +55,12 @@ LPWSTR GetSrcImePathName64(LPWSTR pszPath) {
 
 LPWSTR GetSystemImePathName(LPWSTR pszPath) {
     GetSystemDirectory(pszPath, MAX_PATH);
-    wcscat(pszPath, L"\\mzimeja.ime");
+    StringCchCatW(pszPath, MAX_PATH, L"\\mzimeja.ime");
     return pszPath;
 }
 LPWSTR GetSystemImePathNameWow64(LPWSTR pszPath) {
     GetWindowsDirectory(pszPath, MAX_PATH);
-    wcscat(pszPath, L"\\SysWow64\\mzimeja.ime");
+    StringCchCatW(pszPath, MAX_PATH, L"\\SysWow64\\mzimeja.ime");
     return pszPath;
 }
 
@@ -211,7 +213,7 @@ BOOL SetImeHKL(HKL hKL)
         return NULL;
 
     WCHAR szHKL[16];
-    wsprintfW(szHKL, L"%08X", HandleToUlong(hKL));
+    StringCchPrintfW(szHKL, _countof(szHKL), L"%08X", HandleToUlong(hKL));
     DWORD cbHKL = lstrlenW(szHKL) * sizeof(WCHAR);
     error = RegSetValueExW(hKey, L"szHKL", 0, REG_SZ, (PBYTE)szHKL, cbHKL);
     RegCloseKey(hKey);
@@ -275,7 +277,7 @@ INT DoSetRegistry1(VOID) {
     if (!error)
     {
         WCHAR szSubKey[32];
-        wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
+        StringCchPrintfW(szSubKey, _countof(szSubKey), L"%08X", HandleToUlong(hKL));
 
         HKEY hkLayouts;
         error = CreateRegKey(hKey, szSubKey, &hkLayouts);
@@ -417,7 +419,7 @@ INT DoUnsetRegistry1(VOID) {
         for (DWORD i = 0; i < _countof(ahKLs); ++i)
         {
             WCHAR szName[64];
-            wsprintfW(szName, L"%u", i + 1);
+            StringCchPrintfW(szName, _countof(szName), L"%u", i + 1);
 
             WCHAR szKL[32];
             DWORD cbKL = sizeof(szKL);
@@ -433,7 +435,7 @@ INT DoUnsetRegistry1(VOID) {
         for (DWORD i = 0; ahKLs[i]; ++i)
         {
             WCHAR szName[64];
-            wsprintfW(szName, L"%u", i + 1);
+            StringCchPrintfW(szName, _countof(szName), L"%u", i + 1);
             error = RegDeleteValueW(hKey, szName);
             if (error)
                 break;
@@ -453,10 +455,10 @@ INT DoUnsetRegistry1(VOID) {
         for (DWORD i = 0; ahKLs[i]; ++i)
         {
             WCHAR szName[64];
-            wsprintfW(szName, L"%u", i + 1);
+            StringCchPrintfW(szName, _countof(szName), L"%u", i + 1);
 
             WCHAR szKL[32];
-            wsprintfW(szKL, L"%08X", ahKLs[i]);
+            StringCchPrintfW(szKL, _countof(szKL), L"%08X", ahKLs[i]);
             DWORD cbKL = (lstrlenW(szKL) + 1) * sizeof(WCHAR);
 
             error = RegSetValueExW(hKey, szName, 0, REG_SZ, (PBYTE)szKL, cbKL);
@@ -473,7 +475,7 @@ INT DoUnsetRegistry1(VOID) {
     if (!error)
     {
         WCHAR szSubKey[16];
-        wsprintfW(szSubKey, L"%08X", HandleToUlong(hKL));
+        StringCchPrintfW(szSubKey, _countof(szSubKey), L"%08X", HandleToUlong(hKL));
 
         error = MyDeleteRegKey(hKey, szSubKey);
         if (!error)
@@ -518,12 +520,12 @@ INT DoInstall(VOID) {
 
     WCHAR szPath[MAX_PATH];
     ::GetSystemDirectoryW(szPath, MAX_PATH);
-    wcscat(szPath, L"\\mzimeja.ime");
+    StringCchCatW(szPath, _countof(szPath), L"\\mzimeja.ime");
     if (!ImmInstallIME(szPath, DoLoadString(IDS_IMELAYOUTTEXT))) {
         // failure
         WCHAR szMsg[128];
         DWORD dwError = ::GetLastError();
-        ::wsprintfW(szMsg, DoLoadString(IDS_FAILDOCONTACT), dwError);
+        StringCchPrintfW(szMsg, _countof(szMsg), DoLoadString(IDS_FAILDOCONTACT), dwError);
         ::MessageBoxW(NULL, szMsg, NULL, MB_ICONERROR);
         return 3;
     }
@@ -584,7 +586,7 @@ DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 //////////////////////////////////////////////////////////////////////////////
 
-INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
+INT DoMain2(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
 {
     TCHAR szText[128];
 
@@ -628,6 +630,60 @@ INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
     }
 
     return 0;
+}
+
+INT Execute(LPCWSTR file, LPCWSTR params) {
+    SHELLEXECUTEINFOW exec = { sizeof(exec) };
+    exec.fMask = SEE_MASK_NOCLOSEPROCESS;
+    exec.lpFile = file;
+	exec.lpParameters = params;
+    exec.nShow = SW_SHOWNORMAL;
+    if (!ShellExecuteExW(&exec))
+        return -1;
+    WaitForSingleObject(exec.hProcess, INFINITE);
+    DWORD exit_code;
+    GetExitCodeProcess(exec.hProcess, &exit_code);
+    CloseHandle(exec.hProcess);
+    return exit_code;
+}
+
+INT DoMain(HINSTANCE hInstance, INT argc, LPWSTR *wargv)
+{
+    WCHAR spec[MAX_PATH];
+    ZeroMemory(spec, sizeof(spec));
+    GetModuleFileNameW(NULL, spec, _countof(spec));
+    PathRemoveFileSpecW(spec);
+    PathAppendW(spec, L"*");
+
+    LPITEMIDLIST pidl;
+    SHGetSpecialFolderLocation(NULL, CSIDL_PROGRAM_FILES, &pidl);
+    WCHAR dest_path[MAX_PATH];
+    ZeroMemory(dest_path, sizeof(dest_path));
+    SHGetPathFromIDListW(pidl, dest_path);
+    PathAppendW(dest_path, L"mzimeja");
+
+    if (!StrStrIW(spec, L"Program Files")) { // Not in "Program Files"?
+        CreateDirectoryW(dest_path, NULL);
+        WCHAR params[2 * MAX_PATH];
+        StringCchPrintfW(params, _countof(params),
+            L"/Y /E /H /R \"%s\" \"%s\"", spec, dest_path);
+        if (Execute(L"xcopy", params) != 0)
+            return -1;
+#ifdef _WIN64
+        PathAppendW(dest_path, L"ime_setup64.exe");
+#else
+        PathAppendW(dest_path, L"ime_setup32.exe");
+#endif
+        params[0] = 0;
+        for (INT iarg = 1; iarg < argc; ++iarg) {
+            StringCchCat(params, _countof(params), L" \"");
+            StringCchCat(params, _countof(params), wargv[iarg]);
+            StringCchCat(params, _countof(params), L"\"");
+        }
+        return Execute(dest_path, params);
+    }
+
+    return DoMain2(hInstance, argc, wargv);
 }
 
 extern "C"
