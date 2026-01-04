@@ -112,8 +112,10 @@ const T_ITEM& Array_At(const T_ITEM (&array)[t_size], size_t index, const char *
 static inline BOOL
 InvalidateRectWrap(HWND hwnd, LPCRECT prc, BOOL bErase, LPCSTR file, INT lineno)
 {
-    if (!hwnd)
+    if (!hwnd) {
         DPRINTA("InvalidateRectWrap(NULL) detected at File %s, Line %d\n", file, lineno);
+        return FALSE;
+    }
     return InvalidateRect(hwnd, prc, bErase);
 }
 
