@@ -21,7 +21,7 @@
 #include <cassert>          // for assert
 #include <cstring>          // for C string
 
-#include <strsafe.h>		// StringC...
+#include <strsafe.h>        // StringC...
 
 #include "Wow64.h"
 #include "../str.hpp"       // for str_*
@@ -69,65 +69,65 @@ const WCHAR szImePadClassName[] = L"MZIMEPad";
 
 class ImePad {
 public:
-ImePad();
-~ImePad();
+    ImePad();
+    ~ImePad();
 
-BOOL PrepareForKanji();
-static BOOL Create(HWND hwndParent);
-static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-static LRESULT CALLBACK TabCtrlWndProc(HWND, UINT, WPARAM, LPARAM);
+    BOOL PrepareForKanji();
+    static BOOL Create(HWND hwndParent);
+    static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
+    static LRESULT CALLBACK TabCtrlWndProc(HWND, UINT, WPARAM, LPARAM);
 
 protected:
-HWND m_hWnd;
+    HWND m_hWnd;
 
-// data
-std::vector<KANJI_ENTRY>            m_kanji_table;
-std::map<WORD, std::vector<WORD> >  m_kanji_stroke_map;
-std::vector<RADICAL_ENTRY>          m_radical_table;
-std::map<WORD, std::vector<WORD> >  m_radical_stroke_map;
-std::map<WORD, WORD>                m_radical_id_map;
-std::map<WORD, std::vector<WORD> >  m_radical2_to_kanji_map;
-BOOL LoadKanjiData();
-BOOL LoadRadicalData();
-BOOL LoadKanjiAndRadical();
+    // data
+    std::vector<KANJI_ENTRY>            m_kanji_table;
+    std::map<WORD, std::vector<WORD> >  m_kanji_stroke_map;
+    std::vector<RADICAL_ENTRY>          m_radical_table;
+    std::map<WORD, std::vector<WORD> >  m_radical_stroke_map;
+    std::map<WORD, WORD>                m_radical_id_map;
+    std::map<WORD, std::vector<WORD> >  m_radical2_to_kanji_map;
+    BOOL LoadKanjiData();
+    BOOL LoadRadicalData();
+    BOOL LoadKanjiAndRadical();
 
-// UI
-HWND m_hTabCtrl;
-HWND m_hListView;
-HWND m_hListBox1;
-HWND m_hListBox2;
-WNDPROC m_fnTabCtrlOldWndProcOld;
-HWND m_hwndLastActive;
-DWORD m_dwAttachedToThreadId;
-void MySendInput(WCHAR ch);
+    // UI
+    HWND m_hTabCtrl;
+    HWND m_hListView;
+    HWND m_hListBox1;
+    HWND m_hListBox2;
+    WNDPROC m_fnTabCtrlOldWndProcOld;
+    HWND m_hwndLastActive;
+    DWORD m_dwAttachedToThreadId;
+    void MySendInput(WCHAR ch);
 
-// images
-HIMAGELIST m_himlKanji;
-HIMAGELIST m_himlRadical;
-HBITMAP m_hbmRadical;
-BOOL LoadRadicalImage();
-BOOL CreateKanjiImageList();
-BOOL CreateRadicalImageList();
-void DeleteAllImages();
+    // images
+    HIMAGELIST m_himlKanji;
+    HIMAGELIST m_himlRadical;
+    HBITMAP m_hbmRadical;
+    BOOL LoadRadicalImage();
+    BOOL CreateKanjiImageList();
+    BOOL CreateRadicalImageList();
+    void DeleteAllImages();
 
-// fonts
-HFONT m_hSmallFont;
-HFONT m_hNormalFont;
-HFONT m_hLargeFont;
-BOOL CreateAllFonts();
-void DeleteAllFonts();
+    // fonts
+    HFONT m_hSmallFont;
+    HFONT m_hNormalFont;
+    HFONT m_hLargeFont;
+    BOOL CreateAllFonts();
+    void DeleteAllFonts();
 
-BOOL OnCreate(HWND hWnd);
-void OnSize(HWND hWnd);
-void OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
-void OnDestroy(HWND hWnd);
-void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
-void OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
-void OnEraseBkGnd(HWND hWnd);
-void OnLV1StrokesChanged(HWND hWnd);
-void OnLV2StrokesChanged(HWND hWnd);
-void OnTimer(HWND hWnd);
-void OnGetMinMaxInfo(LPMINMAXINFO pmmi);
+    BOOL OnCreate(HWND hWnd);
+    void OnSize(HWND hWnd);
+    void OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam);
+    void OnDestroy(HWND hWnd);
+    void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
+    void OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
+    void OnEraseBkGnd(HWND hWnd);
+    void OnLV1StrokesChanged(HWND hWnd);
+    void OnLV2StrokesChanged(HWND hWnd);
+    void OnTimer(HWND hWnd);
+    void OnGetMinMaxInfo(LPMINMAXINFO pmmi);
 }; // class ImePad
 
 //////////////////////////////////////////////////////////////////////////////
@@ -289,11 +289,6 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             ::PostMessage(GetParent(hWnd), uMsg, wParam, lParam);
         }
         break;
-    case WM_ERASEBKGND:
-        ::CallWindowProc(
-                pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
-        pImePad->OnEraseBkGnd(hWnd);
-        return 0;
     default:
         break;
     }
@@ -311,8 +306,13 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     rc.top = rc.bottom - INITIAL_HEIGHT - 32;
 
     DWORD style = WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_ACTIVECAPTION;
-    DWORD exstyle = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST |
-                    WS_EX_NOACTIVATE;
+    DWORD exstyle =
+        WS_EX_WINDOWEDGE |
+        WS_EX_TOOLWINDOW |
+        WS_EX_TOPMOST |
+        //WS_EX_NOACTIVATE | // WinXPÇ≈ÇÕïsà¿íËÅBë„ÇÌÇËÇ…WM_MOUSEACTIVATE:MA_NOACTIVATE; ÇégÇ§
+        0;
+
     HWND hImePad = ::CreateWindowEx(
             exstyle, szImePadClassName, LoadStringDx(IDM_IME_PAD),
             style, rc.left, rc.top, INITIAL_WIDTH, INITIAL_HEIGHT,
@@ -333,7 +333,7 @@ ImePad::ImePad() {
     m_hNormalFont = NULL;
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
-	m_hwndLastActive = NULL;
+    m_hwndLastActive = NULL;
     m_dwAttachedToThreadId = 0;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
@@ -734,24 +734,28 @@ void ImePad::OnSize(HWND hWnd) {
     RECT rc;
     ::GetClientRect(m_hWnd, &rc);
 
-    ::MoveWindow(m_hTabCtrl, rc.left, rc.top,
-                 rc.right - rc.left, rc.bottom - rc.top, TRUE);
+    ::MoveWindow(m_hTabCtrl, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 
     TabCtrl_AdjustRect(m_hTabCtrl, FALSE, &rc);
 
-    const INT cx1 = 90;
-    const INT cx2 = 140;
+    HDWP hDWP = ::BeginDeferWindowPos(2);
+    UINT uFlags = SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER;
+
+    const INT cx1 = 90, cx2 = 140;
     if (::IsWindowVisible(m_hListBox1)) {
-        ::MoveWindow(m_hListBox1, rc.left, rc.top,
-                     cx1, rc.bottom - rc.top, TRUE);
-        ::MoveWindow(m_hListView, rc.left + cx1, rc.top,
-                     rc.right - rc.left - cx1, rc.bottom - rc.top, TRUE);
+        hDWP = ::DeferWindowPos(hDWP, m_hListBox1, NULL, rc.left, rc.top,
+                                cx1, rc.bottom - rc.top, uFlags);
+        hDWP = ::DeferWindowPos(hDWP, m_hListView, NULL, rc.left + cx1, rc.top,
+                                rc.right - rc.left - cx1, rc.bottom - rc.top, uFlags);
     } else {
-        ::MoveWindow(m_hListBox2, rc.left, rc.top,
-                     cx2, rc.bottom - rc.top, TRUE);
-        ::MoveWindow(m_hListView, rc.left + cx2, rc.top,
-                     rc.right - rc.left - cx2, rc.bottom - rc.top, TRUE);
+        hDWP = ::DeferWindowPos(hDWP, m_hListBox2, NULL, rc.left, rc.top,
+                                cx2, rc.bottom - rc.top, TRUE);
+        hDWP = ::DeferWindowPos(hDWP, m_hListView, NULL, rc.left + cx2, rc.top,
+                                rc.right - rc.left - cx2, rc.bottom - rc.top, uFlags);
     }
+
+    ::EndDeferWindowPos(hDWP);
+
     ListView_Arrange(m_hListView, LVA_DEFAULT);
 }
 
@@ -822,19 +826,19 @@ void ImePad::OnTimer(HWND hWnd) {
     HWND hwndTarget = ::GetForegroundWindow();
 
     if (hwndTarget == NULL || hwndTarget == hWnd)
-		return;
+        return;
 
-	if (m_hwndLastActive != hwndTarget) {
-		WCHAR text[MAX_PATH], szCls[MAX_PATH];
-		GetWindowTextW(hwndTarget, text, _countof(text));
-		GetClassNameW(hwndTarget, szCls, _countof(szCls));
+    if (m_hwndLastActive != hwndTarget) {
+        WCHAR text[MAX_PATH], szCls[MAX_PATH];
+        GetWindowTextW(hwndTarget, text, _countof(text));
+        GetClassNameW(hwndTarget, szCls, _countof(szCls));
 
-		WCHAR str[MAX_PATH];
-		StringCchPrintfW(str, _countof(str), L"[%s] %s\n", szCls, text);
-		OutputDebugStringW(str);
+        WCHAR str[MAX_PATH];
+        StringCchPrintfW(str, _countof(str), L"[%s] %s\n", szCls, text);
+        OutputDebugStringW(str);
 
-		m_hwndLastActive = hwndTarget;
-	}
+        m_hwndLastActive = hwndTarget;
+    }
 }
 
 void ImePad::OnGetMinMaxInfo(LPMINMAXINFO pmmi) {
@@ -868,8 +872,8 @@ void ImePad::OnDestroy(HWND hWnd) {
 }
 
 void ImePad::MySendInput(WCHAR ch) {
-	if (m_hwndLastActive)
-		::SwitchToThisWindow(m_hwndLastActive, TRUE);
+    if (m_hwndLastActive)
+        ::SwitchToThisWindow(m_hwndLastActive, TRUE);
 
     INPUT input;
     input.type = INPUT_KEYBOARD;
@@ -990,21 +994,13 @@ INT AppMain(HINSTANCE hInstance, LPWSTR lpCmdLine, INT nCmdShow) {
     ::InitCommonControls();
 
     // register class of IME Pad window.
-    WNDCLASSEX wcx;
-    wcx.cbSize = sizeof(WNDCLASSEX);
-#ifdef IME
-    wcx.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_IME;
-#else
-    wcx.style = CS_DBLCLKS;
-#endif
+    WNDCLASSEX wcx = { sizeof(wcx) };
+    wcx.style = CS_DBLCLKS | CS_IME;
     wcx.lpfnWndProc = ImePad::WindowProc;
-    wcx.cbClsExtra = 0;
-    wcx.cbWndExtra = 0;
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     wcx.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcx.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
-    wcx.lpszMenuName = NULL;
     wcx.lpszClassName = szImePadClassName;
     wcx.hIconSm = NULL;
     if (!::RegisterClassEx(&wcx)) {
