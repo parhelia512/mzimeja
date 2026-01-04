@@ -9,7 +9,6 @@ static inline BOOL IsWow64(void)
 {
     HINSTANCE hKernel32 = GetModuleHandleA("kernel32");
     FN_IsWow64Process fn = (FN_IsWow64Process)GetProcAddress(hKernel32, "IsWow64Process");
-
     BOOL bIsWow64;
     return fn && fn(GetCurrentProcess(), &bIsWow64) && bIsWow64;
 }
@@ -18,8 +17,8 @@ static inline BOOL DisableWow64FsRedirection(PVOID *OldValue)
 {
     HINSTANCE hKernel32 = GetModuleHandleA("kernel32");
     FN_Wow64DisableWow64FsRedirection pWow64DisableWow64FsRedirection;
-    pWow64DisableWow64FsRedirection =
-        (FN_Wow64DisableWow64FsRedirection)GetProcAddress(hKernel32, "Wow64DisableWow64FsRedirection");
+    FARPROC fn = GetProcAddress(hKernel32, "Wow64DisableWow64FsRedirection");
+    CopyMemory(&pWow64DisableWow64FsRedirection, fn, sizeof(FARPROC));
     if (pWow64DisableWow64FsRedirection)
         return (*pWow64DisableWow64FsRedirection)(OldValue);
     return FALSE;
@@ -29,8 +28,8 @@ static inline BOOL RevertWow64FsRedirection(PVOID OldValue)
 {
     HINSTANCE hKernel32 = GetModuleHandleA("kernel32");
     FN_Wow64RevertWow64FsRedirection pWow64RevertWow64FsRedirection;
-    pWow64RevertWow64FsRedirection =
-        (FN_Wow64RevertWow64FsRedirection)GetProcAddress(hKernel32, "Wow64RevertWow64FsRedirection");
+    FARPROC fn = GetProcAddress(hKernel32, "Wow64RevertWow64FsRedirection");
+    CopyMemory(&pWow64RevertWow64FsRedirection, fn, sizeof(FARPROC));
     if (pWow64RevertWow64FsRedirection)
         return (*pWow64RevertWow64FsRedirection)(OldValue);
     return FALSE;
