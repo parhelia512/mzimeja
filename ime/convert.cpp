@@ -4131,6 +4131,11 @@ BOOL MzIme::StretchClauseRight(LogCompStr& comp, LogCandInfo& cand, BOOL bRoman)
         comp.extra.comp_str_clauses.erase(comp.extra.comp_str_clauses.begin() + iClause + 1);
         comp.extra.hiragana_clauses[iClause] = str1;
         comp.extra.comp_str_clauses[iClause] = clause1.candidates[0].post;
+
+        // 候補リストも削除する
+        if (iClause + 1 < cand.cand_lists.size()) {
+            cand.cand_lists.erase(cand.cand_lists.begin() + (iClause + 1));
+        }
     } else {
         // ２つの文節情報をセットする。
         MzConvClause& clause2 = result2.clauses[0];
