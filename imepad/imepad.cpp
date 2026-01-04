@@ -98,11 +98,9 @@ protected:
     HWND m_hListBox1;
     HWND m_hListBox2;
     WNDPROC m_fnTabCtrlOldWndProcOld;
-    WNDPROC m_fnListViewOldWndProc;
-    WNDPROC m_fnListBox1OldWndProc;
-    WNDPROC m_fnListBox2OldWndProc;
     HWND m_hwndLastActive;
     BOOL m_bInSizing;
+
     void MySendInput(WCHAR ch);
 
     // images
@@ -297,10 +295,8 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             RECT rc;
             ::GetClientRect(hWnd, &rc);
             ::FillRect((HDC)wParam, &rc, (HBRUSH)(COLOR_3DFACE + 1));
-            return TRUE;
         }
-    case WM_MOUSEACTIVATE:
-        return MA_NOACTIVATE;
+        return TRUE;
     default:
         return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
@@ -349,9 +345,6 @@ ImePad::ImePad() {
     m_hTabCtrl = NULL;
     m_hListView = NULL;
     m_fnTabCtrlOldWndProcOld = NULL;
-    m_fnListViewOldWndProc = NULL;
-    m_fnListBox1OldWndProc = NULL;
-    m_fnListBox2OldWndProc = NULL;
 }
 
 ImePad::~ImePad() {
@@ -497,29 +490,6 @@ BOOL ImePad::LoadKanjiAndRadical() {
     }
     assert(0);
     return FALSE;
-}
-
-/*static*/ LRESULT CALLBACK
-ImePad::ListViewWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    ImePad *pImePad = (ImePad *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
-    if (!pImePad) return 0;
-
-    WNDPROC oldWndProc = NULL;
-    if (hWnd == pImePad->m_hListView)
-        oldWndProc = pImePad->m_fnListViewOldWndProc;
-    else if (hWnd == pImePad->m_hListBox1)
-        oldWndProc = pImePad->m_fnListBox1OldWndProc;
-    else if (hWnd == pImePad->m_hListBox2)
-        oldWndProc = pImePad->m_fnListBox2OldWndProc;
-
-    switch (uMsg) {
-    case WM_MOUSEACTIVATE:
-        return MA_NOACTIVATE;
-    default:
-        if (oldWndProc)
-            return ::CallWindowProc(oldWndProc, hWnd, uMsg, wParam, lParam);
-    }
-    return 0;
 }
 
 void ImePad::DeleteAllImages() {
@@ -709,10 +679,6 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     m_hListBox1 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)2, g_hInst, NULL);
-    ::SetWindowLongPtr(m_hListBox1, GWLP_USERDATA, (LONG_PTR) this);
-    m_fnListBox1OldWndProc = (WNDPROC)
-                             ::SetWindowLongPtr(m_hListBox1, GWLP_WNDPROC,
-                                                (LONG_PTR) ImePad::ListViewWndProc);
 
     // create list box (radicals)
     style = WS_CHILD | WS_VSCROLL | LBS_OWNERDRAWFIXED |
@@ -723,22 +689,12 @@ BOOL ImePad::OnCreate(HWND hWnd) {
                                    m_hTabCtrl, (HMENU)3, g_hInst, NULL);
     ::SendMessage(m_hListBox2, LB_SETITEMHEIGHT, 0, 24);
 
-    ::SetWindowLongPtr(m_hListBox2, GWLP_USERDATA, (LONG_PTR) this);
-    m_fnListBox2OldWndProc = (WNDPROC)
-                             ::SetWindowLongPtr(m_hListBox2, GWLP_WNDPROC,
-                                                (LONG_PTR) ImePad::ListViewWndProc);
-
     // create list view
     style = WS_CHILD | LVS_ICON | WS_CLIPSIBLINGS;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
                                    m_hTabCtrl, (HMENU)4, g_hInst, NULL);
-
-    ::SetWindowLongPtr(m_hListView, GWLP_USERDATA, (LONG_PTR) this);
-    m_fnListViewOldWndProc = (WNDPROC)
-                             ::SetWindowLongPtr(m_hListView, GWLP_WNDPROC,
-                                                (LONG_PTR) ImePad::ListViewWndProc);
 
     // Less flickering
 #ifndef LVS_EX_DOUBLEBUFFER
@@ -881,6 +837,9 @@ void ImePad::OnLV2StrokesChanged(HWND hWnd) {
 }
 
 void ImePad::OnTimer(HWND hWnd) {
+    if (m_bInSizing)
+        return;
+
     HWND hwndTarget = ::GetForegroundWindow();
 
     if (hwndTarget == NULL || hwndTarget == hWnd)
@@ -1041,6 +1000,14 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     case WM_GETMINMAXINFO:
         pImePad->OnGetMinMaxInfo((LPMINMAXINFO)lParam);
+        break;
+
+    case WM_ENTERSIZEMOVE:
+        pImePad->m_bInSizing = TRUE;
+        break;
+
+    case WM_EXITSIZEMOVE:
+        pImePad->m_bInSizing = FALSE;
         break;
 
     default:
