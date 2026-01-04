@@ -289,17 +289,12 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         }
         break;
     case WM_ERASEBKGND:
-        return TRUE; // Less flickering
-    case WM_PAINT:
         {
-            // Less flickering with WS_CLIPCHILDREN/WS_CLIPSIBLINGS
-            PAINTSTRUCT ps;
-            if (HDC hdc = BeginPaint(hWnd, &ps)) {
-                ::FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_3DFACE + 1));
-                ::EndPaint(hWnd, &ps);
-            }
+            RECT rc;
+            ::GetClientRect(hWnd, &rc);
+			::FillRect((HDC)wParam, &rc, (HBRUSH)(COLOR_3DFACE + 1));
+            return TRUE;
         }
-        break;
     default:
         return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
