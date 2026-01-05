@@ -114,7 +114,6 @@ protected:
 
     // fonts
     HFONT m_hSmallFont;
-    HFONT m_hNormalFont;
     HFONT m_hLargeFont;
     BOOL CreateAllFonts();
     void DeleteAllFonts();
@@ -337,7 +336,6 @@ ImePad::ImePad() {
     m_himlKanji = NULL;
     m_himlRadical = NULL;
     m_hSmallFont = NULL;
-    m_hNormalFont = NULL;
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
     m_hwndLastActive = NULL;
@@ -512,10 +510,6 @@ void ImePad::DeleteAllFonts() {
         ::DeleteObject(m_hSmallFont);
         m_hSmallFont = NULL;
     }
-    if (m_hNormalFont) {
-        ::DeleteObject(m_hNormalFont);
-        m_hNormalFont = NULL;
-    }
     if (m_hLargeFont) {
         ::DeleteObject(m_hLargeFont);
         m_hLargeFont = NULL;
@@ -531,15 +525,13 @@ BOOL ImePad::CreateAllFonts() {
     ZeroMemory(&lf, sizeof(lf));
     lf.lfCharSet = SHIFTJIS_CHARSET;
     lf.lfQuality = PROOF_QUALITY;
-    lf.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
+    lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 
-    lf.lfHeight = 10;
-    m_hSmallFont = ::CreateFontIndirect(&lf);
     lf.lfHeight = 12;
-    m_hNormalFont = ::CreateFontIndirect(&lf);
+    m_hSmallFont = ::CreateFontIndirect(&lf);
     lf.lfHeight = 28;
     m_hLargeFont = ::CreateFontIndirect(&lf);
-    if (m_hSmallFont && m_hNormalFont && m_hLargeFont) {
+    if (m_hSmallFont && m_hLargeFont) {
         return TRUE;
     }
     assert(0);
@@ -727,7 +719,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
 
     // set font
     ::SendMessage(m_hListBox2, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
-    ::SendMessage(m_hListView, WM_SETFONT, (WPARAM)m_hNormalFont, FALSE);
+    ::SendMessage(m_hListView, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListBox1, WM_SETFONT, (WPARAM)m_hLargeFont, FALSE);
 
     // show child windows
@@ -873,10 +865,6 @@ void ImePad::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) {
             OnLV2StrokesChanged(hWnd);
             break;
         }
-        return;
-    }
-    if (LOWORD(wParam) == IDCANCEL) {
-        EndDialog(hWnd, IDCANCEL);
         return;
     }
 }
