@@ -34,6 +34,10 @@
 #define INITIAL_HEIGHT 250
 #define INTERVAL_MILLISECONDS   300
 
+#define SMALL_FONT_SIZE 12
+#define LARGE_FONT_SIZE 22
+#define CHAR_BOX_SIZE (LARGE_FONT_SIZE + 10)
+
 struct KANJI_ENTRY {
     WORD kanji_id;
     WCHAR kanji_char;
@@ -527,9 +531,9 @@ BOOL ImePad::CreateAllFonts() {
     lf.lfQuality = PROOF_QUALITY;
     lf.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 
-    lf.lfHeight = 12;
+    lf.lfHeight = SMALL_FONT_SIZE;
     m_hSmallFont = ::CreateFontIndirect(&lf);
-    lf.lfHeight = 28;
+    lf.lfHeight = LARGE_FONT_SIZE;
     m_hLargeFont = ::CreateFontIndirect(&lf);
     if (m_hSmallFont && m_hLargeFont) {
         return TRUE;
@@ -556,7 +560,7 @@ BOOL ImePad::CreateKanjiImageList() {
         m_himlKanji = NULL;
     }
 
-    m_himlKanji = ImageList_Create(32, 32, ILC_COLOR,
+    m_himlKanji = ImageList_Create(CHAR_BOX_SIZE, CHAR_BOX_SIZE, ILC_COLOR,
                                    (INT)m_kanji_table.size(), 1);
     if (m_himlKanji == NULL) {
         return FALSE;
@@ -567,12 +571,12 @@ BOOL ImePad::CreateKanjiImageList() {
     ::SelectObject(hDC, GetStockObject(BLACK_PEN));
     HGDIOBJ hFontOld = ::SelectObject(hDC, m_hLargeFont);
     for (size_t i = 0; i < m_kanji_table.size(); ++i) {
-        HBITMAP hbm = Create24BppBitmap(hDC, 32, 32);
+        HBITMAP hbm = Create24BppBitmap(hDC, CHAR_BOX_SIZE, CHAR_BOX_SIZE);
         HGDIOBJ hbmOld = ::SelectObject(hDC, hbm);
         {
-            ::Rectangle(hDC, 0, 0, 32, 32);
+            ::Rectangle(hDC, 0, 0, CHAR_BOX_SIZE, CHAR_BOX_SIZE);
             RECT rc;
-            ::SetRect(&rc, 0, 0, 32, 32);
+            ::SetRect(&rc, 0, 0, CHAR_BOX_SIZE, CHAR_BOX_SIZE);
             ::DrawTextW(hDC, &m_kanji_table[i].kanji_char, 1, &rc,
                         DT_CENTER | DT_NOCLIP | DT_NOPREFIX | DT_SINGLELINE | DT_VCENTER);
         }
@@ -721,6 +725,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     ::SendMessage(m_hListBox2, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListView, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListBox1, WM_SETFONT, (WPARAM)m_hLargeFont, FALSE);
+    ::SendMessage(m_hListBox1, LB_SETITEMHEIGHT, 0, LARGE_FONT_SIZE + 4);
 
     // show child windows
     ::ShowWindow(m_hListBox1, SW_SHOWNOACTIVATE);
