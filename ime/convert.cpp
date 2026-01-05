@@ -48,6 +48,158 @@ static const WCHAR s_hiragana_table[][5] =
 std::map<WCHAR,Dan>   g_hiragana_to_dan;  // 母音写像。
 std::map<WCHAR,Gyou>  g_hiragana_to_gyou; // 子音写像。
 
+//////////////////////////////////////////////////////////////////////////////
+// 品詞接続コストテーブル（C++03準拠）
+// 言語学的根拠に基づいた品詞間の接続コストを管理する。
+
+class ConnectionCostTable {
+private:
+    std::vector<std::vector<INT> > costs_;  // C++03: >> の間にスペース
+    
+public:
+    ConnectionCostTable() {
+        // HB_MAX x HB_MAX のテーブルを初期化
+        costs_.resize(HB_MAX + 1);
+        for (size_t i = 0; i <= HB_MAX; ++i) {
+            costs_[i].resize(HB_MAX + 1, 100); // デフォルトコスト
+        }
+        InitializeTable();
+    }
+    
+    void InitializeTable() {
+        // 特殊なノード（HEAD, TAIL）への接続は低コスト
+        for (size_t i = 0; i <= HB_MAX; ++i) {
+            costs_[HB_HEAD][i] = 0;
+            costs_[i][HB_TAIL] = 0;
+        }
+        
+        // 句読点・記号への接続は低コスト
+        for (size_t i = 0; i <= HB_MAX; ++i) {
+            costs_[i][HB_PERIOD] = 0;
+            costs_[i][HB_COMMA] = 0;
+            costs_[i][HB_SYMBOL] = 0;
+            costs_[HB_SYMBOL][i] = 0;
+        }
+        
+        // 名詞関連の接続コスト
+        costs_[HB_MEISHI][HB_MEISHI] = 50;  // 名詞→名詞: やや高コスト（複合語は許容）
+        costs_[HB_MEISHI][HB_KAKU_JOSHI] = 10;  // 名詞→格助詞: 低コスト（自然な接続）
+        costs_[HB_MEISHI][HB_SETSUZOKU_JOSHI] = 20;  // 名詞→接続助詞
+        costs_[HB_MEISHI][HB_FUKU_JOSHI] = 15;  // 名詞→副助詞
+        costs_[HB_MEISHI][HB_SHUU_JOSHI] = 30;  // 名詞→終助詞
+        costs_[HB_MEISHI][HB_JODOUSHI] = 25;  // 名詞→助動詞
+        costs_[HB_MEISHI][HB_SETSUBIJI] = 15;  // 名詞→接尾辞: 低コスト
+        
+        // 接頭辞→名詞: 低コスト
+        costs_[HB_SETTOUJI][HB_MEISHI] = 15;
+        costs_[HB_SETTOUJI][HB_KANGO] = 15;
+        
+        // 動詞関連の接続コスト
+        costs_[HB_GODAN_DOUSHI][HB_KAKU_JOSHI] = 10;  // 動詞→格助詞
+        costs_[HB_GODAN_DOUSHI][HB_SETSUZOKU_JOSHI] = 15;  // 動詞→接続助詞
+        costs_[HB_GODAN_DOUSHI][HB_JODOUSHI] = 10;  // 動詞→助動詞: 低コスト
+        costs_[HB_GODAN_DOUSHI][HB_MIZEN_JODOUSHI] = 10;
+        costs_[HB_GODAN_DOUSHI][HB_RENYOU_JODOUSHI] = 10;
+        costs_[HB_GODAN_DOUSHI][HB_SHUU_JOSHI] = 20;
+        costs_[HB_GODAN_DOUSHI][HB_MEISHI] = 60;  // 動詞→名詞: 高コスト
+        
+        costs_[HB_ICHIDAN_DOUSHI][HB_KAKU_JOSHI] = 10;
+        costs_[HB_ICHIDAN_DOUSHI][HB_SETSUZOKU_JOSHI] = 15;
+        costs_[HB_ICHIDAN_DOUSHI][HB_JODOUSHI] = 10;
+        costs_[HB_ICHIDAN_DOUSHI][HB_MIZEN_JODOUSHI] = 10;
+        costs_[HB_ICHIDAN_DOUSHI][HB_RENYOU_JODOUSHI] = 10;
+        costs_[HB_ICHIDAN_DOUSHI][HB_SHUU_JOSHI] = 20;
+        costs_[HB_ICHIDAN_DOUSHI][HB_MEISHI] = 60;
+        
+        costs_[HB_KAHEN_DOUSHI][HB_KAKU_JOSHI] = 10;
+        costs_[HB_KAHEN_DOUSHI][HB_JODOUSHI] = 10;
+        costs_[HB_KAHEN_DOUSHI][HB_MIZEN_JODOUSHI] = 10;
+        costs_[HB_KAHEN_DOUSHI][HB_RENYOU_JODOUSHI] = 10;
+        
+        costs_[HB_SAHEN_DOUSHI][HB_KAKU_JOSHI] = 10;
+        costs_[HB_SAHEN_DOUSHI][HB_JODOUSHI] = 10;
+        costs_[HB_SAHEN_DOUSHI][HB_MIZEN_JODOUSHI] = 10;
+        costs_[HB_SAHEN_DOUSHI][HB_RENYOU_JODOUSHI] = 10;
+        costs_[HB_SAHEN_DOUSHI][HB_MEISHI] = 60;
+        
+        // 形容詞関連の接続コスト
+        costs_[HB_IKEIYOUSHI][HB_MEISHI] = 40;  // 形容詞→名詞: 中程度コスト
+        costs_[HB_IKEIYOUSHI][HB_KAKU_JOSHI] = 15;
+        costs_[HB_IKEIYOUSHI][HB_SETSUZOKU_JOSHI] = 20;
+        costs_[HB_IKEIYOUSHI][HB_SHUU_JOSHI] = 25;
+        
+        costs_[HB_NAKEIYOUSHI][HB_MEISHI] = 40;
+        costs_[HB_NAKEIYOUSHI][HB_KAKU_JOSHI] = 15;
+        costs_[HB_NAKEIYOUSHI][HB_JODOUSHI] = 20;
+        
+        // 助詞関連の接続コスト
+        costs_[HB_KAKU_JOSHI][HB_MEISHI] = 30;  // 助詞→名詞
+        costs_[HB_KAKU_JOSHI][HB_GODAN_DOUSHI] = 25;  // 助詞→動詞
+        costs_[HB_KAKU_JOSHI][HB_ICHIDAN_DOUSHI] = 25;
+        costs_[HB_KAKU_JOSHI][HB_IKEIYOUSHI] = 30;  // 助詞→形容詞
+        costs_[HB_KAKU_JOSHI][HB_RENTAISHI] = 25;
+        costs_[HB_KAKU_JOSHI][HB_FUKUSHI] = 30;
+        
+        costs_[HB_SETSUZOKU_JOSHI][HB_MEISHI] = 30;
+        costs_[HB_SETSUZOKU_JOSHI][HB_GODAN_DOUSHI] = 25;
+        costs_[HB_SETSUZOKU_JOSHI][HB_ICHIDAN_DOUSHI] = 25;
+        
+        costs_[HB_FUKU_JOSHI][HB_KAKU_JOSHI] = 20;
+        costs_[HB_FUKU_JOSHI][HB_MEISHI] = 35;
+        costs_[HB_FUKU_JOSHI][HB_GODAN_DOUSHI] = 30;
+        
+        // 助動詞関連の接続コスト
+        costs_[HB_JODOUSHI][HB_KAKU_JOSHI] = 15;
+        costs_[HB_JODOUSHI][HB_SETSUZOKU_JOSHI] = 20;
+        costs_[HB_JODOUSHI][HB_SHUU_JOSHI] = 20;
+        costs_[HB_JODOUSHI][HB_JODOUSHI] = 25;
+        
+        costs_[HB_MIZEN_JODOUSHI][HB_KAKU_JOSHI] = 15;
+        costs_[HB_MIZEN_JODOUSHI][HB_JODOUSHI] = 20;
+        costs_[HB_RENYOU_JODOUSHI][HB_KAKU_JOSHI] = 15;
+        costs_[HB_RENYOU_JODOUSHI][HB_JODOUSHI] = 20;
+        
+        // 副詞・連体詞の接続コスト
+        costs_[HB_FUKUSHI][HB_GODAN_DOUSHI] = 20;  // 副詞→動詞: 低めのコスト
+        costs_[HB_FUKUSHI][HB_ICHIDAN_DOUSHI] = 20;
+        costs_[HB_FUKUSHI][HB_IKEIYOUSHI] = 25;  // 副詞→形容詞
+        costs_[HB_FUKUSHI][HB_NAKEIYOUSHI] = 25;
+        costs_[HB_FUKUSHI][HB_MEISHI] = 40;  // 副詞→名詞: 高めのコスト
+        
+        costs_[HB_RENTAISHI][HB_MEISHI] = 15;  // 連体詞→名詞: 低コスト（自然な接続）
+        
+        // 接続詞の接続コスト
+        costs_[HB_SETSUZOKUSHI][HB_MEISHI] = 20;
+        costs_[HB_SETSUZOKUSHI][HB_GODAN_DOUSHI] = 25;
+        costs_[HB_SETSUZOKUSHI][HB_ICHIDAN_DOUSHI] = 25;
+        costs_[HB_SETSUZOKUSHI][HB_IKEIYOUSHI] = 30;
+        costs_[HB_SETSUZOKUSHI][HB_FUKUSHI] = 25;
+        costs_[HB_SETSUZOKUSHI][HB_RENTAISHI] = 25;
+        
+        // 感動詞の接続コスト
+        costs_[HB_KANDOUSHI][HB_SHUU_JOSHI] = 300;  // 感動詞→終助詞: 高コスト（不自然）
+        costs_[HB_KANDOUSHI][HB_MEISHI] = 40;
+        
+        // 漢語の接続コスト
+        costs_[HB_KANGO][HB_MEISHI] = 40;
+        costs_[HB_KANGO][HB_SAHEN_DOUSHI] = 20;  // 漢語→サ変動詞: 低コスト（「回転する」など）
+        costs_[HB_KANGO][HB_SETSUBIJI] = 20;
+    }
+    
+    INT GetCost(HinshiBunrui from, HinshiBunrui to) const {
+        if (from <= HB_MAX && to <= HB_MAX) {
+            return costs_[from][to];
+        }
+        return 100; // デフォルト値
+    }
+};
+
+// 接続コストテーブルのシングルトン
+static ConnectionCostTable* GetConnectionCostTable() {
+    static ConnectionCostTable table;
+    return &table;
+}
+
 // 子音の写像と母音の写像を作成する。
 void mz_make_literal_maps()
 {
@@ -442,117 +594,178 @@ BOOL LatticeNode::CanConnectTo(const LatticeNode& other) const
     return TRUE;
 } // LatticeNode::CanConnectTo
 
-// 単語コストの計算。
+// 単語コストの計算（頻度ベース）。
 INT LatticeNode::WordCost() const
 {
-    INT ret = 20;
-
+    // 基本コスト（大きめの基準値）
+    INT cost = 1000;
+    
+    // 品詞による基本コスト（使用頻度を考慮）
     HinshiBunrui h = bunrui;
-    if (h == HB_MEISHI)
-        ret += 30;
-    else if (IsJodoushi())
-        ret += 10;
-    else if (IsDoushi())
-        ret += 20;
-    else if (IsJoshi())
-        ret += 10;
-    else if (h == HB_SETSUZOKUSHI)
-        ret += 10;
-    else
-        ret += 30;
-
-    if (h == HB_KANGO)
-        ret += 300;
-    if (h == HB_SYMBOL)
-        ret += 120;
-    if (h == HB_GODAN_DOUSHI && katsuyou == RENYOU_KEI)
-        ret += 30;
-    if (h == HB_SETTOUJI)
-        ret += 200;
-    if (h == HB_SYMBOL)
-        ret += 300;
-
-    if (HasTag(L"[数単位]"))
-        ret += 10;
-    if (HasTag(L"[非標準]"))
-        ret += 100;
-    if (HasTag(L"[不謹慎]"))
-        ret += 50;
-    if (HasTag(L"[人名]"))
-        ret += 30;
-    else if (HasTag(L"[駅名]"))
-        ret += 30;
-    else if (HasTag(L"[地名]"))
-        ret += 30;
-    if (HasTag(L"[ユーザ辞書]"))
-        ret -= 20;
-    if (HasTag(L"[優先++]"))
-        ret -= 90;
-    if (HasTag(L"[優先+]"))
-        ret -= 30;
-    if (HasTag(L"[優先--]"))
-        ret += 90;
-    if (HasTag(L"[優先-]"))
-        ret += 30;
-
-    ret += deltaCost;
-    return ret;
+    switch (h) {
+        case HB_HEAD:
+        case HB_TAIL:
+            return 0;  // 特殊ノードはコストなし
+        
+        case HB_MEISHI:
+            cost += 100;  // 名詞は一般的
+            break;
+        
+        case HB_GODAN_DOUSHI:
+        case HB_ICHIDAN_DOUSHI:
+        case HB_KAHEN_DOUSHI:
+        case HB_SAHEN_DOUSHI:
+            cost += 150;  // 動詞はやや重い
+            break;
+        
+        case HB_IKEIYOUSHI:
+        case HB_NAKEIYOUSHI:
+            cost += 200;  // 形容詞は重め
+            break;
+        
+        case HB_JODOUSHI:
+        case HB_MIZEN_JODOUSHI:
+        case HB_RENYOU_JODOUSHI:
+        case HB_SHUUSHI_JODOUSHI:
+        case HB_RENTAI_JODOUSHI:
+        case HB_KATEI_JODOUSHI:
+        case HB_MEIREI_JODOUSHI:
+            cost += 50;   // 助動詞は軽い
+            break;
+        
+        case HB_KAKU_JOSHI:
+        case HB_SETSUZOKU_JOSHI:
+        case HB_FUKU_JOSHI:
+        case HB_SHUU_JOSHI:
+            cost += 30;   // 助詞は軽い
+            break;
+        
+        case HB_FUKUSHI:
+            cost += 120;  // 副詞
+            break;
+        
+        case HB_RENTAISHI:
+            cost += 150;  // 連体詞
+            break;
+        
+        case HB_SETSUZOKUSHI:
+            cost += 100;  // 接続詞
+            break;
+        
+        case HB_KANDOUSHI:
+            cost += 180;  // 感動詞
+            break;
+        
+        case HB_SETTOUJI:
+            cost += 200;  // 接頭辞
+            break;
+        
+        case HB_SETSUBIJI:
+            cost += 150;  // 接尾辞
+            break;
+        
+        case HB_KANGO:
+            cost += 300;  // 漢語は重い
+            break;
+        
+        case HB_SYMBOL:
+        case HB_PERIOD:
+        case HB_COMMA:
+            cost += 50;   // 記号類は軽い
+            break;
+        
+        case HB_UNKNOWN:
+            cost += 500;  // 未知の品詞は非常に重い
+            break;
+        
+        default:
+            cost += 150;
+            break;
+    }
+    
+    // 活用形による調整
+    if ((h == HB_GODAN_DOUSHI || h == HB_ICHIDAN_DOUSHI) && katsuyou == RENYOU_KEI) {
+        cost += 30;  // 連用形は複合語を作りやすいので少し重く
+    }
+    
+    // タグによる調整（優先度を反映）
+    if (HasTag(L"[優先++]")) cost -= 300;  // 最優先
+    if (HasTag(L"[優先+]")) cost -= 150;   // 優先
+    if (HasTag(L"[優先-]")) cost += 150;   // 劣後
+    if (HasTag(L"[優先--]")) cost += 300;  // 最劣後
+    
+    if (HasTag(L"[ユーザ辞書]")) cost -= 200;  // ユーザ辞書を優先
+    
+    if (HasTag(L"[人名]")) cost += 100;  // 固有名詞はやや重い
+    if (HasTag(L"[地名]")) cost += 100;
+    if (HasTag(L"[駅名]")) cost += 100;
+    
+    if (HasTag(L"[非標準]")) cost += 500;  // 非標準語は重い
+    if (HasTag(L"[不謹慎]")) cost += 400;  // 不謹慎な単語は重い
+    if (HasTag(L"[数単位]")) cost -= 20;   // 数値単位は優先
+    
+    // 長さによる調整（長い単語を優先）
+    if (pre.size() >= 4) cost -= 50;
+    if (pre.size() >= 6) cost -= 100;
+    if (pre.size() >= 8) cost -= 150;
+    
+    // deltaCostを加算（ユーザーによる動的な調整）
+    cost += deltaCost;
+    
+    // 負にならないように
+    if (cost < 0) cost = 0;
+    
+    return cost;
 } // LatticeNode::WordCost
 
-// 連結コストの計算。
+// 連結コストの計算（テーブルベース）。
 INT LatticeNode::ConnectCost(const LatticeNode& other) const
 {
     HinshiBunrui h0 = bunrui, h1 = other.bunrui;
+    
+    // 特殊なケース（HEAD, TAIL, 未知の品詞）
     if (h0 == HB_HEAD || h1 == HB_TAIL)
         return 0;
-    if (h1 == HB_PERIOD || h1 == HB_COMMA)
-        return 0;
-    if (h0 == HB_SYMBOL || h1 == HB_SYMBOL)
-        return 0;
     if (h0 == HB_UNKNOWN || h1 == HB_UNKNOWN)
-        return 0;
-
-    INT ret = 10;
-    if (h0 == HB_MEISHI) {
-        if (h1 == HB_MEISHI)
-            ret += 10;
-        if (h1 == HB_SETTOUJI)
-            ret += 200;
-        if (other.IsDoushi())
-            ret += 60;
-        if (other.IsKeiyoushi())
-            ret += 20;
-        if (other.IsJodoushi())
-            ret += 50;
-        if (h1 == HB_SAHEN_DOUSHI && other.pre.size() <= 2)
-            ret -= 50;
+        return 0;  // 未知の品詞は接続を許容
+    
+    // 基本接続コストをテーブルから取得
+    ConnectionCostTable* table = GetConnectionCostTable();
+    INT cost = table->GetCost(h0, h1);
+    
+    // 活用形による調整
+    // 動詞・形容詞の活用形と次の品詞の組み合わせを考慮
+    if (IsDoushi() || IsKeiyoushi()) {
+        // 連用形→助動詞の接続は自然
+        if (katsuyou == RENYOU_KEI && other.IsJodoushi()) {
+            cost -= 15;
+        }
+        // 未然形→助動詞（「ない」「れる」など）
+        if (katsuyou == MIZEN_KEI && other.IsJodoushi()) {
+            cost -= 15;
+        }
+        // 仮定形→助詞「ば」
+        if (katsuyou == KATEI_KEI && other.IsJoshi()) {
+            cost -= 10;
+        }
     }
-    if (IsKeiyoushi()) {
-        if (other.IsKeiyoushi())
-            ret += 10;
-        if (other.IsDoushi())
-            ret += 50;
+    
+    // 名詞→サ変動詞の特別な処理（「回転する」「到達する」など）
+    if (h0 == HB_MEISHI && h1 == HB_SAHEN_DOUSHI && other.pre.size() <= 2) {
+        cost -= 50;  // 漢語名詞→「する」は自然
     }
-    if (IsDoushi()) {
-        if (other.IsJoshi())
-            ret -= 5;
-        if (other.IsDoushi())
-            ret += 20;
-        if (other.IsJodoushi())
-            ret -= 10;
+    
+    // 特定の語形による調整
+    // 「し」+「ます」のような自然な接続
+    if (post == L"し" && other.post == L"ます") {
+        cost -= 100;
     }
-    if (h0 == HB_SETSUZOKUSHI && other.IsJoshi())
-        ret += 5;
-    if (h0 == HB_SETSUZOKUSHI && h1 == HB_MEISHI)
-        ret += 5;
-    if (h0 == HB_KANDOUSHI && h1 == HB_SHUU_JOSHI)
-        ret += 300;
-    if (post == L"し" && other.post == L"ます")
-        ret -= 100;
-    if ((post == L"でき" || post == L"出来") && other.post == L"ます")
-        ret -= 100;
-
-    return ret;
+    // 「でき」「出来」+「ます」
+    if ((post == L"でき" || post == L"出来") && other.post == L"ます") {
+        cost -= 100;
+    }
+    
+    return cost;
 } // LatticeNode::ConnectCost
 
 // マーキングを最適化する。
@@ -1843,37 +2056,67 @@ BOOL Lattice::AddNodesFromDict(const WCHAR *dict_data)
     return !ARRAY_AT(m_chunks, 0).empty();
 }
 
-// 部分最小コストを計算する。
+// 部分最小コストを計算する（改良版ビタビアルゴリズム）。
 INT Lattice::CalcSubTotalCosts(LatticeNode *ptr1)
 {
     ASSERT(ptr1);
 
+    // 既に計算済みならキャッシュを返す（メモ化）
     if (ptr1->subtotal_cost != MAXLONG)
         return ptr1->subtotal_cost;
 
     INT min_cost = MAXLONG;
     LatticeNode *min_node = NULL;
+    
+    // 逆向き枝がない場合（開始ノード）はコスト0
     if (ptr1->reverse_branches.empty())
         min_cost = 0;
 
+    // 各逆向き枝について最小コストを探索
     reverse_branches_t::iterator it, end = ptr1->reverse_branches.end();
     for (it = ptr1->reverse_branches.begin(); it != end; ++it) {
         LatticeNode *ptr0 = *it;
+        
+        // 再帰的に前のノードのコストを計算
+        INT prev_cost = CalcSubTotalCosts(ptr0);
+        
+        // オーバーフローを避けるためのチェック
+        if (prev_cost >= MAXLONG - 10000) {
+            // コストが大きすぎる場合はスキップ
+            continue;
+        }
+        
+        // 現在のノードの単語コストと接続コストを計算
         INT word_cost = ptr1->WordCost();
         INT connect_cost = ptr0->ConnectCost(*ptr1);
-        INT cost = CalcSubTotalCosts(ptr0);
-        cost += word_cost;
-        cost += connect_cost;
+        
+        // オーバーフローチェック付きでコスト加算
+        INT cost = prev_cost;
+        if (cost < MAXLONG - word_cost) {
+            cost += word_cost;
+        } else {
+            continue;  // オーバーフローを避ける
+        }
+        
+        if (cost < MAXLONG - connect_cost) {
+            cost += connect_cost;
+        } else {
+            continue;  // オーバーフローを避ける
+        }
+        
+        // 最小コストを更新
         if (cost < min_cost) {
             min_cost = cost;
             min_node = ptr0;
         }
     }
 
+    // 最小コスト経路のノードをマーク
     if (min_node) {
         min_node->marked = 1;
     }
 
+    // 計算結果をキャッシュ
     ptr1->subtotal_cost = min_cost;
     return min_cost;
 } // Lattice::CalcSubTotalCosts
