@@ -437,7 +437,9 @@ BOOL ImePad::LoadKanjiData() {
     char buf[256];
     wchar_t wbuf[256];
     WCHAR szPath[MAX_PATH];
-    GetKanjiDataPathName(szPath);
+    if (!GetKanjiDataPathName(szPath)) {
+        return FALSE;
+    }
     FILE *fp = _wfopen(szPath, L"rb");
     if (!fp) {
         std::wstring kanji_file = GetSettingString(L"KanjiDataFile");
@@ -463,7 +465,6 @@ BOOL ImePad::LoadKanjiData() {
         fclose(fp);
         return TRUE;
     }
-    assert(0);
     return FALSE;
 } // ImePad::LoadKanjiData
 
@@ -519,6 +520,7 @@ BOOL ImePad::LoadKanjiAndRadical() {
         return TRUE;
     }
     assert(0);
+    MessageBox(m_hWnd, LoadStringDx(IDM_DATANOTFOUND), NULL, MB_ICONERROR);
     return FALSE;
 }
 
@@ -663,11 +665,11 @@ BOOL ImePad::PrepareForKanji() {
 }
 
 BOOL ImePad::OnCreate(HWND hWnd) {
+    ::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
+
     if (!PrepareForKanji()) {
         return FALSE;
     }
-
-    ::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) this);
 
     RECT rc;
     ::GetClientRect(hWnd, &rc);
@@ -926,14 +928,21 @@ void ImePad::MySendInput(WCHAR ch) {
     if (m_hwndLastActive)
         ::SwitchToThisWindow(m_hwndLastActive, TRUE);
 
-    INPUT input;
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = 0;
-    input.ki.wScan = ch;
-    input.ki.dwFlags = KEYEVENTF_UNICODE;
-    input.ki.time = 0;
-    input.ki.dwExtraInfo = 0;
-    ::SendInput(1, &input, sizeof(INPUT));
+    INPUT inputs[2] = {};
+    
+    // Key down
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = 0;
+    inputs[0].ki.wScan = ch;
+    inputs[0].ki.dwFlags = KEYEVENTF_UNICODE;
+    
+    // Key up
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = 0;
+    inputs[1].ki.wScan = ch;
+    inputs[1].ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
+    
+    ::SendInput(2, inputs, sizeof(INPUT));
 }
 
 void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
@@ -988,11 +997,11 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_CREATE:
         pImePad = new ImePad;
+        pImePad->m_hWnd = hWnd;
         if (!pImePad->OnCreate(hWnd)) {
             delete pImePad;
             return -1;
         }
-        pImePad->m_hWnd = hWnd;
         // Force active looking
         ::SendMessageW(hWnd, WM_NCACTIVATE, TRUE, 0);
         break;

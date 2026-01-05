@@ -8,12 +8,13 @@
 #define IDM_RADICALS                        40018
 #define IDM_ONLYJOUYOU                      40019
 #define IDM_KAKUSUU                         40020
+#define IDM_DATANOTFOUND                    40021
 
 #ifdef APSTUDIO_INVOKED
     #ifndef APSTUDIO_READONLY_SYMBOLS
         #define _APS_NO_MFC                 1
         #define _APS_NEXT_RESOURCE_VALUE    100
-        #define _APS_NEXT_COMMAND_VALUE     40021
+        #define _APS_NEXT_COMMAND_VALUE     40022
         #define _APS_NEXT_CONTROL_VALUE     1000
         #define _APS_NEXT_SYMED_VALUE       300
     #endif
