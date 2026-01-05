@@ -764,6 +764,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     ::SendMessage(m_hListBox2, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListView, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListBox1, WM_SETFONT, (WPARAM)m_hNormalFont, FALSE);
+    ::SendMessage(m_hTabCtrl, WM_SETFONT, (WPARAM)m_hNormalFont, FALSE);
 
     // show child windows
     ::ShowWindow(m_hListBox1, SW_SHOWNOACTIVATE);
