@@ -34,7 +34,7 @@ DisableDirPage=yes
 Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 
 [Files]
-Source: "READMEJP.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "README_ja.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ChangeLog.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\basic.dic"; DestDir: "{app}"; Flags: ignoreversion
@@ -53,7 +53,7 @@ Source: "build32\Debug\verinfo.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\READMEJP.txt"; Filename: "{app}\READMEJP.txt"
+Name: "{group}\README_ja.txt"; Filename: "{app}\README_ja.txt"
 Name: "{group}\LICENSE.txt"; Filename: "{app}\LICENSE.txt"
 Name: "{group}\ChangeLog.txt"; Filename: "{app}\ChangeLog.txt"
 Name: "{group}\MZ-IMEƒpƒbƒh"; Filename: "{app}\imepad.exe"

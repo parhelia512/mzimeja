@@ -93,10 +93,10 @@ LPWSTR GetVerInfoPathName(LPWSTR pszPath) {
 }
 
 LPWSTR GetReadMePathName(LPWSTR pszPath) {
-    LPWSTR ret = FindLocalFile(pszPath, L"mzimeja\\READMEJP.txt");
+    LPWSTR ret = FindLocalFile(pszPath, L"mzimeja\\README_ja.txt");
     if (ret)
         return ret;
-    return FindLocalFile(pszPath, L"READMEJP.txt");
+    return FindLocalFile(pszPath, L"README_ja.txt");
 }
 
 //////////////////////////////////////////////////////////////////////////////
