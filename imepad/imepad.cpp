@@ -138,8 +138,8 @@ protected:
     void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
     void OnDrawItemListBox1(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
     void OnDrawItemListBox2(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
-    void OnLB1StrokesChanged(HWND hWnd);
-    void OnLB2StrokesChanged(HWND hWnd);
+    void OnLB1Changed(HWND hWnd);
+    void OnLB2Changed(HWND hWnd);
     void OnTimer(HWND hWnd);
     void OnGetMinMaxInfo(LPMINMAXINFO pmmi);
 }; // class ImePad
@@ -812,7 +812,7 @@ void ImePad::OnSize(HWND hWnd) {
     ListView_Arrange(m_hListView, LVA_DEFAULT);
 }
 
-void ImePad::OnLB1StrokesChanged(HWND hWnd) {
+void ImePad::OnLB1Changed(HWND hWnd) {
     ::SendMessage(m_hListView, WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
     ::SendMessage(m_hListView, WM_VSCROLL, MAKEWPARAM(SB_TOP, 0), 0);
     ListView_DeleteAllItems(m_hListView);
@@ -845,7 +845,7 @@ void ImePad::OnLB1StrokesChanged(HWND hWnd) {
     OnSize(m_hWnd);
 }
 
-void ImePad::OnLB2StrokesChanged(HWND hWnd) {
+void ImePad::OnLB2Changed(HWND hWnd) {
     ::SendMessage(m_hListView, WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
     ::SendMessage(m_hListView, WM_VSCROLL, MAKEWPARAM(SB_TOP, 0), 0);
     ListView_DeleteAllItems(m_hListView);
@@ -908,10 +908,10 @@ void ImePad::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) {
     if (HIWORD(wParam) == LBN_SELCHANGE) {
         switch (LOWORD(wParam)) {
         case IDW_LISTBOX1:
-            OnLB1StrokesChanged(hWnd);
+            OnLB1Changed(hWnd);
             break;
         case IDW_LISTBOX2:
-            OnLB2StrokesChanged(hWnd);
+            OnLB2Changed(hWnd);
             break;
         }
         return;
@@ -963,12 +963,12 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         case 0:
             ::ShowWindow(m_hListBox1, SW_SHOWNOACTIVATE);
             ::ShowWindow(m_hListBox2, SW_HIDE);
-            OnLB1StrokesChanged(hWnd);
+            OnLB1Changed(hWnd);
             break;
         case 1:
             ::ShowWindow(m_hListBox1, SW_HIDE);
             ::ShowWindow(m_hListBox2, SW_SHOWNOACTIVATE);
-            OnLB2StrokesChanged(hWnd);
+            OnLB2Changed(hWnd);
             break;
         default:
             break;
