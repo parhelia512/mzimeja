@@ -79,7 +79,6 @@ public:
     BOOL PrepareForKanji();
     static BOOL Create(HWND hwndParent);
     static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-    static LRESULT CALLBACK TabCtrlWndProc(HWND, UINT, WPARAM, LPARAM);
 
 protected:
     HWND m_hWnd;
@@ -100,7 +99,6 @@ protected:
     HWND m_hListView;
     HWND m_hListBox1;
     HWND m_hListBox2;
-    WNDPROC m_fnTabCtrlOldWndProcOld;
     HWND m_hwndLastActive;
     BOOL m_bInSizing;
 
@@ -269,24 +267,6 @@ void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
     DeleteDC(hdcMem);
 }
 
-/*static*/ LRESULT CALLBACK
-ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    ImePad *pImePad;
-    pImePad = (ImePad *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
-    if (pImePad == NULL) return 0;
-
-    switch (uMsg) {
-    case WM_COMMAND:
-        if (HIWORD(wParam) == LBN_SELCHANGE) {
-            ::PostMessage(GetParent(hWnd), uMsg, wParam, lParam);
-        }
-        break;
-    default:
-        return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
-    }
-    return 0;
-} // ImePad::TabCtrlWndProc
-
 //////////////////////////////////////////////////////////////////////////////
 // create/destroy
 
@@ -326,7 +306,6 @@ ImePad::ImePad() {
     m_bInSizing = FALSE;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
-    m_fnTabCtrlOldWndProcOld = NULL;
 }
 
 ImePad::~ImePad() {
@@ -634,9 +613,6 @@ BOOL ImePad::OnCreate(HWND hWnd) {
                                   hWnd, (HMENU)1, g_hInst, NULL);
 
     ::SetWindowLongPtr(m_hTabCtrl, GWLP_USERDATA, (LONG_PTR) this);
-    m_fnTabCtrlOldWndProcOld = (WNDPROC)
-                               SetWindowLongPtr(m_hTabCtrl, GWLP_WNDPROC,
-                                                (LONG_PTR) ImePad::TabCtrlWndProc);
 
     // initialize tab control
     TC_ITEM item;
