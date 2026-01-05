@@ -35,9 +35,10 @@
 #define INTERVAL_MILLISECONDS   300
 
 #define SMALL_FONT_SIZE 12
+#define NORMAL_FONT_SIZE 16
 #define LARGE_FONT_SIZE 26
 #define STROKES_WIDTH 90
-#define STROKES_HEIGHT (LARGE_FONT_SIZE + 4)
+#define STROKES_HEIGHT (NORMAL_FONT_SIZE + 5)
 #define RADICAL_WIDTH 140
 #define RADICAL_SIZE 24
 #define CHAR_BOX_SIZE (LARGE_FONT_SIZE + 6)
@@ -127,6 +128,7 @@ protected:
 
     // fonts
     HFONT m_hSmallFont;
+    HFONT m_hNormalFont;
     HFONT m_hLargeFont;
     BOOL CreateAllFonts();
     void DeleteAllFonts();
@@ -265,7 +267,7 @@ void ImePad::OnDrawItemListBox1(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
     OffsetRect(&rc, -rc.left, -rc.top);
     HBITMAP hbmMem = CreateCompatibleBitmap(lpDraw->hDC, rc.right - rc.left, rc.bottom - rc.top);
     HGDIOBJ hbmOld = SelectObject(hdcMem, hbmMem);
-    HGDIOBJ hFontOld = SelectObject(hdcMem, m_hLargeFont);
+    HGDIOBJ hFontOld = SelectObject(hdcMem, m_hNormalFont);
 
     INT id = lpDraw->itemID;
 	WCHAR text[128] = L"(No data)";
@@ -370,6 +372,7 @@ ImePad::ImePad() {
     m_himlKanji = NULL;
     m_himlRadical = NULL;
     m_hSmallFont = NULL;
+    m_hNormalFont = NULL;
     m_hLargeFont = NULL;
     m_hbmRadical = NULL;
     m_hwndLastActive = NULL;
@@ -547,6 +550,10 @@ void ImePad::DeleteAllFonts() {
         ::DeleteObject(m_hSmallFont);
         m_hSmallFont = NULL;
     }
+    if (m_hNormalFont) {
+        ::DeleteObject(m_hNormalFont);
+        m_hNormalFont = NULL;
+    }
     if (m_hLargeFont) {
         ::DeleteObject(m_hLargeFont);
         m_hLargeFont = NULL;
@@ -566,6 +573,8 @@ BOOL ImePad::CreateAllFonts() {
 
     lf.lfHeight = SMALL_FONT_SIZE;
     m_hSmallFont = ::CreateFontIndirect(&lf);
+    lf.lfHeight = NORMAL_FONT_SIZE;
+    m_hNormalFont = ::CreateFontIndirect(&lf);
     lf.lfHeight = LARGE_FONT_SIZE;
     m_hLargeFont = ::CreateFontIndirect(&lf);
     if (m_hSmallFont && m_hLargeFont) {
@@ -754,8 +763,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     // set font
     ::SendMessage(m_hListBox2, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
     ::SendMessage(m_hListView, WM_SETFONT, (WPARAM)m_hSmallFont, FALSE);
-    ::SendMessage(m_hListBox1, WM_SETFONT, (WPARAM)m_hLargeFont, FALSE);
-    ::SendMessage(m_hListBox1, LB_SETITEMHEIGHT, 0, LARGE_FONT_SIZE + 4);
+    ::SendMessage(m_hListBox1, WM_SETFONT, (WPARAM)m_hNormalFont, FALSE);
 
     // show child windows
     ::ShowWindow(m_hListBox1, SW_SHOWNOACTIVATE);
