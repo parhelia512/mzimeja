@@ -127,8 +127,8 @@ protected:
     void OnDestroy(HWND hWnd);
     void OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam);
     void OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw);
-    void OnLV1StrokesChanged(HWND hWnd);
-    void OnLV2StrokesChanged(HWND hWnd);
+    void OnLB1StrokesChanged(HWND hWnd);
+    void OnLB2StrokesChanged(HWND hWnd);
     void OnTimer(HWND hWnd);
     void OnGetMinMaxInfo(LPMINMAXINFO pmmi);
 }; // class ImePad
@@ -271,22 +271,11 @@ void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
 
 /*static*/ LRESULT CALLBACK
 ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    LPMEASUREITEMSTRUCT lpMeasure;
-    LPDRAWITEMSTRUCT lpDraw;
     ImePad *pImePad;
     pImePad = (ImePad *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
     if (pImePad == NULL) return 0;
 
     switch (uMsg) {
-    case WM_MEASUREITEM:
-        lpMeasure = (LPMEASUREITEMSTRUCT)lParam;
-        lpMeasure->itemWidth = 64;
-        lpMeasure->itemHeight = 24;
-        return TRUE;
-    case WM_DRAWITEM:
-        lpDraw = (LPDRAWITEMSTRUCT)lParam;
-        pImePad->OnDrawItem(hWnd, lpDraw);
-        return TRUE;
     case WM_COMMAND:
         if (HIWORD(wParam) == LBN_SELCHANGE) {
             ::PostMessage(GetParent(hWnd), uMsg, wParam, lParam);
@@ -665,7 +654,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListBox1 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
-                                   m_hTabCtrl, (HMENU)2, g_hInst, NULL);
+                                   hWnd, (HMENU)2, g_hInst, NULL);
 
     // create list box (radicals)
     style = WS_CHILD | WS_VSCROLL | LBS_OWNERDRAWFIXED |
@@ -673,7 +662,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListBox2 = ::CreateWindowEx(exstyle, TEXT("LISTBOX"), NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
-                                   m_hTabCtrl, (HMENU)3, g_hInst, NULL);
+                                   hWnd, (HMENU)3, g_hInst, NULL);
     ::SendMessage(m_hListBox2, LB_SETITEMHEIGHT, 0, 24);
 
     // create list view
@@ -681,7 +670,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
-                                   m_hTabCtrl, (HMENU)4, g_hInst, NULL);
+                                   hWnd, (HMENU)4, g_hInst, NULL);
 
     // Less flickering
 #ifndef LVS_EX_DOUBLEBUFFER
@@ -725,6 +714,8 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     // highlight
     TabCtrl_HighlightItem(m_hTabCtrl, 0, TRUE);
 
+    SetWindowPos(m_hTabCtrl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
     // Select 1st item
     PostMessage(m_hListBox1, LB_SETCURSEL, 0, 0);
     PostMessage(m_hListBox2, LB_SETCURSEL, 0, 0);
@@ -741,12 +732,12 @@ void ImePad::OnSize(HWND hWnd) {
     RECT rc;
     ::GetClientRect(m_hWnd, &rc);
 
-    ::MoveWindow(m_hTabCtrl, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, FALSE);
+    HDWP hDWP = ::BeginDeferWindowPos(3);
+    UINT uFlags = SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER;
+
+    hDWP = ::DeferWindowPos(hDWP, m_hTabCtrl, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, uFlags);
 
     TabCtrl_AdjustRect(m_hTabCtrl, FALSE, &rc);
-
-    HDWP hDWP = ::BeginDeferWindowPos(2);
-    UINT uFlags = SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER;
 
     const INT cx1 = 90, cx2 = 140;
     if (::IsWindowVisible(m_hListBox1)) {
@@ -766,7 +757,7 @@ void ImePad::OnSize(HWND hWnd) {
     ListView_Arrange(m_hListView, LVA_DEFAULT);
 }
 
-void ImePad::OnLV1StrokesChanged(HWND hWnd) {
+void ImePad::OnLB1StrokesChanged(HWND hWnd) {
     ::SendMessage(m_hListView, WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
     ::SendMessage(m_hListView, WM_VSCROLL, MAKEWPARAM(SB_TOP, 0), 0);
     ListView_DeleteAllItems(m_hListView);
@@ -799,7 +790,7 @@ void ImePad::OnLV1StrokesChanged(HWND hWnd) {
     OnSize(m_hWnd);
 }
 
-void ImePad::OnLV2StrokesChanged(HWND hWnd) {
+void ImePad::OnLB2StrokesChanged(HWND hWnd) {
     ::SendMessage(m_hListView, WM_HSCROLL, MAKEWPARAM(SB_LEFT, 0), 0);
     ::SendMessage(m_hListView, WM_VSCROLL, MAKEWPARAM(SB_TOP, 0), 0);
     ListView_DeleteAllItems(m_hListView);
@@ -861,10 +852,10 @@ void ImePad::OnCommand(HWND hWnd, WPARAM wParam, LPARAM lParam) {
     if (HIWORD(wParam) == LBN_SELCHANGE) {
         switch (LOWORD(wParam)) {
         case 2:
-            OnLV1StrokesChanged(hWnd);
+            OnLB1StrokesChanged(hWnd);
             break;
         case 3:
-            OnLV2StrokesChanged(hWnd);
+            OnLB2StrokesChanged(hWnd);
             break;
         }
         return;
@@ -908,12 +899,12 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         case 0:
             ::ShowWindow(m_hListBox1, SW_SHOWNOACTIVATE);
             ::ShowWindow(m_hListBox2, SW_HIDE);
-            OnLV1StrokesChanged(hWnd);
+            OnLB1StrokesChanged(hWnd);
             break;
         case 1:
             ::ShowWindow(m_hListBox1, SW_HIDE);
             ::ShowWindow(m_hListBox2, SW_SHOWNOACTIVATE);
-            OnLV2StrokesChanged(hWnd);
+            OnLB2StrokesChanged(hWnd);
             break;
         default:
             break;
@@ -1008,6 +999,27 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     case WM_EXITSIZEMOVE:
         pImePad->m_bInSizing = FALSE;
+        break;
+
+    case WM_MEASUREITEM:
+        {
+            LPMEASUREITEMSTRUCT lpMeasure = (LPMEASUREITEMSTRUCT)lParam;
+            if (lpMeasure->CtlID == 3) {
+                lpMeasure->itemWidth = 64;
+                lpMeasure->itemHeight = 24;
+                return TRUE;
+            }
+        }
+        break;
+
+    case WM_DRAWITEM:
+        {
+            LPDRAWITEMSTRUCT lpDraw = (LPDRAWITEMSTRUCT)lParam;
+            if (lpDraw->CtlID == 3) {
+                pImePad->OnDrawItem(hWnd, lpDraw);
+                return TRUE;
+            }
+        }
         break;
 
     default:
