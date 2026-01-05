@@ -244,22 +244,22 @@ void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
         ::SelectObject(hdcMem, ::GetStockObject(BLACK_PEN));
         ::SelectObject(hdcMem, ::GetStockObject(NULL_BRUSH));
         ::Rectangle(hdcMem, 0, 0, 24, 24);
-        rc.left += 24;
+        rc.left += 26;
         ::SetBkMode(hdcMem, TRANSPARENT);
         ::SetTextColor(hdcMem, GetSysColor(COLOR_HIGHLIGHTTEXT));
         ::DrawText(hdcMem, entry.readings.c_str(), -1,
-                   &rc, DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
+                   &rc, DT_SINGLELINE | DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
     } else {
         ::FillRect(hdcMem, &rc, (HBRUSH)(COLOR_WINDOW + 1));
         ImageList_Draw(m_himlRadical, entry.radical_id - 1, hdcMem, 0, 0, ILD_NORMAL);
         ::SelectObject(hdcMem, ::GetStockObject(BLACK_PEN));
         ::SelectObject(hdcMem, ::GetStockObject(NULL_BRUSH));
         ::Rectangle(hdcMem, 0, 0, 24, 24);
-        rc.left += 24;
+        rc.left += 26;
         ::SetBkMode(hdcMem, TRANSPARENT);
         ::SetTextColor(hdcMem, GetSysColor(COLOR_WINDOWTEXT));
         ::DrawText(hdcMem, entry.readings.c_str(), -1,
-                   &rc, DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
+                   &rc, DT_SINGLELINE | DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_NOPREFIX | DT_END_ELLIPSIS);
     }
 
     rc = lpDraw->rcItem;
