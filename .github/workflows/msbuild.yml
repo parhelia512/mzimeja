@@ -47,7 +47,7 @@ jobs:
       with:
         name: mzimeja-${{ matrix.platform }}-Release
         path: |
-          build${{ matrix.platform == 'Win32' && '32' || '64' }}/Release/*.exe
-          build${{ matrix.platform == 'Win32' && '32' || '64' }}/Release/*.ime
-          build${{ matrix.platform == 'Win32' && '32' || '64' }}/Release/*.dll
+          build${{ matrix.platform == 'Win32' && '32' || '64' }}/**/*.exe
+          build${{ matrix.platform == 'Win32' && '32' || '64' }}/**/*.ime
+          build${{ matrix.platform == 'Win32' && '32' || '64' }}/**/*.dll
         if-no-files-found: warn
