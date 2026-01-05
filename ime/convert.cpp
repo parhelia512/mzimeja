@@ -3670,14 +3670,6 @@ void Lattice::DoFukushi(size_t index, const WStrings& fields, INT deltaCost)
     node.post = fields[I_FIELD_POST];
     AddNode(index, node);
 
-    // 副詞なら最後に「と」「に」を付けてもいい。
-    do {
-        if (tail.size() < 1 || (tail[0] != L'と' && tail[0] != L'に')) break;
-        node.pre += tail[0];
-        node.post += tail[0];
-        AddNode(index, node);
-    } while (0);
-
     // 副詞なら最後に「っと」「って」を付けてもいい。
     do {
         if (tail.size() < 2 || tail[0] != L'っ' || (tail[1] != L'と' && tail[1] != L'て')) break;
