@@ -184,8 +184,15 @@ int wmain(int argc, wchar_t **argv)
     LPCTSTR pathname = mz_find_local_file(L"basic.dic");
     if (!pathname)
         pathname = mz_find_local_file(L"res/basic.dic");
-    //LPCTSTR pathname = mz_find_local_file(L"testdata.dic");
     if (!g_basic_dict.Load(pathname, L"BasicDictObject")) {
+        ASSERT(0);
+        return 1;
+    }
+
+    pathname = mz_find_local_file(L"name.dic");
+    if (!pathname)
+        pathname = mz_find_local_file(L"res/name.dic");
+    if (!g_name_dict.Load(pathname, L"NameDictPathName")) {
         ASSERT(0);
         return 1;
     }
@@ -197,6 +204,7 @@ int wmain(int argc, wchar_t **argv)
     IME_AutoTest();
 
     g_basic_dict.Unload();
+    g_name_dict.Unload();
 
     return 0;
 }
