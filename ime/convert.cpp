@@ -50,7 +50,27 @@ std::map<WCHAR,Gyou>  g_hiragana_to_gyou; // 子音写像。
 
 //////////////////////////////////////////////////////////////////////////////
 // 品詞接続コストテーブル（C++03準拠）
-// 言語学的根拠に基づいた品詞間の接続コストを管理する。
+// 
+// 【目的】
+// 言語学的根拠に基づいた品詞間の接続コストを管理し、
+// より自然な日本語の変換結果を得る。
+//
+// 【設計方針】
+// 1. 学校文法の品詞体系に基づく接続パターンを定義
+// 2. 自然な接続（名詞→助詞、動詞→助動詞など）は低コスト
+// 3. 不自然な接続（感動詞→終助詞など）は高コスト
+// 4. 複合語形成（名詞→名詞、接頭辞→名詞など）は中程度のコスト
+//
+// 【コスト設計の原則】
+// - 0-20:   非常に自然な接続（文法的に強く推奨される）
+// - 20-50:  自然な接続（一般的によく使われる）
+// - 50-100: やや不自然だが許容される接続
+// - 100以上: 不自然な接続（避けるべき）
+//
+// 【参考文献】
+// - 『新編常用国語便覧』1995年、浜島書店
+// - 学校文法における品詞の接続規則
+//////////////////////////////////////////////////////////////////////////////
 
 class ConnectionCostTable {
 private:
@@ -3788,6 +3808,81 @@ void Lattice::MakeReverseBranches(LatticeNode *ptr0)
         ++i;
     }
 } // Lattice::MakeReverseBranches
+
+// 文節境界スコアの計算（改良版）。
+// 位置posが文節の境界となる適切さを評価する。
+// スコアが低いほど境界になりやすい。
+INT Lattice::CalculateClauseBoundaryScore(size_t pos) const
+{
+    // 文節の開始位置と終了位置は境界にならない
+    if (pos == 0 || pos >= m_pre.size()) {
+        return MAXLONG;
+    }
+    
+    INT score = 100;  // 基本スコア
+    
+    // この位置のノードを調査
+    if (pos < m_chunks.size()) {
+        const LatticeChunk& chunk = m_chunks[pos];
+        
+        // この位置で終わるノードがあるか確認
+        bool has_ending_jiritsugo = false;  // 自立語で終わるか
+        bool has_fuzokugo = false;           // 付属語があるか
+        
+        for (size_t i = 0; i < chunk.size(); ++i) {
+            const LatticeNode* node = chunk[i].get();
+            if (!node->linked) continue;
+            
+            // 自立語（名詞、動詞、形容詞など）で終わる場合は境界候補
+            if (node->bunrui == HB_MEISHI ||
+                node->bunrui == HB_GODAN_DOUSHI ||
+                node->bunrui == HB_ICHIDAN_DOUSHI ||
+                node->bunrui == HB_KAHEN_DOUSHI ||
+                node->bunrui == HB_SAHEN_DOUSHI ||
+                node->bunrui == HB_IKEIYOUSHI ||
+                node->bunrui == HB_NAKEIYOUSHI ||
+                node->bunrui == HB_FUKUSHI ||
+                node->bunrui == HB_RENTAISHI) {
+                has_ending_jiritsugo = true;
+                score -= 150;  // 境界になりやすい
+            }
+            
+            // 付属語（助詞、助動詞）がある場合
+            if (node->IsJoshi() || node->IsJodoushi()) {
+                has_fuzokugo = true;
+                score += 200;  // 付属語の途中なら境界にしにくい
+            }
+            
+            // 接頭辞・接尾辞の途中なら境界にしにくい
+            if (node->bunrui == HB_SETTOUJI || node->bunrui == HB_SETSUBIJI) {
+                score += 300;
+            }
+        }
+        
+        // 自立語で終わり、次が付属語で始まる場合は自然な境界
+        if (has_ending_jiritsugo) {
+            // 次の位置のノードを確認
+            if (pos + 1 < m_chunks.size()) {
+                const LatticeChunk& next_chunk = m_chunks[pos + 1];
+                bool next_starts_with_fuzokugo = false;
+                
+                for (size_t i = 0; i < next_chunk.size(); ++i) {
+                    const LatticeNode* next_node = next_chunk[i].get();
+                    if (next_node->IsJoshi() || next_node->IsJodoushi()) {
+                        next_starts_with_fuzokugo = true;
+                        break;
+                    }
+                }
+                
+                if (next_starts_with_fuzokugo) {
+                    score -= 100;  // より境界になりやすい
+                }
+            }
+        }
+    }
+    
+    return score;
+}
 
 // 複数文節変換において、ラティスを作成する。
 BOOL Lattice::AddNodesForMulti(const std::wstring& pre)
