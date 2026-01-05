@@ -311,7 +311,6 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     DWORD style = WS_CAPTION | WS_SYSMENU | WS_SIZEBOX | WS_ACTIVECAPTION | WS_CLIPCHILDREN;
     DWORD exstyle =
         WS_EX_WINDOWEDGE |
-        WS_EX_TOOLWINDOW |
         WS_EX_TOPMOST |
         WS_EX_NOACTIVATE;
 
@@ -959,10 +958,20 @@ ImePad::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     case WM_NCACTIVATE:
         // Force active looking
-        return DefWindowProcW(hWnd, WM_NCACTIVATE, TRUE, 0);
+        return DefWindowProcW(hWnd, WM_NCACTIVATE, TRUE, -1);
 
     case WM_MOUSEACTIVATE:
         return MA_NOACTIVATE;
+
+    case WM_MOVING:
+    case WM_SIZING:
+        // There was a problem with WS_EX_NOACTIVATE, in display of moving/sizing the window.
+        // https://stackoverflow.com/questions/25051552/create-a-window-using-the-ws-ex-noactivate-flag-but-it-cant-be-dragged-until-i
+        {
+            RECT* prc = (RECT*)lParam;
+            SetWindowPos(hWnd, NULL, prc->left, prc->top, prc->right - prc->left, prc->bottom - prc->top, 0);
+        }
+        break;
 
     case WM_SIZE:
         if (pImePad)
@@ -1016,7 +1025,7 @@ INT AppMain(HINSTANCE hInstance, LPWSTR lpCmdLine, INT nCmdShow) {
 
     // register class of IME Pad window.
     WNDCLASSEX wcx = { sizeof(wcx) };
-    wcx.style = CS_DBLCLKS | CS_IME;
+    wcx.style = CS_DBLCLKS | CS_IME | CS_SAVEBITS;
     wcx.lpfnWndProc = ImePad::WindowProc;
     wcx.hInstance = hInstance;
     wcx.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
