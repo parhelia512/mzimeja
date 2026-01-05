@@ -101,7 +101,10 @@ protected:
     HWND m_hListBox2;
     HWND m_hwndLastActive;
     BOOL m_bInSizing;
-
+    WNDPROC m_fnListBox1OldWndProc;
+    WNDPROC m_fnListBox2OldWndProc;
+    static LRESULT CALLBACK ListBox1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK ListBox2WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     void MySendInput(WCHAR ch);
 
     // images
@@ -223,6 +226,29 @@ radical_compare(const RADICAL_ENTRY& entry1, const RADICAL_ENTRY& entry2) {
     return entry1.strokes < entry2.strokes;
 }
 
+LRESULT CALLBACK ImePad::ListBox1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    ImePad* pThis = (ImePad*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (!pThis)
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+    if (uMsg == WM_ERASEBKGND)
+        return TRUE;
+
+    return CallWindowProc(pThis->m_fnListBox1OldWndProc, hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK ImePad::ListBox2WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    ImePad* pThis = (ImePad*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (!pThis)
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+    if (uMsg == WM_ERASEBKGND)
+        return TRUE;
+
+    return CallWindowProc(pThis->m_fnListBox2OldWndProc, hWnd, uMsg, wParam, lParam);
+}
+
+
 void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
     // Double buffering
     HDC hdcMem = CreateCompatibleDC(lpDraw->hDC);
@@ -304,6 +330,8 @@ ImePad::ImePad() {
     m_hbmRadical = NULL;
     m_hwndLastActive = NULL;
     m_bInSizing = FALSE;
+    m_fnListBox1OldWndProc = NULL;
+    m_fnListBox2OldWndProc = NULL;
     m_hTabCtrl = NULL;
     m_hListView = NULL;
 }
@@ -691,6 +719,11 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     TabCtrl_HighlightItem(m_hTabCtrl, 0, TRUE);
 
     SetWindowPos(m_hTabCtrl, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+    SetWindowLongPtr(m_hListBox1, GWLP_USERDATA, (LONG_PTR)this);
+    SetWindowLongPtr(m_hListBox2, GWLP_USERDATA, (LONG_PTR)this);
+    m_fnListBox1OldWndProc = (WNDPROC)SetWindowLongPtr(m_hListBox1, GWLP_WNDPROC, (LONG_PTR)ListBox1WndProc);
+    m_fnListBox2OldWndProc = (WNDPROC)SetWindowLongPtr(m_hListBox2, GWLP_WNDPROC, (LONG_PTR)ListBox2WndProc);
 
     // Select 1st item
     PostMessage(m_hListBox1, LB_SETCURSEL, 0, 0);
