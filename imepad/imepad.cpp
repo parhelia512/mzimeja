@@ -729,6 +729,12 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     // highlight
     TabCtrl_HighlightItem(m_hTabCtrl, 0, TRUE);
 
+    // Select 1st item
+    PostMessage(m_hListBox1, LB_SETCURSEL, 0, 0);
+    PostMessage(m_hListBox2, LB_SETCURSEL, 0, 0);
+    PostMessage(hWnd, WM_COMMAND, MAKELONG(GetDlgCtrlID(m_hListBox1), LBN_SELCHANGE), (LPARAM)m_hListBox1);
+    PostMessage(hWnd, WM_COMMAND, MAKELONG(GetDlgCtrlID(m_hListBox2), LBN_SELCHANGE), (LPARAM)m_hListBox2);
+
     // set timer
     ::SetTimer(hWnd, 666, INTERVAL_MILLISECONDS, NULL);
 
