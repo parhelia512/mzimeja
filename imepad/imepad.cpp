@@ -36,7 +36,7 @@
 
 #define SMALL_FONT_SIZE 12
 #define LARGE_FONT_SIZE 22
-#define CHAR_BOX_SIZE (LARGE_FONT_SIZE + 10)
+#define CHAR_BOX_SIZE (LARGE_FONT_SIZE + 6)
 
 struct KANJI_ENTRY {
     WORD kanji_id;
@@ -233,8 +233,7 @@ void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
     OffsetRect(&rc, -rc.left, -rc.top);
     HBITMAP hbmMem = CreateCompatibleBitmap(lpDraw->hDC, rc.right - rc.left, rc.bottom - rc.top);
     HGDIOBJ hbmOld = SelectObject(hdcMem, hbmMem);
-    HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
-    SelectObject(hdcMem, hFont);
+    HGDIOBJ hFontOld = SelectObject(hdcMem, m_hSmallFont);
 
     INT id = lpDraw->itemID;
     const RADICAL_ENTRY& entry = m_radical_table[id];
@@ -265,6 +264,7 @@ void ImePad::OnDrawItem(HWND hWnd, LPDRAWITEMSTRUCT lpDraw) {
     rc = lpDraw->rcItem;
     BitBlt(lpDraw->hDC, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, hdcMem, 0, 0, SRCCOPY);
 
+    SelectObject(hdcMem, hFontOld);
     SelectObject(hdcMem, hbmOld);
     DeleteObject(hbmMem);
     DeleteDC(hdcMem);
