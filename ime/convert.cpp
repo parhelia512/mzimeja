@@ -49,6 +49,23 @@ std::map<WCHAR,Dan>   g_hiragana_to_dan;  // 母音写像。
 std::map<WCHAR,Gyou>  g_hiragana_to_gyou; // 子音写像。
 
 //////////////////////////////////////////////////////////////////////////////
+// コスト計算の定数
+
+// オーバーフロー防止のための安全マージン
+// MAXLONGに近いコストを検出し、オーバーフローを回避するための閾値
+const INT COST_OVERFLOW_MARGIN = 10000;
+
+// 安全な整数加算（オーバーフローチェック付き）
+// 戻り値: 加算が安全に実行できた場合はtrue
+inline bool SafeAddCost(INT& accumulator, INT value) {
+    if (accumulator < MAXLONG - value) {
+        accumulator += value;
+        return true;
+    }
+    return false;  // オーバーフローを回避
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // 品詞接続コストテーブル（C++03準拠）
 // 
 // 【目的】
@@ -2101,7 +2118,7 @@ INT Lattice::CalcSubTotalCosts(LatticeNode *ptr1)
         INT prev_cost = CalcSubTotalCosts(ptr0);
         
         // オーバーフローを避けるためのチェック
-        if (prev_cost >= MAXLONG - 10000) {
+        if (prev_cost >= MAXLONG - COST_OVERFLOW_MARGIN) {
             // コストが大きすぎる場合はスキップ
             continue;
         }
@@ -2112,15 +2129,11 @@ INT Lattice::CalcSubTotalCosts(LatticeNode *ptr1)
         
         // オーバーフローチェック付きでコスト加算
         INT cost = prev_cost;
-        if (cost < MAXLONG - word_cost) {
-            cost += word_cost;
-        } else {
+        if (!SafeAddCost(cost, word_cost)) {
             continue;  // オーバーフローを避ける
         }
         
-        if (cost < MAXLONG - connect_cost) {
-            cost += connect_cost;
-        } else {
+        if (!SafeAddCost(cost, connect_cost)) {
             continue;  // オーバーフローを避ける
         }
         
@@ -3815,6 +3828,7 @@ void Lattice::MakeReverseBranches(LatticeNode *ptr0)
 INT Lattice::CalculateClauseBoundaryScore(size_t pos) const
 {
     // 文節の開始位置と終了位置は境界にならない
+    // 注: m_pre.size() + 1 == m_chunks.size() の関係
     if (pos == 0 || pos >= m_pre.size()) {
         return MAXLONG;
     }
@@ -3822,62 +3836,59 @@ INT Lattice::CalculateClauseBoundaryScore(size_t pos) const
     INT score = 100;  // 基本スコア
     
     // この位置のノードを調査
-    if (pos < m_chunks.size()) {
-        const LatticeChunk& chunk = m_chunks[pos];
+    // pos < m_pre.size() なので pos < m_chunks.size() も保証される
+    ASSERT(pos < m_chunks.size());
+    const LatticeChunk& chunk = m_chunks[pos];
+    
+    // この位置で終わるノードがあるか確認
+    bool has_ending_jiritsugo = false;  // 自立語で終わるか
+    bool has_fuzokugo = false;           // 付属語があるか
+    
+    for (size_t i = 0; i < chunk.size(); ++i) {
+        const LatticeNode* node = chunk[i].get();
+        if (!node->linked) continue;
         
-        // この位置で終わるノードがあるか確認
-        bool has_ending_jiritsugo = false;  // 自立語で終わるか
-        bool has_fuzokugo = false;           // 付属語があるか
+        // 自立語（名詞、動詞、形容詞など）で終わる場合は境界候補
+        if (node->bunrui == HB_MEISHI ||
+            node->bunrui == HB_GODAN_DOUSHI ||
+            node->bunrui == HB_ICHIDAN_DOUSHI ||
+            node->bunrui == HB_KAHEN_DOUSHI ||
+            node->bunrui == HB_SAHEN_DOUSHI ||
+            node->bunrui == HB_IKEIYOUSHI ||
+            node->bunrui == HB_NAKEIYOUSHI ||
+            node->bunrui == HB_FUKUSHI ||
+            node->bunrui == HB_RENTAISHI) {
+            has_ending_jiritsugo = true;
+            score -= 150;  // 境界になりやすい
+        }
         
-        for (size_t i = 0; i < chunk.size(); ++i) {
-            const LatticeNode* node = chunk[i].get();
-            if (!node->linked) continue;
-            
-            // 自立語（名詞、動詞、形容詞など）で終わる場合は境界候補
-            if (node->bunrui == HB_MEISHI ||
-                node->bunrui == HB_GODAN_DOUSHI ||
-                node->bunrui == HB_ICHIDAN_DOUSHI ||
-                node->bunrui == HB_KAHEN_DOUSHI ||
-                node->bunrui == HB_SAHEN_DOUSHI ||
-                node->bunrui == HB_IKEIYOUSHI ||
-                node->bunrui == HB_NAKEIYOUSHI ||
-                node->bunrui == HB_FUKUSHI ||
-                node->bunrui == HB_RENTAISHI) {
-                has_ending_jiritsugo = true;
-                score -= 150;  // 境界になりやすい
-            }
-            
-            // 付属語（助詞、助動詞）がある場合
-            if (node->IsJoshi() || node->IsJodoushi()) {
-                has_fuzokugo = true;
-                score += 200;  // 付属語の途中なら境界にしにくい
-            }
-            
-            // 接頭辞・接尾辞の途中なら境界にしにくい
-            if (node->bunrui == HB_SETTOUJI || node->bunrui == HB_SETSUBIJI) {
-                score += 300;
+        // 付属語（助詞、助動詞）がある場合
+        if (node->IsJoshi() || node->IsJodoushi()) {
+            has_fuzokugo = true;
+            score += 200;  // 付属語の途中なら境界にしにくい
+        }
+        
+        // 接頭辞・接尾辞の途中なら境界にしにくい
+        if (node->bunrui == HB_SETTOUJI || node->bunrui == HB_SETSUBIJI) {
+            score += 300;
+        }
+    }
+    
+    // 自立語で終わり、次が付属語で始まる場合は自然な境界
+    if (has_ending_jiritsugo && pos + 1 < m_chunks.size()) {
+        const LatticeChunk& next_chunk = m_chunks[pos + 1];
+        bool next_starts_with_fuzokugo = false;
+        
+        for (size_t i = 0; i < next_chunk.size(); ++i) {
+            const LatticeNode* next_node = next_chunk[i].get();
+            if (next_node->IsJoshi() || next_node->IsJodoushi()) {
+                next_starts_with_fuzokugo = true;
+                break;
             }
         }
         
-        // 自立語で終わり、次が付属語で始まる場合は自然な境界
-        if (has_ending_jiritsugo) {
-            // 次の位置のノードを確認
-            if (pos + 1 < m_chunks.size()) {
-                const LatticeChunk& next_chunk = m_chunks[pos + 1];
-                bool next_starts_with_fuzokugo = false;
-                
-                for (size_t i = 0; i < next_chunk.size(); ++i) {
-                    const LatticeNode* next_node = next_chunk[i].get();
-                    if (next_node->IsJoshi() || next_node->IsJodoushi()) {
-                        next_starts_with_fuzokugo = true;
-                        break;
-                    }
-                }
-                
-                if (next_starts_with_fuzokugo) {
-                    score -= 100;  // より境界になりやすい
-                }
-            }
+        if (next_starts_with_fuzokugo) {
+            score -= 100;  // より境界になりやすい
         }
     }
     
