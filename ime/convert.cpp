@@ -12,7 +12,8 @@
 // Vibrato engine integration
 #ifdef HAVE_VIBRATO
 #include "vibrato_engine.h"
-static VibratoEngine g_vibrato_engine;
+// Global instance defined here, extern declaration in vibrato_engine.h
+VibratoEngine g_vibrato_engine;
 #endif
 
 const DWORD c_dwMilliseconds = 8000;

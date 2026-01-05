@@ -26,7 +26,7 @@ if [ ! -d "$MECAB_DICT_DIR" ]; then
     fi
     
     # ダウンロードファイルの検証
-    DOWNLOAD_FILE="$(basename $MECAB_DICT_URL)"
+    DOWNLOAD_FILE="$(basename "$MECAB_DICT_URL")"
     if [ ! -f "$DOWNLOAD_FILE" ]; then
         echo "✗ ダウンロードしたファイルが見つかりません"
         exit 1
@@ -60,7 +60,7 @@ vibrato compile \
     --output "$OUTPUT_DIR/ipadic.vibrato"
 
 echo "変換完了: $OUTPUT_DIR/ipadic.vibrato"
-echo "サイズ: $(du -h $OUTPUT_DIR/ipadic.vibrato | cut -f1)"
+echo "サイズ: $(du -h "$OUTPUT_DIR/ipadic.vibrato" | cut -f1)"
 
 # 5. 変換結果を検証
 if [ -f "$OUTPUT_DIR/ipadic.vibrato" ]; then

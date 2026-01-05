@@ -218,6 +218,9 @@ std::string VibratoEngine::WideToUTF8(const std::wstring& wstr)
     
 #if defined(_MSC_VER) && _MSC_VER >= 1900
     // Visual Studio 2015以降
+    // Note: std::wstring_convert is deprecated in C++17 and removed in C++20
+    // This code uses it for backward compatibility. When upgrading to C++20,
+    // use Windows APIs directly (WideCharToMultiByte) or a modern conversion library.
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
     try {
         return converter.to_bytes(wstr);
@@ -244,6 +247,9 @@ std::wstring VibratoEngine::UTF8ToWide(const std::string& str)
     
 #if defined(_MSC_VER) && _MSC_VER >= 1900
     // Visual Studio 2015以降
+    // Note: std::wstring_convert is deprecated in C++17 and removed in C++20
+    // This code uses it for backward compatibility. When upgrading to C++20,
+    // use Windows APIs directly (MultiByteToWideChar) or a modern conversion library.
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
     try {
         return converter.from_bytes(str);
