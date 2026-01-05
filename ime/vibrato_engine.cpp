@@ -4,8 +4,11 @@
 // Vibrato形態素解析エンジンの実装
 
 #include "vibrato_engine.h"
-#include "../str.hpp"
+#include "str.hpp"
 #include <vector>
+
+// Forward declaration of global IME instance
+extern MzIme TheIME;
 
 //////////////////////////////////////////////////////////////////////////////
 // Constructor / Destructor
@@ -144,7 +147,6 @@ BOOL VibratoEngine::ConvertMultiClause(const std::wstring& text, MzConvResult& r
     }
     
     // ラティスから変換結果を生成
-    extern MzIme TheIME;
     TheIME.MakeResultForMulti(result, lattice);
     
     return TRUE;
@@ -169,7 +171,6 @@ BOOL VibratoEngine::ConvertSingleClause(const std::wstring& text, MzConvResult& 
     }
     
     // ラティスから変換結果を生成
-    extern MzIme TheIME;
     TheIME.MakeResultForSingle(result, lattice);
     
     return TRUE;

@@ -81,11 +81,18 @@ pub extern "C" fn vibrato_tokenize(
     let result_tokens: Vec<VibratoToken> = worker
         .token_iter()
         .map(|token| {
-            let surface = CString::new(token.surface()).unwrap_or_default();
-            let feature = CString::new(token.feature()).unwrap_or_default();
+            // Handle potential null bytes in surface and feature strings
+            let surface = match CString::new(token.surface()) {
+                Ok(s) => s.into_raw(),
+                Err(_) => CString::new("").unwrap().into_raw(), // Fallback for null bytes
+            };
+            let feature = match CString::new(token.feature()) {
+                Ok(s) => s.into_raw(),
+                Err(_) => CString::new("").unwrap().into_raw(), // Fallback for null bytes
+            };
             VibratoToken {
-                surface: surface.into_raw(),
-                feature: feature.into_raw(),
+                surface,
+                feature,
                 start: token.range_char().start,
                 end: token.range_char().end,
             }

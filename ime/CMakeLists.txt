@@ -29,6 +29,9 @@ endif()
 add_library(libime STATIC ${LIBIME_SOURCES})
 set_target_properties(libime PROPERTIES PREFIX "")
 
+# Add parent directory for str.hpp
+target_include_directories(libime PRIVATE ${CMAKE_SOURCE_DIR})
+
 # mzimeja.ime
 add_library(ime SHARED mzimeja.def mzimeja_res.rc)
 target_link_libraries(ime libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
