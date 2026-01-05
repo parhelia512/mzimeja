@@ -111,7 +111,10 @@ protected:
     WNDPROC m_fnListBox2OldWndProc;
     static LRESULT CALLBACK ListBox1WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK ListBox2WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    WCHAR GetCharFromListView();
+    BOOL CopyCharToClipboard(WCHAR ch);
     void MySendInput(WCHAR ch);
+
 
     // images
     HIMAGELIST m_himlKanji;
@@ -713,7 +716,7 @@ BOOL ImePad::OnCreate(HWND hWnd) {
     SendMessage(m_hListBox2, LB_SETITEMHEIGHT, 0, RADICAL_SIZE);
 
     // create list view
-    style = WS_CHILD | LVS_ICON | WS_CLIPSIBLINGS;
+    style = WS_CHILD | LVS_ICON | WS_CLIPSIBLINGS | LVS_SINGLESEL;
     exstyle = WS_EX_NOACTIVATE | WS_EX_CLIENTEDGE;
     m_hListView = ::CreateWindowEx(exstyle, WC_LISTVIEW, NULL, style,
                                    rc.left, rc.top, 120, rc.bottom - rc.top,
@@ -970,23 +973,92 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         }
         break;
     }
+    case NM_RCLICK:
+        if (pnmhdr->hwndFrom == m_hListView) {
+            // マウスの位置を取得
+            POINT pt;
+            GetCursorPos(&pt);
+
+            // 位置から項目を探す
+            LV_HITTESTINFO hittest = { pt };
+            hittest.pt = pt;
+            ScreenToClient(m_hListView, &hittest.pt);
+            INT iItem = ListView_HitTest(m_hListView, &hittest);
+            if (iItem == -1)
+                return;
+
+            // 項目を選択
+            ListView_SetItemState(m_hListView, iItem, LVIS_SELECTED, LVIS_SELECTED);
+
+            if (WCHAR ch = GetCharFromListView()) {
+                // メニューを読み込んで表示
+                HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(1));
+                HMENU hSubMenu = GetSubMenu(hMenu, 0);
+                SetMenuDefaultItem(hSubMenu, 101, FALSE);
+
+                UINT uFlags = TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD;
+                INT nCmd = (INT)TrackPopupMenuEx(hSubMenu, uFlags, pt.x, pt.y, m_hWnd, NULL);
+                switch (nCmd) {
+                case 100: // クリップボードにコピー
+                    CopyCharToClipboard(ch);
+                    break;
+                case 101: // 貼り付け
+                    MySendInput(ch);
+                    break;
+                default:
+                    break;
+                }
+
+                DestroyMenu(hMenu); // メニューを破棄
+            }
+        }
+        break;
     case NM_DBLCLK:
         if (pnmhdr->hwndFrom == m_hListView) {
-            INT iItem = ListView_GetNextItem(m_hListView, -1, LVNI_ALL | LVNI_SELECTED);
-            if (iItem == -1) {
-                break;
+            if (WCHAR ch = GetCharFromListView()) {
+                MySendInput(ch);
             }
-            LV_ITEM item;
-            ZeroMemory(&item, sizeof(item));
-            item.mask = LVIF_IMAGE;
-            item.iItem = iItem;
-            item.iSubItem = 0;
-            ListView_GetItem(m_hListView, &item);
-            WCHAR ch = m_kanji_table[item.iImage].kanji_char;
-            MySendInput(ch);
         }
         break;
     }
+}
+
+BOOL ImePad::CopyCharToClipboard(WCHAR ch) {
+    WCHAR sz[2] = { ch, 0 };
+
+    SIZE_T cb = 2 * sizeof(WCHAR);
+    HGLOBAL hGlobal = GlobalAlloc(GHND | GMEM_SHARE, cb);
+    if (!hGlobal)
+        return FALSE;
+    if (LPWSTR psz = (LPWSTR)GlobalLock(hGlobal)) {
+        CopyMemory(psz, sz, cb);
+        GlobalUnlock(hGlobal);
+
+        if (OpenClipboard(m_hWnd)) {
+            EmptyClipboard();
+
+            SetClipboardData(CF_UNICODETEXT, hGlobal);
+            CloseClipboard();
+            return TRUE;
+        }
+    }
+
+    GlobalFree(hGlobal);
+    return FALSE;
+}
+
+WCHAR ImePad::GetCharFromListView() {
+    INT iItem = ListView_GetNextItem(m_hListView, -1, LVNI_ALL | LVNI_SELECTED);
+    if (iItem == -1) {
+        return 0;
+    }
+    LV_ITEM item;
+    ZeroMemory(&item, sizeof(item));
+    item.mask = LVIF_IMAGE;
+    item.iItem = iItem;
+    item.iSubItem = 0;
+    ListView_GetItem(m_hListView, &item);
+    return m_kanji_table[item.iImage].kanji_char;
 }
 
 /*static*/ LRESULT CALLBACK
