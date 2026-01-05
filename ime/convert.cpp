@@ -9,6 +9,13 @@
 #include "resource.h"
 #include <algorithm>        // for std::sort
 
+// Vibrato engine integration
+#ifdef HAVE_VIBRATO
+#include "vibrato_engine.h"
+// Global instance defined here, extern declaration in vibrato_engine.h
+VibratoEngine g_vibrato_engine;
+#endif
+
 const DWORD c_dwMilliseconds = 8000;
 
 static const LPCWSTR s_weekdays[] = {
@@ -4253,7 +4260,19 @@ BOOL MzIme::ConvertMultiClause(const std::wstring& str, MzConvResult& result, BO
     // 変換前文字列をひらがな全角で取得。
     std::wstring pre = mz_lcmap(str, LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
 
-    // ラティスを作成し、結果を作成する。
+#ifdef HAVE_VIBRATO
+    // Vibratoエンジンを優先使用
+    if (g_vibrato_engine.IsInitialized()) {
+        if (g_vibrato_engine.ConvertMultiClause(pre, result)) {
+            if (show_graphviz)
+                ShowGraphviz(result);
+            return TRUE;
+        }
+        DPRINTW(L"Vibrato conversion failed, fallback to legacy engine\n");
+    }
+#endif
+
+    // ラティスを作成し、結果を作成する。（既存エンジン）
     Lattice lattice;
     lattice.AddNodesForMulti(pre);
     lattice.AddExtraNodes();

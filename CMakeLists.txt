@@ -73,6 +73,56 @@ add_definitions(-DUNICODE=1 -D_UNICODE=1)
 # Add include directories
 include_directories(include)
 
+##############################################################################
+# Vibrato support (optional)
+
+option(USE_VIBRATO "Use Vibrato for morphological analysis" OFF)
+
+if(USE_VIBRATO)
+    message(STATUS "Vibrato support enabled")
+    
+    # Try to find Vibrato library
+    find_library(VIBRATO_LIBRARY 
+        NAMES vibrato libvibrato
+        PATHS ${CMAKE_SOURCE_DIR}/third_party/vibrato/lib
+              ${CMAKE_BINARY_DIR}/vibrato/src/vibrato_build/target/release
+    )
+    
+    find_path(VIBRATO_INCLUDE_DIR
+        NAMES vibrato.h
+        PATHS ${CMAKE_SOURCE_DIR}/third_party/vibrato/include
+              ${CMAKE_BINARY_DIR}/vibrato/src/vibrato_build/vibrato-c/include
+    )
+    
+    if(VIBRATO_LIBRARY AND VIBRATO_INCLUDE_DIR)
+        message(STATUS "Vibrato found: ${VIBRATO_LIBRARY}")
+        add_definitions(-DHAVE_VIBRATO=1)
+        include_directories(${VIBRATO_INCLUDE_DIR})
+        set(VIBRATO_FOUND TRUE)
+    else()
+        message(STATUS "Vibrato not found in prebuilt locations")
+        
+        # Check if Rust/Cargo is available for building from source
+        find_program(CARGO_EXECUTABLE cargo)
+        if(CARGO_EXECUTABLE)
+            message(STATUS "Cargo found, Vibrato can be built from source if needed")
+            message(STATUS "Note: Vibrato building from source not yet implemented")
+            message(STATUS "Please install Vibrato manually or disable USE_VIBRATO")
+        else()
+            message(WARNING "Cargo not found. Please install Rust to build Vibrato.")
+            message(STATUS "Vibrato support will be disabled")
+        endif()
+        
+        set(USE_VIBRATO OFF)
+        set(VIBRATO_FOUND FALSE)
+    endif()
+else()
+    message(STATUS "Vibrato support disabled")
+    set(VIBRATO_FOUND FALSE)
+endif()
+
+##############################################################################
+
 # Sub-directories
 add_subdirectory(ime)
 add_subdirectory(imepad)

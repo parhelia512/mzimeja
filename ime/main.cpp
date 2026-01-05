@@ -124,6 +124,21 @@ BOOL MzIme::Init(HINSTANCE hInstance)
     // load dict
     LoadDict();
 
+#ifdef HAVE_VIBRATO
+    // Vibrato engine initialization
+    std::wstring vibrato_dict_path;
+    if (FindAppFile(vibrato_dict_path, L"vibrato\\ipadic.vibrato") ||
+        FindAppFile(vibrato_dict_path, L"res\\vibrato\\ipadic.vibrato")) {
+        if (g_vibrato_engine.Initialize(vibrato_dict_path)) {
+            DPRINTW(L"Vibrato engine enabled\n");
+        } else {
+            DPRINTW(L"Vibrato engine initialization failed\n");
+        }
+    } else {
+        DPRINTW(L"Vibrato dictionary not found, using legacy engine\n");
+    }
+#endif
+
     // Load atoms
     LoadAtoms();
 
