@@ -1,4 +1,5 @@
 use std::ffi::{CStr, CString};
+use std::fs::File;
 use std::os::raw::c_char;
 use std::ptr;
 use vibrato::{Dictionary, Tokenizer};
@@ -28,7 +29,14 @@ pub extern "C" fn vibrato_tokenizer_load(dict_path: *const c_char) -> *mut Vibra
         }
     };
     
-    let dict = match Dictionary::read(path) {
+    // Open the dictionary file
+    let file = match File::open(path) {
+        Ok(f) => f,
+        Err(_) => return ptr::null_mut(),
+    };
+    
+    // Read the dictionary
+    let dict = match Dictionary::read(file) {
         Ok(d) => d,
         Err(_) => return ptr::null_mut(),
     };
