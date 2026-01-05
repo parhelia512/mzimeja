@@ -1,4 +1,4 @@
-// imepad.cpp --- mzimeja IME Pad UI
+﻿// imepad.cpp --- mzimeja IME Pad UI
 //////////////////////////////////////////////////////////////////////////////
 
 #define _CRT_SECURE_NO_WARNINGS   // use fopen
@@ -899,6 +899,7 @@ void ImePad::OnTimer(HWND hWnd) {
 }
 
 void ImePad::OnGetMinMaxInfo(LPMINMAXINFO pmmi) {
+    // ウィンドウのサイズを制限する
     pmmi->ptMinTrackSize.x = 200;
     pmmi->ptMinTrackSize.y = 200;
 }
@@ -951,8 +952,9 @@ void ImePad::MySendInput(WCHAR ch) {
 void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
     NMHDR *pnmhdr = (NMHDR *)lParam;
     switch (pnmhdr->code) {
-    case TCN_SELCHANGE:
+    case TCN_SELCHANGE: // タブコントロールの選択が変更された？
     {
+        // 選択に応じて、コントロールを更新する
         INT iCurSel = TabCtrl_GetCurSel(m_hTabCtrl);
         TabCtrl_HighlightItem(m_hTabCtrl, 0, FALSE);
         TabCtrl_HighlightItem(m_hTabCtrl, 1, FALSE);
@@ -973,13 +975,13 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
         }
         break;
     }
-    case NM_RCLICK:
+    case NM_RCLICK: // 右クリック？
         if (pnmhdr->hwndFrom == m_hListView) {
-            // �}�E�X�̈ʒu���擾
+            // マウスの位置を取得
             POINT pt;
             GetCursorPos(&pt);
 
-            // �ʒu���獀�ڂ�T��
+            // 位置から項目を探す
             LV_HITTESTINFO hittest = { pt };
             hittest.pt = pt;
             ScreenToClient(m_hListView, &hittest.pt);
@@ -987,11 +989,11 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
             if (iItem == -1)
                 return;
 
-            // ���ڂ�I��
+            // 項目を選択
             ListView_SetItemState(m_hListView, iItem, LVIS_SELECTED, LVIS_SELECTED);
 
             if (WCHAR ch = GetCharFromListView()) {
-                // ���j���[��ǂݍ���ŕ\��
+                // メニューを読み込んで表示
                 HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(1));
                 HMENU hSubMenu = GetSubMenu(hMenu, 0);
                 SetMenuDefaultItem(hSubMenu, 101, FALSE);
@@ -999,21 +1001,21 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
                 UINT uFlags = TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD;
                 INT nCmd = (INT)TrackPopupMenuEx(hSubMenu, uFlags, pt.x, pt.y, m_hWnd, NULL);
                 switch (nCmd) {
-                case 100: // �N���b�v�{�[�h�ɃR�s�[
+                case 100: // クリップボードにコピー
                     CopyCharToClipboard(ch);
                     break;
-                case 101: // �\��t��
+                case 101: // 貼り付け
                     MySendInput(ch);
                     break;
                 default:
                     break;
                 }
 
-                DestroyMenu(hMenu); // ���j���[��j��
+                DestroyMenu(hMenu); // メニューを破棄
             }
         }
         break;
-    case NM_DBLCLK:
+    case NM_DBLCLK: // ダブルクリックされた？
         if (pnmhdr->hwndFrom == m_hListView) {
             if (WCHAR ch = GetCharFromListView()) {
                 MySendInput(ch);
@@ -1026,14 +1028,20 @@ void ImePad::OnNotify(HWND hWnd, WPARAM wParam, LPARAM lParam) {
 BOOL ImePad::CopyCharToClipboard(WCHAR ch) {
     WCHAR sz[2] = { ch, 0 };
 
+    // メモリを割り当て
     SIZE_T cb = 2 * sizeof(WCHAR);
     HGLOBAL hGlobal = GlobalAlloc(GHND | GMEM_SHARE, cb);
-    if (!hGlobal)
+    if (!hGlobal) {
+        assert(0);
         return FALSE;
+    }
+
     if (LPWSTR psz = (LPWSTR)GlobalLock(hGlobal)) {
+        // メモリに格納
         CopyMemory(psz, sz, cb);
         GlobalUnlock(hGlobal);
 
+        // クリップボードにコピー
         if (OpenClipboard(m_hWnd)) {
             EmptyClipboard();
 
@@ -1043,21 +1051,28 @@ BOOL ImePad::CopyCharToClipboard(WCHAR ch) {
         }
     }
 
+    // メモリの解放
     GlobalFree(hGlobal);
-    return FALSE;
+    assert(0);
+    return FALSE; // 失敗
 }
 
 WCHAR ImePad::GetCharFromListView() {
+    // 選択項目を取得
     INT iItem = ListView_GetNextItem(m_hListView, -1, LVNI_ALL | LVNI_SELECTED);
     if (iItem == -1) {
         return 0;
     }
+
+    // 項目のiImageを取得
     LV_ITEM item;
     ZeroMemory(&item, sizeof(item));
     item.mask = LVIF_IMAGE;
     item.iItem = iItem;
     item.iSubItem = 0;
     ListView_GetItem(m_hListView, &item);
+
+    // 漢字を取得して返す
     return m_kanji_table[item.iImage].kanji_char;
 }
 
