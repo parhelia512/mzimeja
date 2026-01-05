@@ -35,7 +35,7 @@
 #define INTERVAL_MILLISECONDS   300
 
 #define SMALL_FONT_SIZE 12
-#define LARGE_FONT_SIZE 22
+#define LARGE_FONT_SIZE 26
 #define CHAR_BOX_SIZE (LARGE_FONT_SIZE + 6)
 
 struct KANJI_ENTRY {
@@ -80,7 +80,6 @@ public:
     static BOOL Create(HWND hwndParent);
     static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
     static LRESULT CALLBACK TabCtrlWndProc(HWND, UINT, WPARAM, LPARAM);
-    static LRESULT CALLBACK ListViewWndProc(HWND, UINT, WPARAM, LPARAM);
 
 protected:
     HWND m_hWnd;
@@ -293,13 +292,6 @@ ImePad::TabCtrlWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             ::PostMessage(GetParent(hWnd), uMsg, wParam, lParam);
         }
         break;
-    case WM_ERASEBKGND:
-        {
-            RECT rc;
-            ::GetClientRect(hWnd, &rc);
-            ::FillRect((HDC)wParam, &rc, (HBRUSH)(COLOR_3DFACE + 1));
-        }
-        return TRUE;
     default:
         return ::CallWindowProc(pImePad->m_fnTabCtrlOldWndProcOld, hWnd, uMsg, wParam, lParam);
     }
