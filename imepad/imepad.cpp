@@ -933,19 +933,19 @@ void ImePad::MySendInput(WCHAR ch) {
         ::SwitchToThisWindow(m_hwndLastActive, TRUE);
 
     INPUT inputs[2] = {};
-    
+
     // Key down
     inputs[0].type = INPUT_KEYBOARD;
     inputs[0].ki.wVk = 0;
     inputs[0].ki.wScan = ch;
     inputs[0].ki.dwFlags = KEYEVENTF_UNICODE;
-    
+
     // Key up
     inputs[1].type = INPUT_KEYBOARD;
     inputs[1].ki.wVk = 0;
     inputs[1].ki.wScan = ch;
     inputs[1].ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
-    
+
     ::SendInput(2, inputs, sizeof(INPUT));
 }
 
