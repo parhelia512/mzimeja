@@ -1,5 +1,5 @@
 # libime.a
-add_library(libime STATIC
+set(LIBIME_SOURCES
     cand_info.cpp
     comp_str.cpp
     config.cpp
@@ -19,11 +19,32 @@ add_library(libime STATIC
     uiguide.cpp
     uistate.cpp
     vksub.cpp)
+
+# Add Vibrato engine if enabled
+if(USE_VIBRATO AND VIBRATO_FOUND)
+    list(APPEND LIBIME_SOURCES vibrato_engine.cpp)
+    message(STATUS "Adding vibrato_engine.cpp to build")
+endif()
+
+add_library(libime STATIC ${LIBIME_SOURCES})
 set_target_properties(libime PROPERTIES PREFIX "")
 
 # mzimeja.ime
 add_library(ime SHARED mzimeja.def mzimeja_res.rc)
 target_link_libraries(ime libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
+
+# Link Vibrato library if enabled
+if(USE_VIBRATO AND VIBRATO_FOUND)
+    target_link_libraries(ime ${VIBRATO_LIBRARY})
+    
+    # Windows-specific libraries required by Vibrato
+    if(WIN32)
+        target_link_libraries(ime ws2_32 userenv bcrypt ntdll)
+    endif()
+    
+    message(STATUS "Linking Vibrato library: ${VIBRATO_LIBRARY}")
+endif()
+
 target_compile_options(ime PRIVATE -DIME_DLL=1)
 set_target_properties(ime PROPERTIES PREFIX "")
 set_target_properties(ime PROPERTIES SUFFIX "")
@@ -32,6 +53,14 @@ set_target_properties(ime PROPERTIES OUTPUT_NAME "mzimeja.ime")
 # imetests.exe
 add_executable(imetests tests.cpp mzimeja_res.rc)
 target_link_libraries(imetests libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
+
+# Link Vibrato for tests too
+if(USE_VIBRATO AND VIBRATO_FOUND)
+    target_link_libraries(imetests ${VIBRATO_LIBRARY})
+    if(WIN32)
+        target_link_libraries(imetests ws2_32 userenv bcrypt ntdll)
+    endif()
+endif()
 
 # do statically link
 set_target_properties(ime PROPERTIES LINK_DEPENDS_NO_SHARED 1)

@@ -10,6 +10,32 @@ WinXPにインストールするのであれば、古いInno Setup (5.6.1 (u))�
 ターゲットがWin2Kの場合は、Visual C++ 2008 と低レベル セットアップを使う必要があります。
 ファイル「make_low_level_setup.bat」を参照してください。
 
+## Vibratoサポート（オプション）
+
+Vibratoを使用すると、かな漢字変換が約3倍高速になります。
+
+### 前提条件
+
+- Rust 1.70以降
+- Cargo
+
+### 手順
+
+1. Rustのインストール
+   https://www.rust-lang.org/tools/install
+
+2. 辞書の変換（オプション）
+   bash tools/convert_mecab_dict.sh
+
+3. ビルド
+   cmake -DUSE_VIBRATO=ON ..
+   cmake --build .
+
+### Vibratoなしでビルド
+
+   cmake -DUSE_VIBRATO=OFF ..
+   cmake --build .
+
 # How to build mzimeja
 
 To run on WinXP/Win2K3, build using the XP toolset in Visual Studio with WinXP support and Visual C++ installed.
@@ -21,3 +47,29 @@ If you are installing on WinXP, you must use the older Inno Setup (5.6.1 (u)).
 
 When the target was Win2K, you have to use Visual C++ 2008 and the low-level setup.
 See file "make_low_level_setup.bat".
+
+## Vibrato Support (Optional)
+
+Using Vibrato makes kana-kanji conversion approximately 3x faster.
+
+### Prerequisites
+
+- Rust 1.70 or later
+- Cargo
+
+### Steps
+
+1. Install Rust
+   https://www.rust-lang.org/tools/install
+
+2. Convert dictionary (optional)
+   bash tools/convert_mecab_dict.sh
+
+3. Build
+   cmake -DUSE_VIBRATO=ON ..
+   cmake --build .
+
+### Build without Vibrato
+
+   cmake -DUSE_VIBRATO=OFF ..
+   cmake --build .
