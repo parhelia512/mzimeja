@@ -33,6 +33,7 @@ TMP1.$$$
 build/
 build32/
 build64/
+build_test/
 ipch
 objfre_w2k_x86
 x64
