@@ -193,8 +193,14 @@ HinshiBunrui VibratoEngine::ConvertPartOfSpeech(const char* pos)
     else if (pos_str.find("助詞") != std::string::npos) {
         if (pos_str.find("格助詞") != std::string::npos) {
             return HB_KAKU_JOSHI;
+        } else if (pos_str.find("接続助詞") != std::string::npos) {
+            return HB_SETSUZOKU_JOSHI;
+        } else if (pos_str.find("副助詞") != std::string::npos) {
+            return HB_FUKU_JOSHI;
+        } else if (pos_str.find("終助詞") != std::string::npos) {
+            return HB_SHUU_JOSHI;
         }
-        return HB_KAKU_JOSHI;
+        return HB_KAKU_JOSHI;  // デフォルト
     }
     
     return HB_UNKNOWN;

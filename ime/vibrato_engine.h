@@ -58,3 +58,9 @@ private:
     std::string WideToUTF8(const std::wstring& wstr);
     std::wstring UTF8ToWide(const std::string& str);
 };
+
+// Global Vibrato engine instance (defined in convert.cpp)
+// グローバルなVibratoエンジンインスタンス（convert.cppで定義）
+#ifdef HAVE_VIBRATO
+extern VibratoEngine g_vibrato_engine;
+#endif

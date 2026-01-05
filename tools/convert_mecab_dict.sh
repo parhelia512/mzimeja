@@ -20,8 +20,25 @@ fi
 # 2. MeCab辞書のダウンロード
 if [ ! -d "$MECAB_DICT_DIR" ]; then
     echo "MeCab IPA辞書をダウンロード中..."
-    wget "$MECAB_DICT_URL"
-    tar xzf "$(basename $MECAB_DICT_URL)"
+    if ! wget -q --show-progress "$MECAB_DICT_URL"; then
+        echo "✗ ダウンロードに失敗しました"
+        exit 1
+    fi
+    
+    # ダウンロードファイルの検証
+    DOWNLOAD_FILE="$(basename $MECAB_DICT_URL)"
+    if [ ! -f "$DOWNLOAD_FILE" ]; then
+        echo "✗ ダウンロードしたファイルが見つかりません"
+        exit 1
+    fi
+    
+    echo "ダウンロード完了。展開中..."
+    if ! tar xzf "$DOWNLOAD_FILE"; then
+        echo "✗ 展開に失敗しました"
+        exit 1
+    fi
+    
+    echo "✓ MeCab辞書を展開しました"
 fi
 
 # 3. 出力ディレクトリの作成

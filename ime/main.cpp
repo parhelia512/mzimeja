@@ -129,7 +129,6 @@ BOOL MzIme::Init(HINSTANCE hInstance)
     std::wstring vibrato_dict_path;
     if (FindAppFile(vibrato_dict_path, L"vibrato\\ipadic.vibrato") ||
         FindAppFile(vibrato_dict_path, L"res\\vibrato\\ipadic.vibrato")) {
-        extern VibratoEngine g_vibrato_engine;
         if (g_vibrato_engine.Initialize(vibrato_dict_path)) {
             DPRINTW(L"Vibrato engine enabled\n");
         } else {
