@@ -29,15 +29,21 @@ endif()
 add_library(libime STATIC ${LIBIME_SOURCES})
 set_target_properties(libime PROPERTIES PREFIX "")
 
+# Add parent directory for str.hpp
+target_include_directories(libime PRIVATE ${CMAKE_SOURCE_DIR})
+
 # mzimeja.ime
 add_library(ime SHARED mzimeja.def mzimeja_res.rc)
 target_link_libraries(ime libime kernel32 user32 gdi32 advapi32 comctl32 imm32 shlwapi)
 
 # Link Vibrato library if enabled
 if(USE_VIBRATO AND VIBRATO_FOUND)
+    # Add dependency on vibrato_c_build target
+    add_dependencies(ime vibrato_c_build)
+    
     target_link_libraries(ime ${VIBRATO_LIBRARY})
     
-    # Windows-specific libraries required by Vibrato
+    # Windows-specific libraries required by Vibrato (Rust runtime dependencies)
     if(WIN32)
         target_link_libraries(ime ws2_32 userenv bcrypt ntdll)
     endif()
@@ -56,6 +62,7 @@ target_link_libraries(imetests libime kernel32 user32 gdi32 advapi32 comctl32 im
 
 # Link Vibrato for tests too
 if(USE_VIBRATO AND VIBRATO_FOUND)
+    add_dependencies(imetests vibrato_c_build)
     target_link_libraries(imetests ${VIBRATO_LIBRARY})
     if(WIN32)
         target_link_libraries(imetests ws2_32 userenv bcrypt ntdll)

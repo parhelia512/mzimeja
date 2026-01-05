@@ -4,14 +4,11 @@
 // Vibrato形態素解析エンジンの実装
 
 #include "vibrato_engine.h"
-#include <codecvt>
-#include <locale>
+#include "str.hpp"
+#include <vector>
 
-// Vibratoがコンパイル時に有効な場合のみ、実際のVibrato APIを使用
-#ifdef HAVE_VIBRATO
-    // TODO: Vibrato C APIのヘッダーをインクルード
-    // #include <vibrato.h>
-#endif
+// Forward declaration of global IME instance
+extern MzIme TheIME;
 
 //////////////////////////////////////////////////////////////////////////////
 // Constructor / Destructor
@@ -19,21 +16,15 @@
 VibratoEngine::VibratoEngine()
     : initialized_(FALSE)
     , tokenizer_(nullptr)
-    , dict_(nullptr)
 {
 }
 
 VibratoEngine::~VibratoEngine()
 {
 #ifdef HAVE_VIBRATO
-    // TODO: Vibratoリソースのクリーンアップ
     if (tokenizer_) {
-        // vibrato_tokenizer_free(tokenizer_);
+        vibrato_tokenizer_free(tokenizer_);
         tokenizer_ = nullptr;
-    }
-    if (dict_) {
-        // vibrato_dict_free(dict_);
-        dict_ = nullptr;
     }
 #endif
     initialized_ = FALSE;
@@ -47,9 +38,6 @@ BOOL VibratoEngine::Initialize(const std::wstring& dict_path)
     DPRINTW(L"VibratoEngine::Initialize: %s\n", dict_path.c_str());
     
 #ifdef HAVE_VIBRATO
-    // Vibratoが有効な場合の初期化処理
-    // TODO: 実際のVibrato初期化コード
-    
     // 辞書パスの検証
     if (dict_path.empty()) {
         DPRINTW(L"VibratoEngine: Dictionary path is empty\n");
@@ -59,29 +47,16 @@ BOOL VibratoEngine::Initialize(const std::wstring& dict_path)
     // UTF-8に変換
     std::string dict_path_utf8 = WideToUTF8(dict_path);
     
-    // 辞書の読み込み
-    // dict_ = vibrato_dict_load(dict_path_utf8.c_str());
-    // if (!dict_) {
-    //     DPRINTW(L"VibratoEngine: Failed to load dictionary\n");
-    //     return FALSE;
-    // }
-    
     // トークナイザーの初期化
-    // tokenizer_ = vibrato_tokenizer_new(dict_);
-    // if (!tokenizer_) {
-    //     DPRINTW(L"VibratoEngine: Failed to create tokenizer\n");
-    //     vibrato_dict_free(dict_);
-    //     dict_ = nullptr;
-    //     return FALSE;
-    // }
+    tokenizer_ = vibrato_tokenizer_load(dict_path_utf8.c_str());
+    if (!tokenizer_) {
+        DPRINTW(L"VibratoEngine: Failed to load tokenizer\n");
+        return FALSE;
+    }
     
-    // initialized_ = TRUE;
-    // DPRINTW(L"VibratoEngine: Initialized successfully\n");
-    // return TRUE;
-    
-    // 現在はスタブ実装のため、常にFALSEを返す
-    DPRINTW(L"VibratoEngine: Vibrato support not fully implemented yet\n");
-    return FALSE;
+    initialized_ = TRUE;
+    DPRINTW(L"VibratoEngine: Initialized successfully\n");
+    return TRUE;
     
 #else
     // Vibratoが無効な場合
@@ -101,13 +76,56 @@ BOOL VibratoEngine::AnalyzeToLattice(const std::wstring& text, Lattice& lattice)
     }
     
 #ifdef HAVE_VIBRATO
-    // TODO: Vibratoを使用した形態素解析
-    // 1. テキストをUTF-8に変換
-    // 2. Vibratoで形態素解析を実行
-    // 3. 結果をLattice構造に変換
+    // テキストをUTF-8に変換
+    std::string text_utf8 = WideToUTF8(text);
     
-    DPRINTW(L"VibratoEngine::AnalyzeToLattice: Not implemented\n");
-    return FALSE;
+    // Vibratoで形態素解析を実行
+    VibratoToken* tokens = nullptr;
+    size_t num_tokens = 0;
+    
+    int result = vibrato_tokenize(tokenizer_, text_utf8.c_str(), &tokens, &num_tokens);
+    if (result != 0 || !tokens) {
+        DPRINTW(L"VibratoEngine::AnalyzeToLattice: Tokenization failed\n");
+        return FALSE;
+    }
+    
+    // ラティスの初期化
+    lattice.m_pre = text;
+    lattice.m_chunks.clear();
+    lattice.m_chunks.resize(text.size() + 1);
+    
+    // 先頭ノードと末端ノードを作成
+    lattice.m_head = LatticeNodePtr(new LatticeNode());
+    lattice.m_head->bunrui = HB_HEAD;
+    lattice.m_head->deltaCost = 0;
+    
+    lattice.m_tail = LatticeNodePtr(new LatticeNode());
+    lattice.m_tail->bunrui = HB_TAIL;
+    lattice.m_tail->deltaCost = 0;
+    
+    // トークンをラティスノードに変換
+    for (size_t i = 0; i < num_tokens; i++) {
+        LatticeNode node;
+        std::string surface(tokens[i].surface);
+        std::string feature(tokens[i].feature);
+        
+        VibratoTokenToLatticeNode(surface, feature, tokens[i].start, tokens[i].end, node);
+        
+        // ノードをラティスに追加
+        size_t start_pos = tokens[i].start;
+        if (start_pos <= text.size()) {
+            lattice.AddNode(start_pos, node);
+        }
+    }
+    
+    // トークンのメモリを解放
+    vibrato_tokens_free(tokens, num_tokens);
+    
+    // ラティスの構造を更新
+    lattice.Fix(text);
+    
+    DPRINTW(L"VibratoEngine::AnalyzeToLattice: Success (%zu tokens)\n", num_tokens);
+    return TRUE;
 #else
     return FALSE;
 #endif
@@ -121,13 +139,17 @@ BOOL VibratoEngine::ConvertMultiClause(const std::wstring& text, MzConvResult& r
     }
     
 #ifdef HAVE_VIBRATO
-    // TODO: 文節変換の実装
-    // 1. AnalyzeToLatticeを呼び出してラティス構造を作成
-    // 2. ビタビアルゴリズムで最適パスを見つける
-    // 3. 結果をMzConvResultに変換
+    // ラティス構造を作成
+    Lattice lattice;
+    if (!AnalyzeToLattice(text, lattice)) {
+        DPRINTW(L"VibratoEngine::ConvertMultiClause: AnalyzeToLattice failed\n");
+        return FALSE;
+    }
     
-    DPRINTW(L"VibratoEngine::ConvertMultiClause: Not implemented\n");
-    return FALSE;
+    // ラティスから変換結果を生成
+    TheIME.MakeResultForMulti(result, lattice);
+    
+    return TRUE;
 #else
     return FALSE;
 #endif
@@ -141,10 +163,17 @@ BOOL VibratoEngine::ConvertSingleClause(const std::wstring& text, MzConvResult& 
     }
     
 #ifdef HAVE_VIBRATO
-    // TODO: 単文節変換の実装
+    // ラティス構造を作成
+    Lattice lattice;
+    if (!AnalyzeToLattice(text, lattice)) {
+        DPRINTW(L"VibratoEngine::ConvertSingleClause: AnalyzeToLattice failed\n");
+        return FALSE;
+    }
     
-    DPRINTW(L"VibratoEngine::ConvertSingleClause: Not implemented\n");
-    return FALSE;
+    // ラティスから変換結果を生成
+    TheIME.MakeResultForSingle(result, lattice);
+    
+    return TRUE;
 #else
     return FALSE;
 #endif
@@ -153,54 +182,136 @@ BOOL VibratoEngine::ConvertSingleClause(const std::wstring& text, MzConvResult& 
 //////////////////////////////////////////////////////////////////////////////
 // Private helper methods
 
-void VibratoEngine::VibratoTokenToLatticeNode(const vibrato_token_t* token, LatticeNode& node)
+void VibratoEngine::VibratoTokenToLatticeNode(const std::string& surface, const std::string& feature,
+                                                size_t start_pos, size_t end_pos, LatticeNode& node)
 {
 #ifdef HAVE_VIBRATO
-    // TODO: Vibratoトークンの情報をLatticeNodeに変換
-    // - surface (表層形) -> node.pre
-    // - feature (品詞情報) -> node.bunrui, node.gyou
-    // - cost -> node.deltaCost
+    // 表層形をUTF-16に変換
+    node.pre = UTF8ToWide(surface);
+    node.post = node.pre;  // 初期値として同じ文字列を設定
+    
+    // 品詞情報を解析
+    node.bunrui = ConvertPartOfSpeech(feature);
+    
+    // コストの設定（デフォルト値）
+    node.deltaCost = 0;
+    
+    // 活用形情報のデフォルト設定
+    node.gyou = DAN_NO_GYOU;
+    node.katsuyou = KATSUYOU_NONE;
+    
+    // 特徴文字列からタグを抽出（必要に応じて）
+    node.tags.clear();
 #endif
 }
 
-HinshiBunrui VibratoEngine::ConvertPartOfSpeech(const char* pos)
+HinshiBunrui VibratoEngine::ConvertPartOfSpeech(const std::string& feature)
 {
 #ifdef HAVE_VIBRATO
-    // TODO: MeCab/Vibratoの品詞をMZ-IMEjaの品詞分類に変換
-    // 
-    // MeCab IPA辞書の品詞体系:
-    // 名詞,一般 -> HB_MEISHI
-    // 動詞,自立 -> HB_GODAN_DOUSHI または HB_ICHIDAN_DOUSHI
-    // 形容詞,自立 -> HB_IKEIYOUSHI
-    // 助詞,格助詞 -> HB_KAKU_JOSHI
-    // など
+    // MeCab IPA辞書の品詞体系を解析
+    // feature は CSV形式: "品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音"
     
-    if (!pos) return HB_UNKNOWN;
+    if (feature.empty()) return HB_UNKNOWN;
     
-    // 簡単な実装例（実際にはもっと詳細なマッピングが必要）
-    std::string pos_str(pos);
+    // カンマで分割
+    std::vector<std::string> fields;
+    str_split(fields, feature, std::string(","));
     
-    if (pos_str.find("名詞") != std::string::npos) {
+    if (fields.empty()) return HB_UNKNOWN;
+    
+    const std::string& pos = fields[0];  // 品詞
+    
+    // 名詞
+    if (pos == "名詞") {
         return HB_MEISHI;
     }
-    else if (pos_str.find("動詞") != std::string::npos) {
-        // TODO: 五段/一段/カ変/サ変の判定
-        return HB_GODAN_DOUSHI;
+    // 動詞
+    else if (pos == "動詞") {
+        // 活用型で五段/一段/カ変/サ変を判定
+        if (fields.size() >= 5) {
+            const std::string& conj_type = fields[4];  // 活用型
+            if (conj_type.find("五段") != std::string::npos) {
+                return HB_GODAN_DOUSHI;
+            }
+            else if (conj_type.find("一段") != std::string::npos) {
+                return HB_ICHIDAN_DOUSHI;
+            }
+            else if (conj_type.find("カ変") != std::string::npos || conj_type.find("カ行変格") != std::string::npos) {
+                return HB_KAHEN_DOUSHI;
+            }
+            else if (conj_type.find("サ変") != std::string::npos || conj_type.find("サ行変格") != std::string::npos) {
+                return HB_SAHEN_DOUSHI;
+            }
+        }
+        return HB_GODAN_DOUSHI;  // デフォルト
     }
-    else if (pos_str.find("形容詞") != std::string::npos) {
+    // 形容詞
+    else if (pos == "形容詞") {
         return HB_IKEIYOUSHI;
     }
-    else if (pos_str.find("助詞") != std::string::npos) {
-        if (pos_str.find("格助詞") != std::string::npos) {
-            return HB_KAKU_JOSHI;
-        } else if (pos_str.find("接続助詞") != std::string::npos) {
-            return HB_SETSUZOKU_JOSHI;
-        } else if (pos_str.find("副助詞") != std::string::npos) {
-            return HB_FUKU_JOSHI;
-        } else if (pos_str.find("終助詞") != std::string::npos) {
-            return HB_SHUU_JOSHI;
+    // 形容動詞（な形容詞）
+    else if (pos == "形容動詞") {
+        return HB_NAKEIYOUSHI;
+    }
+    // 連体詞
+    else if (pos == "連体詞") {
+        return HB_RENTAISHI;
+    }
+    // 副詞
+    else if (pos == "副詞") {
+        return HB_FUKUSHI;
+    }
+    // 接続詞
+    else if (pos == "接続詞") {
+        return HB_SETSUZOKUSHI;
+    }
+    // 感動詞
+    else if (pos == "感動詞") {
+        return HB_KANDOUSHI;
+    }
+    // 助詞
+    else if (pos == "助詞") {
+        if (fields.size() >= 2) {
+            const std::string& pos_sub = fields[1];  // 品詞細分類1
+            if (pos_sub == "格助詞") {
+                return HB_KAKU_JOSHI;
+            }
+            else if (pos_sub == "接続助詞") {
+                return HB_SETSUZOKU_JOSHI;
+            }
+            else if (pos_sub == "副助詞" || pos_sub == "副助詞／並立助詞／終助詞") {
+                return HB_FUKU_JOSHI;
+            }
+            else if (pos_sub == "終助詞") {
+                return HB_SHUU_JOSHI;
+            }
         }
         return HB_KAKU_JOSHI;  // デフォルト
+    }
+    // 助動詞
+    else if (pos == "助動詞") {
+        return HB_JODOUSHI;
+    }
+    // 接頭詞
+    else if (pos == "接頭詞") {
+        return HB_SETTOUJI;
+    }
+    // 接尾詞
+    else if (pos == "接尾") {
+        return HB_SETSUBIJI;
+    }
+    // 記号
+    else if (pos == "記号") {
+        if (fields.size() >= 2) {
+            const std::string& pos_sub = fields[1];
+            if (pos_sub == "句点") {
+                return HB_PERIOD;
+            }
+            else if (pos_sub == "読点") {
+                return HB_COMMA;
+            }
+        }
+        return HB_SYMBOL;
     }
     
     return HB_UNKNOWN;
@@ -216,19 +327,6 @@ std::string VibratoEngine::WideToUTF8(const std::wstring& wstr)
 {
     if (wstr.empty()) return std::string();
     
-#if defined(_MSC_VER) && _MSC_VER >= 1900
-    // Visual Studio 2015以降
-    // Note: std::wstring_convert is deprecated in C++17 and removed in C++20
-    // This code uses it for backward compatibility. When upgrading to C++20,
-    // use Windows APIs directly (WideCharToMultiByte) or a modern conversion library.
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    try {
-        return converter.to_bytes(wstr);
-    } catch (...) {
-        return std::string();
-    }
-#else
-    // それ以前のコンパイラまたはGCC/Clang
     // WideCharToMultiByte を使用（Windows専用）
     int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), 
                                           (int)wstr.size(), NULL, 0, NULL, NULL);
@@ -238,26 +336,12 @@ std::string VibratoEngine::WideToUTF8(const std::wstring& wstr)
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), (int)wstr.size(), 
                        &result[0], size_needed, NULL, NULL);
     return result;
-#endif
 }
 
 std::wstring VibratoEngine::UTF8ToWide(const std::string& str)
 {
     if (str.empty()) return std::wstring();
     
-#if defined(_MSC_VER) && _MSC_VER >= 1900
-    // Visual Studio 2015以降
-    // Note: std::wstring_convert is deprecated in C++17 and removed in C++20
-    // This code uses it for backward compatibility. When upgrading to C++20,
-    // use Windows APIs directly (MultiByteToWideChar) or a modern conversion library.
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    try {
-        return converter.from_bytes(str);
-    } catch (...) {
-        return std::wstring();
-    }
-#else
-    // それ以前のコンパイラまたはGCC/Clang
     // MultiByteToWideChar を使用（Windows専用）
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), 
                                           (int)str.size(), NULL, 0);
@@ -267,5 +351,4 @@ std::wstring VibratoEngine::UTF8ToWide(const std::string& str)
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.size(), 
                        &result[0], size_needed);
     return result;
-#endif
 }

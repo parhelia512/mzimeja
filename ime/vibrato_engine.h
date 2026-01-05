@@ -7,11 +7,12 @@
 
 #include "mzimeja.h"
 
-// Vibrato C API (forward declarations)
-// Vibratoライブラリが利用可能な場合にのみ使用される
-typedef struct vibrato_tokenizer_t vibrato_tokenizer_t;
-typedef struct vibrato_dict_t vibrato_dict_t;
-typedef struct vibrato_token_t vibrato_token_t;
+#ifdef HAVE_VIBRATO
+// Vibrato C API
+extern "C" {
+    #include <vibrato.h>
+}
+#endif
 
 // Vibrato engine class for morphological analysis
 // 形態素解析用のVibratoエンジンクラス
@@ -42,16 +43,20 @@ public:
     
 private:
     BOOL initialized_;
-    vibrato_tokenizer_t* tokenizer_;
-    vibrato_dict_t* dict_;
+#ifdef HAVE_VIBRATO
+    VibratoTokenizer* tokenizer_;
+#else
+    void* tokenizer_;  // Placeholder when Vibrato is not available
+#endif
     
     // Convert Vibrato token to Lattice node
     // Vibratoトークンをラティスノードに変換
-    void VibratoTokenToLatticeNode(const vibrato_token_t* token, LatticeNode& node);
+    void VibratoTokenToLatticeNode(const std::string& surface, const std::string& feature,
+                                    size_t start_pos, size_t end_pos, LatticeNode& node);
     
     // Convert MeCab/Vibrato part-of-speech to MZ-IMEja HinshiBunrui
     // MeCab/Vibratoの品詞をMZ-IMEjaの品詞分類に変換
-    HinshiBunrui ConvertPartOfSpeech(const char* pos);
+    HinshiBunrui ConvertPartOfSpeech(const std::string& feature);
     
     // UTF-8/UTF-16 conversion utilities
     // UTF-8/UTF-16変換ユーティリティ
