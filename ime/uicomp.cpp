@@ -449,16 +449,16 @@ void DrawTextOneLine(HWND hCompWnd, HDC hDC, const WCHAR *pch,
         switch (lpattr[ich]) {
         case ATTR_TARGET_CONVERTED:
             ::SetTextColor(hDC, RGB(255, 255, 255));
-            ::SetBkColor(hDC, RGB(0, 51, 0));
+            ::SetBkColor(hDC, RGB(0, 0, 0));
             hPen = ::CreatePen(PS_SOLID, 1, RGB(0, 51, 0));
             break;
         case ATTR_CONVERTED:
-            ::SetTextColor(hDC, RGB(0, 51, 0));
+            ::SetTextColor(hDC, RGB(0, 0, 0));
             ::SetBkColor(hDC, RGB(255, 255, 255));
             hPen = ::CreatePen(PS_SOLID, 1, RGB(0, 51, 0));
             break;
         default:
-            ::SetTextColor(hDC, RGB(0, 51, 0));
+            ::SetTextColor(hDC, RGB(0, 0, 0));
             ::SetBkColor(hDC, RGB(255, 255, 255));
             hPen = ::CreatePen(PS_DOT, 1, RGB(0, 121, 0));
             break;
