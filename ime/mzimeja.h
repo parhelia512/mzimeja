@@ -485,6 +485,7 @@ struct Lattice {
     void CutUnlinkedNodes();
     void MakeReverseBranches(LatticeNode *ptr0);
     INT CalcSubTotalCosts(LatticeNode *ptr1);
+    INT CalculateClauseBoundaryScore(size_t pos) const;
     size_t GetLastLinkedIndex() const;
 
     void Dump(int num = 0);
