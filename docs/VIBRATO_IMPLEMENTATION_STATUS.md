@@ -128,7 +128,7 @@ MZ-IME (C++) → VibratoEngine (C++, 414 lines)
 
 ### Manual Testing Required
 
-- [ ] Build with USE_VIBRATO=OFF (should work without changes)
+- [x] Build with USE_VIBRATO=OFF (should work without changes)
 - [ ] Build with USE_VIBRATO=ON (requires Rust/Cargo)
 - [ ] Dictionary loading
 - [ ] Text tokenization
