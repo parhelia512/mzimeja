@@ -368,7 +368,7 @@ struct InputContext : public INPUTCONTEXT {
     void DeleteChar(BOOL bBackSpace = FALSE);
     BOOL Convert(BOOL bShift);
     BOOL OpenCandidate();
-    BOOL CloseCandidate(BOOL bClearCandInfo = TRUE);
+    BOOL CloseCandidate();
 
     void MoveLeft(BOOL bShift);
     void MoveRight(BOOL bShift);

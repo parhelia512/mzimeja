@@ -110,3 +110,4 @@
     - ファイルREADMEJP.txtをREADME_ja.txtに改名。
     - 辞書の増強。
 - 2026-XX-YY Ver.1.0.0.7
+    - InputContext::RevertTextでちゃんと候補をクリアする。

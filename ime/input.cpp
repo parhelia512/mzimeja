@@ -551,12 +551,10 @@ BOOL InputContext::OpenCandidate()
 }
 
 // 候補ウィンドウを閉じる。
-BOOL InputContext::CloseCandidate(BOOL bClearCandInfo /* = TRUE*/)
+BOOL InputContext::CloseCandidate()
 {
     if (HasCandInfo()) { // 候補情報があるか？
-        if (bClearCandInfo) { // 候補をクリアするか？
-            hCandInfo = CandInfo::ReCreate(hCandInfo, NULL); // 候補情報の再作成。
-        }
+        hCandInfo = CandInfo::ReCreate(hCandInfo, NULL); // 候補情報の再作成。
         // 候補を閉じるメッセージを生成。
         TheIME.GenerateMessage(WM_IME_NOTIFY, IMN_CLOSECANDIDATE, 1);
         return TRUE;
