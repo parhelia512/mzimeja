@@ -39,10 +39,10 @@ std::wstring mz_convert_postal_code(const std::wstring& code)
     if (Config_GetDWORD(L"PostalDictDisabled", FALSE)) // 無効化されている？
         return ret;
 
-    if (!FindAppFile(postal, L"postal.dat") &&
+    if (!FindLocalFile(postal, L"postal.dat") &&
+        !FindLocalFile(postal, L"res\\postal.dat") &&
+        !FindAppFile(postal, L"postal.dat") &&
         !FindAppFile(postal, L"res\\postal.dat") &&
-		!FindLocalFile(postal, L"postal.dat") &&
-		!FindLocalFile(postal, L"res\\postal.dat") &&
         !Config_GetSz(L"PostalDictPathName", postal))
     {
         return ret; // 郵便番号データのパス名を取得できない？

@@ -77,7 +77,9 @@ BOOL MzIme::LoadDict()
 
     std::wstring basic;
     if (!Config_GetDWORD(L"BasicDictDisabled", FALSE)) {
-        if (FindAppFile(basic, L"basic.dic") ||
+        if (FindLocalFile(basic, L"basic.dic") ||
+            FindLocalFile(basic, L"res\\basic.dic") ||
+            FindAppFile(basic, L"basic.dic") ||
             FindAppFile(basic, L"res\\basic.dic") ||
             Config_GetSz(L"BasicDictPathName", basic))
         {
@@ -91,7 +93,9 @@ BOOL MzIme::LoadDict()
 
     std::wstring name;
     if (!Config_GetDWORD(L"NameDictDisabled", FALSE)) {
-        if (FindAppFile(basic, L"name.dic") ||
+        if (FindLocalFile(basic, L"name.dat") ||
+            FindLocalFile(basic, L"res\\name.dat") ||
+            FindAppFile(basic, L"name.dic") ||
             FindAppFile(basic, L"res\\name.dic") ||
             Config_GetSz(L"NameDictPathName", name))
         {
@@ -127,8 +131,11 @@ BOOL MzIme::Init(HINSTANCE hInstance)
 #ifdef HAVE_VIBRATO
     // Vibrato engine initialization
     std::wstring vibrato_dict_path;
-    if (FindAppFile(vibrato_dict_path, L"vibrato\\ipadic.vibrato") ||
-        FindAppFile(vibrato_dict_path, L"res\\vibrato\\ipadic.vibrato")) {
+    if (FindLocalFile(vibrato_dict_path, L"vibrato\\ipadic.vibrato") ||
+        FindLocalFile(vibrato_dict_path, L"res\\vibrato\\ipadic.vibrato") ||
+        FindAppFile(vibrato_dict_path, L"vibrato\\ipadic.vibrato") ||
+        FindAppFile(vibrato_dict_path, L"res\\vibrato\\ipadic.vibrato"))
+    {
         if (g_vibrato_engine.Initialize(vibrato_dict_path)) {
             DPRINTW(L"Vibrato engine enabled\n");
         } else {
@@ -391,7 +398,9 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
         DPRINTA("IDM_ABOUT\n");
         {
             std::wstring verinfo_file;
-            if (FindAppFile(verinfo_file, L"verinfo.exe") || Config_GetSz(L"VerInfoFile", verinfo_file)) {
+            if (FindAppFile(verinfo_file, L"verinfo.exe") ||
+                Config_GetSz(L"VerInfoFile", verinfo_file))
+            {
                 ::ShellExecuteW(NULL, NULL, verinfo_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
             }
         }
@@ -429,7 +438,10 @@ BOOL MzIme::DoCommand(HIMC hIMC, DWORD dwCommand)
         DPRINTA("IDM_IME_PAD\n");
         {
             std::wstring imepad_file;
-            if (FindAppFile(imepad_file, L"imepad.exe") || Config_GetSz(L"ImePadFile", imepad_file)) {
+            if (FindLocalFile(imepad_file, L"imepad.exe") ||
+                FindAppFile(imepad_file, L"imepad.exe") ||
+                Config_GetSz(L"ImePadFile", imepad_file))
+            {
                 ::ShellExecuteW(NULL, NULL, imepad_file.c_str(), NULL, NULL, SW_SHOWNOACTIVATE);
             }
         }

@@ -92,7 +92,8 @@ LRESULT WINAPI ImeEscape(HIMC hIMC, UINT uSubFunc, LPVOID lpData)
     case IME_ESC_GETHELPFILENAME:
     {
         std::wstring pathname;
-        if (FindAppFile(pathname, L"README_ja.txt") ||
+        if (FindLocalFile(pathname, L"README_ja.txt") ||
+            FindAppFile(pathname, L"README_ja.txt") ||
             Config_GetSz(L"ReadMeFile", pathname))
         {
             StringCchCopy((TCHAR *)lpData, MAX_PATH, pathname.c_str());
