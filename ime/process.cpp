@@ -332,16 +332,18 @@ DoProcessKey(
             }
 
             if (chTranslated || chTyped) { // キーを変換できたら
-                if (bDoAction) {
-                    if (lpIMC->HasCandInfo() && L'1' <= chTyped && chTyped <= L'9') {
-                        // 候補情報があり、候補の選択であれば、候補を選択。
+                if (lpIMC->HasCandInfo() && L'1' <= chTyped && chTyped <= L'9') {
+                    // 候補情報があり、候補の選択であれば、候補を選択。
+                    if (bDoAction) {
                         lpIMC->SelectCand(chTyped - L'1');
-                    } else {
-                        // さもなければ文字を追加。
+                    }
+                } else {
+                    // さもなければ文字を追加。
+                    if (bDoAction) {
                         lpIMC->AddChar(chTyped, chTranslated);
                     }
                 }
-                return TRUE; // 処理すべき／処理した
+                return TRUE;
             }
         }
         return FALSE; // 処理しない
