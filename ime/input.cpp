@@ -856,6 +856,9 @@ void InputContext::Escape()
     } else {
         CancelText(); // 変換をキャンセルする。
     }
+
+    // 候補を閉じる
+    CloseCandidate();
 } // InputContext::Escape
 
 // 変換をキャンセルする。

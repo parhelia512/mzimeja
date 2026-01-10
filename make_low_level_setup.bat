@@ -1,4 +1,4 @@
-set VERSION=1.0.0.6
+set VERSION=1.0.0.7
 set DEST_DIR=mzimeja-%VERSION%-LL-setup
 set OUTPUT=mzimeja-%VERSION%-LL-setup.exe
 if not exist "%DEST_DIR%" mkdir "%DEST_DIR%"
