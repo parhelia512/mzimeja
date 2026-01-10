@@ -873,11 +873,11 @@ void InputContext::CancelText()
     TheIME.GenerateMessage(WM_IME_ENDCOMPOSITION);
 } // InputContext::CancelText
 
-// 再変換する。
+// 変換を確定しない状態に戻す。
 void InputContext::RevertText()
 {
     // 候補を閉じる。
-    CloseCandidate(FALSE);
+    CloseCandidate();
 
     // 未確定文字列の論理データを取得。
     LogCompStr comp;
