@@ -86,15 +86,16 @@ DoProcessKey(
         }
         break;
     case VK_DBE_ALPHANUMERIC: // 英数キー
-        if (!bShift && !bCtrl) {
+        if (!bShift && !bCtrl && bOpen) {
             if (bDoAction) {
                 INPUT_MODE imode = GetInputMode(hIMC);
-                ImmSetOpenStatus(hIMC, TRUE);
                 if (bOpen && imode == IMODE_FULL_HIRAGANA)
                     SetInputMode(hIMC, IMODE_FULL_ASCII);
                 else
                     SetInputMode(hIMC, IMODE_FULL_HIRAGANA);
             }
+        } else {
+            return FALSE; // 処理しない
         }
         break;
     case VK_OEM_3: // '~'
