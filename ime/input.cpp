@@ -851,14 +851,14 @@ void InputContext::Escape()
         UnlockCompStr();
     }
 
-    // 候補を閉じる
-    CloseCandidate();
-
     if (comp.IsClauseConverted()) { // 現在の文節が変換済みなら
         RevertText(); // ひらがなに戻す。
     } else {
         CancelText(); // 変換をキャンセルする。
     }
+
+    // 候補を閉じる
+    CloseCandidate();
 } // InputContext::Escape
 
 // 変換をキャンセルする。
