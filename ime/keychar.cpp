@@ -2020,6 +2020,27 @@ std::wstring mz_convert_to_kansuuji_brief_formal(const std::wstring& str)
     return ret;
 }
 
+// 丸数字変換
+std::wstring mz_convert_to_maru_suuji(const std::wstring& str) {
+    static const LPCWSTR maru_suuji[10] = {
+        L"⓪", L"①", L"②", L"③", L"④", L"⑤", L"⑥", L"⑦", L"⑧", L"⑨"
+    };
+    std::wstring ret;
+    for (size_t ich = 0; ich < str.size(); ++ich) {
+        WCHAR wch = str[ich];
+        if (L'0' <= wch && wch <= L'9') {
+            ret += maru_suuji[wch - L'0'];
+            continue;
+        }
+        if (L'０' <= wch && wch <= L'９') {
+            ret += maru_suuji[wch - L'０'];
+            continue;
+        }
+        ret += wch;
+    }
+    return ret;
+}
+
 // 濁音処理。
 WCHAR mz_dakuon_shori(WCHAR ch0, WCHAR ch1)
 {
@@ -2102,6 +2123,28 @@ std::wstring mz_fullwidth_ascii_to_halfwidth(const std::wstring& str)
             ch += L'a' - L'ａ';
         } else if (L'Ａ' <= ch && ch <= L'Ｚ') {
             ch += L'A' - L'Ａ';
+        } else if (L'０' <= ch && ch <= L'９') {
+            ch += L'0' - L'０';
+        }
+        ret += ch;
+    }
+    return ret;
+}
+
+// 半角英数から全角への文字列変換。
+std::wstring mz_halfwidth_ascii_to_fullwidth(const std::wstring& str)
+{
+    std::wstring ret;
+    const size_t count = str.size();
+    wchar_t ch;
+    for (size_t i = 0; i < count; ++i) {
+        ch = str[i];
+        if (L'a' <= ch && ch <= L'z') {
+            ch += L'ａ' - L'a';
+        } else if (L'A' <= ch && ch <= L'Z') {
+            ch += L'Ａ' - L'A';
+        } else if (L'0' <= ch && ch <= L'9') {
+            ch += L'０' - L'0';
         }
         ret += ch;
     }

@@ -2008,19 +2008,26 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
             fields[I_FIELD_HINSHI].resize(1);
             fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
-            fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+            fields[I_FIELD_POST] = mz_fullwidth_ascii_to_halfwidth(fields[I_FIELD_PRE]);
             DoMeishi(saved, fields);
+
+            if (!Config_GetDWORD(L"bNoFullwidthAscii", FALSE)) { // 全角ASCIIを使う？
+                fields[I_FIELD_POST] = mz_halfwidth_ascii_to_fullwidth(fields[I_FIELD_PRE]);
+                DoMeishi(saved, fields, +10);
+            }
 
             // 全部が数字なら特殊な変換を行う。
             if (mz_are_all_chars_numeric(fields[I_FIELD_PRE])) {
                 fields[I_FIELD_POST] = mz_convert_to_kansuuji(fields[I_FIELD_PRE]);
-                DoMeishi(saved, fields);
+                DoMeishi(saved, fields, +50);
                 fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(fields[I_FIELD_PRE]);
-                DoMeishi(saved, fields);
+                DoMeishi(saved, fields, +50);
                 fields[I_FIELD_POST] = mz_convert_to_kansuuji_formal(fields[I_FIELD_PRE]);
-                DoMeishi(saved, fields);
+                DoMeishi(saved, fields, +60);
                 fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(fields[I_FIELD_PRE]);
-                DoMeishi(saved, fields);
+                DoMeishi(saved, fields, +60);
+                fields[I_FIELD_POST] = mz_convert_to_maru_suuji(fields[I_FIELD_PRE]);
+                DoMeishi(saved, fields, +70);
             }
 
             // 郵便番号変換。

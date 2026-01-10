@@ -363,6 +363,8 @@ std::wstring mz_lcmap(const std::wstring& str, DWORD dwFlags);
 std::wstring mz_hiragana_to_typing(std::wstring hiragana);
 // convert fullwidth ascii to halfwidth
 std::wstring mz_fullwidth_ascii_to_halfwidth(const std::wstring& str);
+// convert halfwidth ascii to fullwidth
+std::wstring mz_halfwidth_ascii_to_fullwidth(const std::wstring& str);
 
 // is the character hiragana?
 BOOL mz_is_hiragana(WCHAR ch);
@@ -382,13 +384,14 @@ BOOL mz_is_common_use_kanji(WCHAR ch);
 BOOL mz_is_fullwidth_ascii(WCHAR ch);
 // are all the characters numeric?
 BOOL mz_are_all_chars_numeric(const std::wstring& str);
-// convert to kansuuji (Kanji number)
+// convert numeric
 std::wstring mz_convert_to_kansuuji_1(wchar_t ch, size_t digit_level);
 std::wstring mz_convert_to_kansuuji_4(const std::wstring& halfwidth);
 std::wstring mz_convert_to_kansuuji(const std::wstring& str);
 std::wstring mz_convert_to_kansuuji_brief(const std::wstring& str);
 std::wstring mz_convert_to_kansuuji_formal(const std::wstring& str);
 std::wstring mz_convert_to_kansuuji_brief_formal(const std::wstring& str);
+std::wstring mz_convert_to_maru_suuji(const std::wstring& str);
 // ピリオドか？
 BOOL mz_is_period(WCHAR ch);
 // カンマか？
