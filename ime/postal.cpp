@@ -41,6 +41,8 @@ std::wstring mz_convert_postal_code(const std::wstring& code)
 
     if (!FindAppFile(postal, L"postal.dat") &&
         !FindAppFile(postal, L"res\\postal.dat") &&
+		!FindLocalFile(postal, L"postal.dat") &&
+		!FindLocalFile(postal, L"res\\postal.dat") &&
         !Config_GetSz(L"PostalDictPathName", postal))
     {
         return ret; // 郵便番号データのパス名を取得できない？
