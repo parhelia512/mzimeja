@@ -1720,6 +1720,7 @@ void Lattice::SetSymbols() {
         L"した",        // IDS_DOWN
         L"ひだり",      // IDS_LEFT
         L"みぎ",        // IDS_RIGHT
+        L"や",          // IDS_ARROWS2
     };
     for (size_t i = 0; i < _countof(s_words); ++i) {
         if (m_pre == s_words[i]) {
