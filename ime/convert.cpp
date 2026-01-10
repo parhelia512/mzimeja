@@ -713,9 +713,12 @@ INT LatticeNode::WordCost() const
             break;
         
         case HB_SYMBOL:
+            cost += 300;  // 記号類は重い
+            break;
+
         case HB_PERIOD:
         case HB_COMMA:
-            cost += 50;   // 記号類は軽い
+            cost += 50;   // ピリオドとカンマは軽い
             break;
         
         case HB_UNKNOWN:
