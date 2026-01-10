@@ -2014,21 +2014,21 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             DoMeishi(saved, fields);
 
             if (!Config_GetDWORD(L"bNoFullwidthAscii", FALSE)) { // 全角ASCIIを使う？
-                fields[I_FIELD_POST] = mz_halfwidth_ascii_to_fullwidth(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_halfwidth_ascii_to_fullwidth(halfwidth);
                 DoMeishi(saved, fields, +10);
             }
 
             // 全部が数字なら特殊な変換を行う。
             if (mz_are_all_chars_numeric(halfwidth)) {
-                fields[I_FIELD_POST] = mz_convert_to_kansuuji(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji(halfwidth);
                 DoMeishi(saved, fields, +50);
-                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief(halfwidth);
                 DoMeishi(saved, fields, +50);
-                fields[I_FIELD_POST] = mz_convert_to_kansuuji_formal(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_formal(halfwidth);
                 DoMeishi(saved, fields, +60);
-                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_kansuuji_brief_formal(halfwidth);
                 DoMeishi(saved, fields, +60);
-                fields[I_FIELD_POST] = mz_convert_to_maru_suuji(fields[I_FIELD_PRE]);
+                fields[I_FIELD_POST] = mz_convert_to_maru_suuji(halfwidth);
                 DoMeishi(saved, fields, +70);
             }
 
