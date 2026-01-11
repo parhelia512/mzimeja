@@ -3508,6 +3508,7 @@ void Lattice::DoSahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
 
         // 命令形「～しろ」「～じろ」「せよ」「ぜよ」「せい」「ぜい」
         node.katsuyou = MEIREI_KEI;
+        node.deltaCost += 200;
         if (node.gyou == GYOU_ZA) {
             if (lastTwoChars == L"じろ" || lastTwoChars == L"ぜよ" || lastTwoChars == L"ぜい") {
                 node.pre = pre;
@@ -3521,6 +3522,7 @@ void Lattice::DoSahenDoushi(size_t index, const WStrings& fields, INT deltaCost)
                 AddNode(index, node);
             }
         }
+        node.deltaCost -= 200;
     }
 
     if (pre.size() >= 3) {
