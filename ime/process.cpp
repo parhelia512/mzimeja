@@ -63,24 +63,36 @@ DoProcessKey(
     case VK_SPACE: // スペース キー
         if (!bOpen)
             return FALSE; // IMEが閉じている場合は処理しない
-        if (bCtrl) { // Ctrlが押されている？
+        if (bCtrl || bAlt)
+            return FALSE; // CtrlやAltキーが押されている場合も処理しない
+        if (bShift) { // Shift+Space？
             if (bDoAction) {
-                // Ctrl+Spaceは、半角スペース
-                if (bCompStr) {
-                    lpIMC->AddChar(' ', UNICODE_NULL);
-                } else {
-                    TheIME.GenerateMessage(WM_IME_CHAR, L' ', 1);
+                if (Config_GetDWORD(TEXT("bNoFullwidthSpace"), FALSE)) { // 全角スペース禁止？
+                    // 全角スペース全面禁止だと、全角スペースがどうやっても入力できないから、
+                    // Shift+Spaceだけでは特別に認める。
+                    if (bCompStr) {
+                        lpIMC->AddChar(L'　', UNICODE_NULL); // U+3000
+                    } else {
+                        TheIME.GenerateMessage(WM_IME_CHAR, L'　', 1); // U+3000
+                    }
+                } else { // 半角スペース
+                    if (bCompStr) {
+                        lpIMC->AddChar(L' ', UNICODE_NULL);
+                    } else {
+                        TheIME.GenerateMessage(WM_IME_CHAR, L' ', 1);
+                    }
                 }
             }
-        } else { // Ctrlが押されていない？
+        } else { // Shiftが押されていない？
             if (bDoAction) {
                 if (bCompStr) {
-                    lpIMC->Convert(bShift); // 変換
+                    lpIMC->Convert(bShift); // スペースは変換キーの代わりになる
                 } else {
-                    if (Config_GetDWORD(TEXT("bNoFullwidthSpace"), FALSE)) // 全角スペース禁止？
-                        TheIME.GenerateMessage(WM_IME_CHAR, ' ', 1); // 半角スペース (' ')
-                    else
-                        TheIME.GenerateMessage(WM_IME_CHAR, 0x3000, 1); // 全角スペース (U+3000: '　')
+                    if (Config_GetDWORD(TEXT("bNoFullwidthSpace"), FALSE)) { // 全角スペース禁止？
+                        TheIME.GenerateMessage(WM_IME_CHAR, L' ', 1); // 半角スペース
+                    } else {
+                        TheIME.GenerateMessage(WM_IME_CHAR, L'　', 1); // U+3000
+                    }
                 }
             }
         }
