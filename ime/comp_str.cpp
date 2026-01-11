@@ -760,32 +760,13 @@ void LogCompStr::RevertTextForClause(DWORD& iClause)
     if (iClause >= GetClauseCount())
         return;
 
-    // merge adjacent not converted clauses
-    if (iClause > 0) {
-        if (!IsClauseConverted(iClause - 1)) {
-            MergeAt(extra.hiragana_clauses, iClause);
-            MergeAt(extra.typing_clauses, iClause);
-            MergeAt(extra.comp_str_clauses, iClause);
-            comp_clause.erase(comp_clause.begin() + iClause);
-            --iClause;
-        }
-    }
-    if (iClause + 1 < GetClauseCount()) {
-        if (!IsClauseConverted(iClause + 1)) {
-            MergeAt(extra.hiragana_clauses, iClause + 1);
-            MergeAt(extra.typing_clauses, iClause + 1);
-            MergeAt(extra.comp_str_clauses, iClause + 1);
-            comp_clause.erase(comp_clause.begin() + iClause + 1);
-        }
-    }
     // compare old and new string
     std::wstring old_str = extra.comp_str_clauses[iClause];
-    std::wstring str = mz_lcmap(extra.hiragana_clauses[iClause],
-                             LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+    std::wstring str = mz_lcmap(extra.hiragana_clauses[iClause], LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
     DWORD ich = ClauseToCompChar(iClause);
     if (old_str.size() < str.size()) {
         size_t diff = str.size() - old_str.size();
-        std::vector<BYTE> addition(diff, ATTR_CONVERTED);
+        std::vector<BYTE> addition(diff, ATTR_INPUT);
         comp_attr.insert(
                 comp_attr.begin() + ich, addition.begin(), addition.end());
     } else if (old_str.size() > str.size()) {
