@@ -249,8 +249,10 @@ BOOL LoadDictDataFile(const wchar_t *fname, std::vector<DictEntry>& entries)
         entry.tags = fields[I_FIELD_TAGS];
 
         // 辞書形式にする。
-        if (!MakeDictFormat(entry, fields[I_FIELD_HINSHI]))
+        if (!MakeDictFormat(entry, fields[I_FIELD_HINSHI])) {
+            fprintf(stderr, "Line %d: Invalid format\n", lineno);
             continue;
+        }
 
         if (fields[I_FIELD_HINSHI] == L"サ変動詞") {
             pre = entry.pre;
