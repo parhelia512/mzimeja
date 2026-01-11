@@ -131,8 +131,8 @@ public:
         costs_[HB_MEISHI][HB_SETSUZOKU_JOSHI] = 20;  // 名詞→接続助詞
         costs_[HB_MEISHI][HB_FUKU_JOSHI] = 15;  // 名詞→副助詞
         costs_[HB_MEISHI][HB_SHUU_JOSHI] = 30;  // 名詞→終助詞
-        costs_[HB_MEISHI][HB_JODOUSHI] = 25;  // 名詞→助動詞
-        costs_[HB_MEISHI][HB_SETSUBIJI] = 15;  // 名詞→接尾辞: 低コスト
+        costs_[HB_MEISHI][HB_JODOUSHI] = 45;  // 名詞→助動詞
+        costs_[HB_MEISHI][HB_SETSUBIJI] = 30;  // 名詞→接尾辞
 
         // 接頭辞→名詞: 低コスト
         costs_[HB_SETTOUJI][HB_MEISHI] = 15;
@@ -709,7 +709,7 @@ INT LatticeNode::WordCost() const
             break;
 
         case HB_KANGO:
-            cost += 300;  // 漢語は重い
+            cost += 400;  // 漢語は重い
             break;
 
         case HB_SYMBOL:
@@ -750,6 +750,7 @@ INT LatticeNode::WordCost() const
     if (HasTag(L"[非標準]")) cost += 500;  // 非標準語は重い
     if (HasTag(L"[不謹慎]")) cost += 400;  // 不謹慎な単語は重い
     if (HasTag(L"[数単位]")) cost -= 20;   // 数値単位は優先
+    if (HasTag(L"[動植物]")) cost += 80;  // 動植物は重い
 
     // 長さによる調整（長い単語を優先）
     if (pre.size() >= 4) cost -= 50;
@@ -789,7 +790,7 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
         }
         // 未然形→助動詞（「ない」「れる」など）
         if (katsuyou == MIZEN_KEI && other.IsJodoushi()) {
-            cost -= 15;
+            cost -= 35;
         }
         // 仮定形→助詞「ば」
         if (katsuyou == KATEI_KEI && other.IsJoshi()) {
