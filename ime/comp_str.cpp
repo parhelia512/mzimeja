@@ -760,9 +760,11 @@ void LogCompStr::RevertTextForClause(DWORD& iClause)
     if (iClause >= GetClauseCount())
         return;
 
-    // compare old and new string
+    // 現在の文節のみをひらがなに戻す
     std::wstring old_str = extra.comp_str_clauses[iClause];
     std::wstring str = mz_lcmap(extra.hiragana_clauses[iClause], LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+
+    // comp_attr のサイズを調整
     DWORD ich = ClauseToCompChar(iClause);
     if (old_str.size() < str.size()) {
         size_t diff = str.size() - old_str.size();
@@ -772,14 +774,13 @@ void LogCompStr::RevertTextForClause(DWORD& iClause)
         size_t diff = old_str.size() - str.size();
         comp_attr.erase(comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
     }
-    // update composition string
+    // 未確定文字列を更新
     extra.comp_str_clauses[iClause] = str;
     UpdateCompStr();
-    // set cursor position
+    // カーソル位置を設定
     dwCursorPos = ClauseToCompChar(iClause + 1);
-    // set delta start
     dwDeltaStart = ClauseToCompChar(iClause);
-    // untarget
+    // 現在の文節のみを未確定状態に設定
     SetClauseAttr(iClause, ATTR_INPUT);
 }
 
