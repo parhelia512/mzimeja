@@ -71,6 +71,59 @@ std::wstring lcmap(const std::wstring& str, DWORD dwFlags) {
     return szBuf;
 }
 
+template <typename T_STR_CONTAINER>
+void
+str_split_2(T_STR_CONTAINER& container,
+    const typename T_STR_CONTAINER::value_type& str,
+    const typename T_STR_CONTAINER::value_type& sep)
+{
+    container.clear();
+    size_t i = 0, k = str.find(sep);
+    while (k != T_STR_CONTAINER::value_type::npos)
+    {
+        container.push_back(str.substr(i, k - i));
+        i = k + sep.size();
+        k = str.find(sep, i);
+    }
+    container.push_back(str.substr(i));
+}
+
+// タグをチェックする
+BOOL CheckTags(const std::wstring& tags) {
+    if (tags.empty())
+        return true;
+    if (tags[0] != L'[' || tags[tags.size() - 1] != L']')
+        return false;
+    std::wstring str = tags.substr(1, tags.size() - 2);
+    std::vector<std::wstring> items;
+    str_split_2(items, str, L"][");
+    for (size_t iItem = 0; iItem < items.size(); ++iItem) {
+        const std::wstring& item = items[iItem];
+        if (item != L"非標準" &&
+            item != L"動植物" &&
+            item != L"不謹慎" &&
+            item != L"数単位" &&
+            item != L"数詞" &&
+            item != L"駅名" &&
+            item != L"人名" &&
+            item != L"地名" &&
+            item != L"未然形に連結" &&
+            item != L"終止形に連結" &&
+            item != L"連用形に連結" &&
+            item != L"回避策" &&
+            item != L"優先+" &&
+            item != L"優先++" &&
+            item != L"優先-" &&
+            item != L"優先--" &&
+            item != L"慣用句")
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // エントリーを辞書形式にする。
 bool MakeDictFormat(DictEntry& entry, const std::wstring& strBunrui)
 {
@@ -112,6 +165,9 @@ bool MakeDictFormat(DictEntry& entry, const std::wstring& strBunrui)
     } else {
         return false;
     }
+
+    if (!CheckTags(entry.tags))
+        return false;
 
     size_t i;
     switch (entry.bunrui) {
