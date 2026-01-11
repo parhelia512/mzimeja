@@ -3041,6 +3041,7 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
 
     // 一段動詞の未然形。「寄せる」→「寄せ(ない/よう)」、「見る」→「見(ない/よう)」
     // 一段動詞の連用形。「寄せる」→「寄せ(ます/た/て)」、「見る」→「見(ます/た/て)」
+    // 一段動詞＋「ちゃう」。「寄せる」→「寄せ(ちゃう/ちゃっ)」
     do {
         node.pre = fields[I_FIELD_PRE];
         node.post = fields[I_FIELD_POST];
@@ -3114,6 +3115,21 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             node.post = fields[I_FIELD_POST] + L"ない";
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
+        }
+        // 終止形「見ちゃう」
+        if (tail.size() >= 3 && tail.substr(0, 3) == L"ちゃう") {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + L"ちゃう";
+            node.post = fields[I_FIELD_POST] + L"ちゃう";
+            node.katsuyou = SHUUSHI_KEI;
+            AddNode(index, node);
+            if (tail.size() >= 4 && tail.substr(3, 1) == L"よ") {
+                node.pre += L"よ";
+                node.post += L"よ";
+                AddNode(index, node);
+            }
+            node.bunrui = old_bunrui; // 元に戻す
         }
         // 終止形「見よう」「見ようね」「見ようや」「見ような」「見ようぞ」
         if (tail.size() >= 2 && tail[0] == L'よ' && tail[1] == L'う') {
