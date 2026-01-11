@@ -366,6 +366,7 @@ struct InputContext : public INPUTCONTEXT {
     void Escape();
     void CancelText();
     void RevertText();
+    void RevertTextAll();
     void DeleteChar(BOOL bBackSpace = FALSE);
     BOOL Convert(BOOL bShift);
     BOOL OpenCandidate();

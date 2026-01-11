@@ -852,7 +852,11 @@ void InputContext::Escape()
     if (comp.IsClauseConverted()) { // 現在の文節が変換済みなら
         RevertText(); // ひらがなに戻す。
     } else {
-        CancelText(); // 変換をキャンセルする。
+        if (comp.IsBeingConverted()) {
+            RevertTextAll();
+        } else {
+            CancelText(); // 変換をキャンセルする。
+        }
     }
 } // InputContext::Escape
 
@@ -871,7 +875,32 @@ void InputContext::CancelText()
     TheIME.GenerateMessage(WM_IME_ENDCOMPOSITION);
 } // InputContext::CancelText
 
-// 変換を確定しない状態に戻す。
+// すべての変換を確定しない状態に戻す。
+void InputContext::RevertTextAll() {
+    // 候補を閉じる。
+    CloseCandidate();
+
+    // 未確定文字列の論理データを取得。
+    LogCompStr comp;
+    CompStr *lpCompStr = LockCompStr();
+    if (lpCompStr) {
+        lpCompStr->GetLog(comp);
+        UnlockCompStr();
+    }
+
+    // TODO: 読みを取得
+    std::wstring read_str = comp.comp_read_str;
+
+    // 未確定文字列をリセットする。
+    hCompStr = CompStr::ReCreate(hCompStr, NULL);
+
+    // 文字を追加し直す
+    for (size_t ich = 0; ich < read_str.size(); ++ich) {
+        AddChar(read_str[ich], read_str[ich]);
+    }
+}
+
+// 文節の変換を確定しない状態に戻す。
 void InputContext::RevertText()
 {
     // 候補を閉じる。
@@ -901,7 +930,7 @@ void InputContext::RevertText()
     // 未確定文字列のメッセージを生成。
     LPARAM lParam = GCS_COMPALL | GCS_CURSORPOS;
     TheIME.GenerateMessage(WM_IME_COMPOSITION, 0, lParam);
-} // InputContext::RevertText
+}
 
 // 文字を削除する。
 void InputContext::DeleteChar(BOOL bBackSpace)
