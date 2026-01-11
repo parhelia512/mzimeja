@@ -767,12 +767,10 @@ void LogCompStr::RevertTextForClause(DWORD& iClause)
     if (old_str.size() < str.size()) {
         size_t diff = str.size() - old_str.size();
         std::vector<BYTE> addition(diff, ATTR_INPUT);
-        comp_attr.insert(
-                comp_attr.begin() + ich, addition.begin(), addition.end());
+        comp_attr.insert(comp_attr.begin() + ich, addition.begin(), addition.end());
     } else if (old_str.size() > str.size()) {
         size_t diff = old_str.size() - str.size();
-        comp_attr.erase(
-                comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
+        comp_attr.erase(comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
     }
     // update composition string
     extra.comp_str_clauses[iClause] = str;
