@@ -755,7 +755,7 @@ void LogCompStr::DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv)
     }
 } // LogCompStr::DeleteChar
 
-void LogCompStr::RevertText(DWORD& iClause)
+void LogCompStr::RevertTextForClause(DWORD& iClause)
 {
     if (iClause >= GetClauseCount())
         return;
@@ -804,10 +804,10 @@ void LogCompStr::RevertText(DWORD& iClause)
     SetClauseAttr(iClause, ATTR_INPUT);
 }
 
-void LogCompStr::RevertText()
+void LogCompStr::RevertTextForClause()
 {
-    RevertText(extra.iClause);
-} // LogCompStr::RevertText
+    RevertTextForClause(extra.iClause);
+}
 
 void LogCompStr::MakeResult()
 {

@@ -850,7 +850,7 @@ void InputContext::Escape()
     }
 
     if (comp.IsClauseConverted()) { // 現在の文節が変換済みなら
-        RevertText(); // ひらがなに戻す。
+        RevertTextForClause(); // ひらがなに戻す。
     } else {
         if (comp.IsBeingConverted()) {
             RevertTextAll();
@@ -888,8 +888,11 @@ void InputContext::RevertTextAll() {
         UnlockCompStr();
     }
 
-    // TODO: 読みを取得
-    std::wstring read_str = comp.comp_read_str;
+    // 読みを取得
+    std::wstring read_str;
+    for (DWORD iClause = 0; iClause < comp.extra.hiragana_clauses.size(); ++iClause) {
+        read_str += comp.extra.hiragana_clauses[iClause];
+    }
 
     // 未確定文字列をリセットする。
     hCompStr = CompStr::ReCreate(hCompStr, NULL);
@@ -901,7 +904,7 @@ void InputContext::RevertTextAll() {
 }
 
 // 文節の変換を確定しない状態に戻す。
-void InputContext::RevertText()
+void InputContext::RevertTextForClause()
 {
     // 候補を閉じる。
     CloseCandidate();
@@ -921,7 +924,7 @@ void InputContext::RevertText()
 
     // 文節をひらがなに戻す。
     comp.AssertValid();
-    comp.RevertText();
+    comp.RevertTextForClause();
     comp.AssertValid();
 
     // 未確定文字列の再作成。

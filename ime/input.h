@@ -137,8 +137,8 @@ struct LogCompStr {
 
     void AddChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv);
     void DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv);
-    void RevertText();
-    void RevertText(DWORD& iClause);
+    void RevertTextForClause();
+    void RevertTextForClause(DWORD& iClause);
     void MakeResult();
 
     BOOL MoveLeft();
@@ -365,7 +365,7 @@ struct InputContext : public INPUTCONTEXT {
     void AddChar(WCHAR chTyped, WCHAR chTranslated);
     void Escape();
     void CancelText();
-    void RevertText();
+    void RevertTextForClause();
     void RevertTextAll();
     void DeleteChar(BOOL bBackSpace = FALSE);
     BOOL Convert(BOOL bShift);

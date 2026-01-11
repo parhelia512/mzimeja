@@ -187,7 +187,7 @@ BOOL WINAPI NotifyIME(HIMC hIMC, DWORD dwAction, DWORD dwIndex, DWORD dwValue)
         case CPS_REVERT: // do revert
             lpIMC = TheIME.LockIMC(hIMC);
             if (lpIMC) {
-                lpIMC->RevertText();
+                lpIMC->RevertTextForClause();
                 TheIME.UnlockIMC(hIMC);
             }
             ret = TRUE;
