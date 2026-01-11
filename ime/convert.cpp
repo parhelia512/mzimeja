@@ -2482,6 +2482,12 @@ void Lattice::DoIkeiyoushi(size_t index, const WStrings& fields, INT deltaCost)
         AddNode(index, node);
     } while (0);
     do {
+        if (tail.empty() || tail[0] != L'げ') break;
+        node.pre = fields[I_FIELD_PRE] + L'げ';
+        node.post = fields[I_FIELD_POST] + L'げ';
+        AddNode(index, node);
+    } while (0);
+    do {
         if (tail.empty() || tail[0] != L'め') break;
         node.pre = fields[I_FIELD_PRE] + L'め';
         node.post = fields[I_FIELD_POST] + L'め';
