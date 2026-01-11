@@ -149,7 +149,7 @@ void IME_AutoTest(void)
     DoPhrases();
 }
 
-BOOL OnOK(HWND hwnd)
+BOOL OnPsh1(HWND hwnd)
 {
     WCHAR szText[1024];
     GetDlgItemTextW(hwnd, edt1, szText, _countof(szText));
@@ -171,10 +171,13 @@ InputDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
-        case IDOK:
-            if (OnOK(hwnd)) {
-                EndDialog(hwnd, IDOK);
+        case psh1:
+            if (OnPsh1(hwnd)) {
+                EndDialog(hwnd, psh1);
             }
+            break;
+        case psh2:
+            EndDialog(hwnd, psh2);
             break;
         case IDCANCEL:
             EndDialog(hwnd, IDCANCEL);
@@ -182,16 +185,6 @@ InputDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
     }
     return 0;
-}
-
-// ダイアログを用いてテストする。
-void IME_ManualTest(void)
-{
-    while (::DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_INPUTBOX),
-                       NULL, InputDialogProc) == IDOK)
-    {
-        ;
-    }
 }
 
 // Unicode版のmain関数。
@@ -216,11 +209,19 @@ int wmain(int argc, wchar_t **argv)
         return 1;
     }
 
-    // マニュアルテスト。
-    IME_ManualTest();
-
-    // 自動テスト。
-    IME_AutoTest();
+    for (;;) {
+        INT_PTR id = ::DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_INPUTBOX), NULL, InputDialogProc);
+        if (id == IDCANCEL) // キャンセルまたは閉じる
+            break;
+        if (id == psh1) { // 手動テスト
+            // もうやった
+            continue;
+        }
+        if (id == psh2) { // 自動テスト
+            // 自動テスト。
+            IME_AutoTest();
+        }
+    }
 
     g_basic_dict.Unload();
     g_name_dict.Unload();
