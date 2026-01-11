@@ -138,6 +138,7 @@ struct LogCompStr {
     void AddChar(WCHAR chTyped, WCHAR chTranslated, DWORD dwConv);
     void DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv);
     void RevertText();
+    void RevertText(DWORD& iClause);
     void MakeResult();
 
     BOOL MoveLeft();
