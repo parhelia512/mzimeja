@@ -160,6 +160,8 @@ struct LogCompStr {
 protected:
     void MergeAt(std::vector<std::wstring>& strs, DWORD istr);
     void UpdateCompStr();
+    void UpdateCompReadStr();
+    void SetClauseReadAttr(DWORD dwClauseIndex, BYTE attr);
 }; // struct LogCompStr
 
 inline void SetClause(DWORD *lpdw, DWORD num) {

@@ -755,33 +755,60 @@ void LogCompStr::DeleteChar(BOOL bBackSpace /* = FALSE*/, DWORD dwConv)
     }
 } // LogCompStr::DeleteChar
 
+// 読み仮名文字列を更新する
+void LogCompStr::UpdateCompReadStr()
+{
+    comp_read_str. clear();
+    const size_t count = extra.hiragana_clauses.size();
+    comp_read_clause.resize(count + 1);
+
+    for (size_t i = 0; i < count; ++i) {
+        comp_read_clause[i] = (DWORD)comp_read_str.size();
+        // ひらがなをカタカナ・半角に変換して追加
+        comp_read_str += mz_lcmap(extra.hiragana_clauses[i],
+                                 LCMAP_HALFWIDTH | LCMAP_KATAKANA);
+    }
+    comp_read_clause[count] = (DWORD)comp_read_str.size();
+}
+
+// 読み仮名の文節属性を設定
+void LogCompStr::SetClauseReadAttr(DWORD dwClauseIndex, BYTE attr)
+{
+    if (dwClauseIndex < comp_read_clause.size() - 1) {
+        DWORD ich0 = comp_read_clause[dwClauseIndex];
+        DWORD ich1 = comp_read_clause[dwClauseIndex + 1];
+        for (DWORD i = ich0; i < ich1; ++i) {
+            if (i < comp_read_attr.size()) {
+                comp_read_attr[i] = attr;
+            }
+        }
+    }
+}
+
 void LogCompStr::RevertTextForClause(DWORD& iClause)
 {
     if (iClause >= GetClauseCount())
         return;
 
-    // 現在の文節のみをひらがなに戻す
-    std::wstring old_str = extra.comp_str_clauses[iClause];
-    std::wstring str = mz_lcmap(extra.hiragana_clauses[iClause], LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
+    // 現在の文節をひらがなに戻す
+    extra.comp_str_clauses[iClause] = mz_lcmap(extra. hiragana_clauses[iClause],
+                                               LCMAP_FULLWIDTH | LCMAP_HIRAGANA);
 
-    // comp_attr のサイズを調整
-    DWORD ich = ClauseToCompChar(iClause);
-    if (old_str.size() < str.size()) {
-        size_t diff = str.size() - old_str.size();
-        std::vector<BYTE> addition(diff, ATTR_INPUT);
-        comp_attr.insert(comp_attr.begin() + ich, addition.begin(), addition.end());
-    } else if (old_str.size() > str.size()) {
-        size_t diff = old_str.size() - str.size();
-        comp_attr.erase(comp_attr.begin() + ich, comp_attr.begin() + ich + diff);
-    }
-    // 未確定文字列を更新
-    extra.comp_str_clauses[iClause] = str;
-    UpdateCompStr();
+    // すべての文字列を再構築
+    UpdateCompStr();        // comp_str と comp_clause を更新
+    UpdateCompReadStr();    // comp_read_str と comp_read_clause を更新
+
+    // 属性を再設定（comp_attr のサイズを調整）
+    comp_attr.assign(comp_str.size(), ATTR_CONVERTED);
+    comp_read_attr.assign(comp_read_str.size(), ATTR_CONVERTED);
+
+    // 現在の文節のみを未確定状態に設定
+    SetClauseAttr(iClause, ATTR_INPUT);
+    SetClauseReadAttr(iClause, ATTR_INPUT);
+
     // カーソル位置を設定
     dwCursorPos = ClauseToCompChar(iClause + 1);
     dwDeltaStart = ClauseToCompChar(iClause);
-    // 現在の文節のみを未確定状態に設定
-    SetClauseAttr(iClause, ATTR_INPUT);
 }
 
 void LogCompStr::RevertTextForClause()

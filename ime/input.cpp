@@ -906,8 +906,10 @@ void InputContext::RevertTextAll() {
 // 文節の変換を確定しない状態に戻す。
 void InputContext::RevertTextForClause()
 {
-    // 候補を閉じる。
-    CloseCandidate();
+    if (HasCandInfo()) { // 候補があれば
+        // 候補を閉じるメッセージを生成。
+        TheIME.GenerateMessage(WM_IME_NOTIFY, IMN_CLOSECANDIDATE, 1);
+    }
 
     // 未確定文字列の論理データを取得。
     LogCompStr comp;
