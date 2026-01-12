@@ -2775,6 +2775,18 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
 				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
 				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
 				AddNode(index, node);
+			} else if (tail.size() >= 4 && tail.substr(1, 3) == L"ちゃえ") {
+				// 命令形「～ちゃえ」
+				node.katsuyou = MEIREI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
+			} else if (tail.size() >= 4 && tail.substr(1, 3) == L"じゃえ") {
+				// 命令形「～じゃえ」
+				node.katsuyou = MEIREI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
 			}
 		}
     }
@@ -3056,6 +3068,16 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             node.pre = fields[I_FIELD_PRE] + L"ちゃう";
             node.post = fields[I_FIELD_POST] + L"ちゃう";
             node.katsuyou = SHUUSHI_KEI;
+            AddNode(index, node);
+            node.bunrui = old_bunrui; // 元に戻す
+        }
+        // 命令形「見ちゃえ」
+        if (tail.size() >= 3 && tail.substr(0, 3) == L"ちゃえ") {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + L"ちゃえ";
+            node.post = fields[I_FIELD_POST] + L"ちゃえ";
+            node.katsuyou = MEIREI_KEI;
             AddNode(index, node);
             node.bunrui = old_bunrui; // 元に戻す
         }
