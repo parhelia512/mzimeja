@@ -2843,6 +2843,56 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
             node.post = fields[I_FIELD_POST] + ch2 + tail[1];
             AddNode(index, node);
+        } else {
+            if (tail.size() >= 5 && (tail.substr(1, 4) == L"ちゃった" || tail.substr(1, 4) == L"ちまった")) {
+                // 終止形「～ちゃった」「～ちまった」
+                node.katsuyou = SHUUSHI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 5 && (tail.substr(1, 4) == L"じゃった" || tail.substr(1, 4) == L"じまった")) {
+                // 終止形「～じゃった」「～じまった」
+                node.katsuyou = SHUUSHI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃう" || tail.substr(1, 3) == L"ちまう")) {
+                // 終止形「～ちゃう」「～ちまう」
+                node.katsuyou = SHUUSHI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃう" || tail.substr(1, 3) == L"じまう")) {
+                // 終止形「～じゃう」「～じまう」
+                node.katsuyou = SHUUSHI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃえ" || tail.substr(1, 3) == L"ちまえ")) {
+                // 命令形「～ちゃえ」「～ちまえ」
+                node.katsuyou = MEIREI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃえ" || tail.substr(1, 3) == L"じまえ")) {
+                // 命令形「～じゃえ」「～じまえ」
+                node.katsuyou = MEIREI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃい" || tail.substr(1, 3) == L"ちまい")) {
+                // 命令形「～ちゃい」「～ちまい」
+                node.katsuyou = MEIREI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            } else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃい" || tail.substr(1, 3) == L"じまい")) {
+                // 命令形「～じゃい」「～じまい」
+                node.katsuyou = MEIREI_KEI;
+                node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+                node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+                AddNode(index, node);
+            }
         }
     }
 
@@ -3116,36 +3166,46 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
         }
-        // 終止形「見ちゃう」
-        if (tail.size() >= 3 && tail.substr(0, 3) == L"ちゃう") {
+        // 終止形「見ちゃう」「見ちまえ」
+        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃう" || tail.substr(0, 3) == L"ちまう")) {
             HinshiBunrui old_bunrui = node.bunrui; // 保存
             node.bunrui = HB_GODAN_DOUSHI;
-            node.pre = fields[I_FIELD_PRE] + L"ちゃう";
-            node.post = fields[I_FIELD_POST] + L"ちゃう";
+            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
+            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
-            if (tail.size() >= 4 && tail.substr(3, 1) == L"よ") {
-                node.pre += L"よ";
-                node.post += L"よ";
-                AddNode(index, node);
-            }
             node.bunrui = old_bunrui; // 元に戻す
         }
-        // 終止形「見よう」「見ようね」「見ようや」「見ような」「見ようぞ」
-        if (tail.size() >= 2 && tail[0] == L'よ' && tail[1] == L'う') {
-            node.katsuyou = SHUUSHI_KEI;
-            node.pre = fields[I_FIELD_PRE] + L"よう";
-            node.post = fields[I_FIELD_POST] + L"よう";
+        // 命令形「見ちゃえ」「見ちまえ」
+        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃえ" || tail.substr(0, 3) == L"ちまえ")) {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
+            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
+            node.katsuyou = MEIREI_KEI;
             AddNode(index, node);
-
-            if (tail.size() >= 3 &&
-                (tail[2] == L'ね' || tail[2] == L'や' || tail[2] == L'な' || tail[2] == L'ぞ'))
-            {
-                node.pre += tail[2];
-                node.post += tail[2];
-                AddNode(index, node);
-            }
+            node.bunrui = old_bunrui; // 元に戻す
         }
+        // 命令形「見ちゃい」「見ちまい」
+        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃい" || tail.substr(0, 3) == L"ちまい")) {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
+            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
+            node.katsuyou = MEIREI_KEI;
+            AddNode(index, node);
+            node.bunrui = old_bunrui; // 元に戻す
+        }
+        // 終止形「見ちゃった」「見ちまった」
+        if (tail.size() >= 4 && (tail.substr(0, 4) == L"ちゃった" || tail.substr(0, 4) == L"ちまった")) {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 4);
+            node.post = fields[I_FIELD_POST] + tail.substr(0, 4);
+            node.katsuyou = SHUUSHI_KEI;
+            AddNode(index, node);
+            node.bunrui = old_bunrui; // 元に戻す
+         }
     } while (0);
 
     // 「～やすい」「～にくい」「～づらい」で、い形容詞の形。
