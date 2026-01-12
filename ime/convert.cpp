@@ -2263,6 +2263,8 @@ void Lattice::AddComplement()
     size_t lastIndex = GetLastLinkedIndex();
     if (lastIndex >= m_pre.size())
         return;
+    if (ARRAY_AT(m_chunks, lastIndex).empty())
+        return;
 
     lastIndex += ARRAY_AT_AT(m_chunks, lastIndex, 0)->pre.size();
 
