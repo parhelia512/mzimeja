@@ -116,6 +116,9 @@ public:
             costs_[HB_HEAD][i] = 0;
             costs_[i][HB_TAIL] = 0;
         }
+        // だが、例外もある
+        costs_[HB_HEAD][HB_FUKU_JOSHI] = 200;
+        costs_[HB_HEAD][HB_KAKU_JOSHI] = 100;
 
         // 句読点・記号への接続は低コスト
         for (size_t i = 0; i <= HB_MAX; ++i) {
@@ -771,8 +774,8 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
 {
     HinshiBunrui h0 = bunrui, h1 = other.bunrui;
 
-    // 特殊なケース（HEAD, TAIL, 未知の品詞）
-    if (h0 == HB_HEAD || h1 == HB_TAIL)
+    // 特殊なケース（TAIL）
+    if (h1 == HB_TAIL)
         return 0;
     if (h0 == HB_UNKNOWN || h1 == HB_UNKNOWN)
         return 0;  // 未知の品詞は接続を許容
@@ -790,7 +793,7 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
         }
         // 未然形→助動詞（「ない」「れる」など）
         if (katsuyou == MIZEN_KEI && other.IsJodoushi()) {
-            cost -= 35;
+            cost -= 100;
         }
         // 仮定形→助詞「ば」
         if (katsuyou == KATEI_KEI && other.IsJoshi()) {
@@ -2600,6 +2603,7 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
     ASSERT(fields.size() == NUM_FIELDS);
     ASSERT(fields[I_FIELD_PRE].size());
     size_t length = fields[I_FIELD_PRE].size();
+
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
