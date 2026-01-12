@@ -422,8 +422,15 @@ void LogCompStr::MakeHankaku()
 // 現在の文節を全角英数にする。
 void LogCompStr::MakeZenEisuu()
 {
-    std::wstring str =
-            mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
+    std::wstring str = mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
+    BOOL bCommaPeriod = Config_GetDWORD(L"bCommaPeriod", FALSE);
+    if (bCommaPeriod) {
+        str_replace_all(str, L".", L"．");
+        str_replace_all(str, L",", L"，");
+    } else {
+        str_replace_all(str, L".", L"。");
+        str_replace_all(str, L",", L"、");
+    }
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
@@ -431,8 +438,13 @@ void LogCompStr::MakeZenEisuu()
 // 現在の文節を半角英数にする。
 void LogCompStr::MakeHanEisuu()
 {
-    std::wstring str =
-            mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_HALFWIDTH);
+    std::wstring str = mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_HALFWIDTH);
+    str_replace_all(str, L"。", L".");
+    str_replace_all(str, L"、", L",");
+    str_replace_all(str, L"｡", L".");
+    str_replace_all(str, L"､", L",");
+    str_replace_all(str, L"．", L".");
+    str_replace_all(str, L"，", L",");
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
