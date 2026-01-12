@@ -2968,7 +2968,7 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         WStrings new_fields = fields;
         new_fields[I_FIELD_PRE] += ch;
         new_fields[I_FIELD_POST] += ch;
-        DoIchidanDoushi(index, new_fields, deltaCost + 30);
+        DoIchidanDoushi(index, new_fields, deltaCost + 100);
     } while (0);
 } // Lattice::DoGodanDoushi
 
