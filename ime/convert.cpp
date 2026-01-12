@@ -2750,7 +2750,33 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
             node.post = fields[I_FIELD_POST] + ch2 + tail[1];
             AddNode(index, node);
-        }
+		} else {
+			if (tail.size() >= 5 && tail.substr(1, 4) == L"ちゃった") {
+				// 終止形「～ちゃった」
+				node.katsuyou = SHUUSHI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
+			} else if (tail.size() >= 5 && tail.substr(1, 4) == L"じゃった") {
+				// 終止形「～じゃった」
+				node.katsuyou = SHUUSHI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
+			} else if (tail.size() >= 4 && tail.substr(1, 3) == L"ちゃう") {
+				// 終止形「～ちゃう」
+				node.katsuyou = SHUUSHI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
+			} else if (tail.size() >= 4 && tail.substr(1, 3) == L"じゃう") {
+				// 終止形「～じゃう」
+				node.katsuyou = SHUUSHI_KEI;
+				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
+				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
+				AddNode(index, node);
+			}
+		}
     }
 
     // 五段動詞の終止形。「動く」「聞き取る」
@@ -3031,11 +3057,16 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             node.post = fields[I_FIELD_POST] + L"ちゃう";
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
-            if (tail.size() >= 4 && tail.substr(3, 1) == L"よ") {
-                node.pre += L"よ";
-                node.post += L"よ";
-                AddNode(index, node);
-            }
+            node.bunrui = old_bunrui; // 元に戻す
+        }
+        // 終止形「見ちゃった」
+        if (tail.size() >= 4 && tail.substr(0, 4) == L"ちゃった") {
+            HinshiBunrui old_bunrui = node.bunrui; // 保存
+            node.bunrui = HB_GODAN_DOUSHI;
+            node.pre = fields[I_FIELD_PRE] + L"ちゃった";
+            node.post = fields[I_FIELD_POST] + L"ちゃった";
+            node.katsuyou = SHUUSHI_KEI;
+            AddNode(index, node);
             node.bunrui = old_bunrui; // 元に戻す
         }
         // 終止形「見よう」「見ようね」「見ようや」「見ような」「見ようぞ」
