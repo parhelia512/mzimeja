@@ -151,16 +151,19 @@ void IME_AutoTest(void)
     DoPhrases();
 }
 
+struct INPUT_DATA {
+    WCHAR text[512];
+};
+
 BOOL OnPsh1(HWND hwnd)
 {
-    WCHAR szText[1024];
-    GetDlgItemTextW(hwnd, edt1, szText, _countof(szText));
-    StrTrimW(szText, L" \t\r\n");
-    if (szText[0] == 0) {
+    INPUT_DATA* data = (INPUT_DATA*)GetWindowLongPtr(hwnd, DWL_USER);
+    GetDlgItemTextW(hwnd, edt1, data->text, _countof(data->text));
+    StrTrimW(data->text, L" \t\r\n");
+    if (data->text[0] == 0) {
         MessageBoxW(hwnd, L"空ではない文字列を入力して下さい", NULL, 0);
         return FALSE;
     }
-    DoEntry(szText, NULL, TRUE);
     return TRUE;
 }
 
@@ -169,6 +172,7 @@ InputDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg) {
     case WM_INITDIALOG:
+        SetWindowLongPtr(hwnd, DWL_USER, lParam);
         SetDlgItemText(hwnd, edt1, L"かのじょはにほんごがおじょうずですね。");
         return TRUE;
     case WM_COMMAND:
@@ -214,11 +218,13 @@ int wmain(int argc, wchar_t **argv)
     }
 
     for (;;) {
-        INT_PTR id = ::DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_INPUTBOX), NULL, InputDialogProc);
+        INPUT_DATA data;
+        INT_PTR id = ::DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_INPUTBOX),
+                                      NULL, InputDialogProc, (LPARAM)&data);
         if (id == IDCANCEL) // キャンセルまたは閉じる
             break;
         if (id == psh1) { // 手動テスト
-            // もうやった
+            DoEntry(data.text, NULL, TRUE);
             continue;
         }
         if (id == psh2) { // 自動テスト
