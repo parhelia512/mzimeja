@@ -5,6 +5,8 @@
 #include <shlobj.h>
 #include <strsafe.h>
 #include <clocale>
+#include <io.h>
+#include <fcntl.h>
 #include "resource.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -15,18 +17,18 @@ void DoEntry(const std::wstring& pre, LPCWSTR post = NULL, BOOL show_graphviz = 
     MzConvResult result;
     TheIME.ConvertMultiClause(pre, result, show_graphviz);
     std::wstring got = result.get_str();
-    printf("%ls\n\n", got.c_str());
+    wprintf(L"%ls\n\n", got.c_str());
     if (post)
     {
         if (got != post)
         {
-            printf("%ls\n\n", result.get_str(true).c_str());
+            wprintf(L"%ls\n\n", result.get_str(true).c_str());
             ASSERT(0);
         }
     }
     else
     {
-        printf("%ls\n\n", result.get_str(true).c_str());
+        wprintf(L"%ls\n\n", result.get_str(true).c_str());
     }
 }
 
@@ -124,14 +126,14 @@ void DoPhrases(void)
 // Vibratoエンジンのテスト
 void TestVibratoEngine(void)
 {
-    printf("=== Vibrato Engine Test ===\n");
-    
+    wprintf(L"=== Vibrato Engine Test ===\n");
+
     // Vibratoエンジンはオプションなので、初期化失敗は正常な動作
     // The Vibrato engine is optional, so initialization failure is normal behavior
-    printf("Vibrato support is compiled in, but may not be initialized.\n");
-    printf("This is expected if the Vibrato dictionary is not available.\n");
-    
-    printf("✓ Vibrato integration test passed (stub implementation)\n\n");
+    wprintf(L"Vibrato support is compiled in, but may not be initialized.\n");
+    wprintf(L"This is expected if the Vibrato dictionary is not available.\n");
+
+    wprintf(L"✓ Vibrato integration test passed (stub implementation)\n\n");
 }
 #endif
 
@@ -190,7 +192,9 @@ InputDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // Unicode版のmain関数。
 int wmain(int argc, wchar_t **argv)
 {
-    // Unicode出力を可能に。
+    // wprintfの出力を正しく行うためのおまじない
+    _setmode(_fileno(stdout), _O_U8TEXT);
+    SetConsoleOutputCP(CP_UTF8);
     std::setlocale(LC_CTYPE, "");
 
     LPCTSTR pathname = mz_find_local_file(L"basic.dic");
