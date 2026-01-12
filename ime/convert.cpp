@@ -1872,104 +1872,7 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
 
     WStrings fields, records;
     for (; index < length; ++index) {
-        // periods (。。。)
-        if (mz_is_period(m_pre[index])) {
-            size_t saved = index;
-            do {
-                ++index;
-            } while (mz_is_period(m_pre[index]));
-
-            fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_PERIOD, 0);
-            switch (index - saved) {
-            case 2:
-                fields[I_FIELD_POST] += L'‥';
-                break;
-            case 3:
-                fields[I_FIELD_POST] += L'…';
-                break;
-            default:
-                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
-                break;
-            }
-            DoFields(saved, fields);
-            --index;
-            continue;
-        }
-
-        // center dots (・・・)
-        if (m_pre[index] == L'・') {
-            size_t saved = index;
-            do {
-                ++index;
-            } while (m_pre[index] == L'・');
-
-            fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-            switch (index - saved) {
-            case 2:
-                fields[I_FIELD_POST] += L'‥';
-                break;
-            case 3:
-                fields[I_FIELD_POST] += L'…';
-                break;
-            default:
-                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
-                break;
-            }
-            DoFields(saved, fields);
-            --index;
-            continue;
-        }
-
-        // commas (、、、)
-        if (mz_is_comma(m_pre[index])) {
-            size_t saved = index;
-            do {
-                ++index;
-            } while (mz_is_comma(m_pre[index]));
-
-            fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_COMMA, 0);
-            fields[I_FIELD_POST] = fields[I_FIELD_PRE];
-            DoFields(saved, fields);
-            --index;
-            continue;
-        }
-
-        // arrow right (→)
-        if (mz_is_hyphen(m_pre[index]) && (m_pre[index + 1] == L'>' || m_pre[index + 1] == L'＞'))
-        {
-            fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-            fields[I_FIELD_POST].resize(1);
-            fields[I_FIELD_POST][0] = L'→';
-            DoFields(index, fields);
-            ++index;
-            continue;
-        }
-
-        // arrow left (←)
-        if ((m_pre[index] == L'<' || m_pre[index] == L'＜') && mz_is_hyphen(m_pre[index + 1]))
-        {
-            fields.resize(NUM_FIELDS);
-            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
-            fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
-            fields[I_FIELD_POST].resize(1);
-            fields[I_FIELD_POST][0] = L'←';
-            DoFields(index, fields);
-            ++index;
-            continue;
-        }
+        BOOL bFound = FALSE;
 
         // arrows (zh, zj, zk, zl) and z. etc.
         WCHAR ch0 = mz_translate_char(m_pre[index], FALSE, TRUE);
@@ -1994,12 +1897,20 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
                 fields[I_FIELD_POST].resize(1);
                 fields[I_FIELD_POST][0] = ch2;
                 DoFields(index, fields, -100);
-                ++index;
-                continue;
+                bFound = TRUE;
             }
         }
 
-        if (!mz_is_hiragana(m_pre[index])) { // ひらがなではない？
+        // 基本辞書をスキャンする。
+        size_t count = ScanBasicDict(records, dict_data, m_pre[index]);
+        DPRINTW(L"ScanBasicDict(%c) count: %d\n", m_pre[index], count);
+
+        // ユーザー辞書をスキャンする。
+        count += ScanUserDict(records, m_pre[index], this);
+        DPRINTW(L"ScanUserDict(%c) count: %d\n", m_pre[index], count);
+
+        bFound = bFound || (count != 0);
+        if (!bFound && !mz_is_hiragana(m_pre[index])) {
             size_t saved = index;
             do {
                 ++index;
@@ -2008,15 +1919,15 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
             fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
 
             std::wstring halfwidth = mz_fullwidth_ascii_to_halfwidth(fields[I_FIELD_PRE]);
             fields[I_FIELD_POST] = halfwidth;
-            DoMeishi(saved, fields);
+            DoFields(saved, fields);
 
             if (!Config_GetDWORD(L"bNoFullwidthAscii", FALSE)) { // 全角ASCIIを使う？
                 fields[I_FIELD_POST] = mz_halfwidth_ascii_to_fullwidth(halfwidth);
-                DoMeishi(saved, fields, +10);
+                DoFields(saved, fields, +10);
             }
 
             // 全部が数字なら特殊な変換を行う。
@@ -2043,17 +1954,9 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
                 }
             }
 
-            --index;
-            continue;
+            bFound = TRUE;
+            index = saved;
         }
-
-        // 基本辞書をスキャンする。
-        size_t count = ScanBasicDict(records, dict_data, m_pre[index]);
-        DPRINTW(L"ScanBasicDict(%c) count: %d\n", m_pre[index], count);
-
-        // ユーザー辞書をスキャンする。
-        count = ScanUserDict(records, m_pre[index], this);
-        DPRINTW(L"ScanUserDict(%c) count: %d\n", m_pre[index], count);
 
         // 各レコードをフィールドに分割し、処理する。
         for (size_t i = 0; i < records.size(); ++i) {
