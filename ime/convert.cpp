@@ -822,6 +822,15 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
         cost -= 100;
     }
 
+    // タグに対応
+    if (HasTag(L"[連用形に連結]") && other.katsuyou == RENYOU_KEI) {
+        cost -= 100;
+    } else if (HasTag(L"[未然形に連結]") && other.katsuyou == MIZEN_KEI) {
+        cost -= 100;
+    } else if (HasTag(L"[終止形に連結]") && other.katsuyou == SHUUSHI_KEI) {
+        cost -= 100;
+    }
+
     return cost;
 } // LatticeNode::ConnectCost
 
