@@ -116,9 +116,6 @@ public:
             costs_[HB_HEAD][i] = 0;
             costs_[i][HB_TAIL] = 0;
         }
-        // だが、例外もある
-        costs_[HB_HEAD][HB_FUKU_JOSHI] = 200;
-        costs_[HB_HEAD][HB_KAKU_JOSHI] = 100;
 
         // 句読点・記号への接続は低コスト
         for (size_t i = 0; i <= HB_MAX; ++i) {
@@ -135,12 +132,6 @@ public:
         costs_[HB_MEISHI][HB_FUKU_JOSHI] = 15;  // 名詞→副助詞
         costs_[HB_MEISHI][HB_SHUU_JOSHI] = 30;  // 名詞→終助詞
         costs_[HB_MEISHI][HB_JODOUSHI] = 45;  // 名詞→助動詞
-        costs_[HB_MEISHI][HB_MIZEN_JODOUSHI] = 45;  // 名詞→未然助動詞
-        costs_[HB_MEISHI][HB_RENYOU_JODOUSHI] = 45;  // 名詞→連用助動詞
-        costs_[HB_MEISHI][HB_SHUUSHI_JODOUSHI] = 45;  // 名詞→終止助動詞
-        costs_[HB_MEISHI][HB_RENTAI_JODOUSHI] = 45;  // 名詞→連体助動詞
-        costs_[HB_MEISHI][HB_KATEI_JODOUSHI] = 45;  // 名詞→仮定助動詞
-        costs_[HB_MEISHI][HB_MEIREI_JODOUSHI] = 45;  // 名詞→命令助動詞
         costs_[HB_MEISHI][HB_SETSUBIJI] = 30;  // 名詞→接尾辞
 
         // 接頭辞→名詞: 低コスト
@@ -780,8 +771,8 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
 {
     HinshiBunrui h0 = bunrui, h1 = other.bunrui;
 
-    // 特殊なケース（TAIL）
-    if (h1 == HB_TAIL)
+    // 特殊なケース（HEAD, TAIL, 未知の品詞）
+    if (h0 == HB_HEAD || h1 == HB_TAIL)
         return 0;
     if (h0 == HB_UNKNOWN || h1 == HB_UNKNOWN)
         return 0;  // 未知の品詞は接続を許容
@@ -799,7 +790,7 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
         }
         // 未然形→助動詞（「ない」「れる」など）
         if (katsuyou == MIZEN_KEI && other.IsJodoushi()) {
-            cost -= 100;
+            cost -= 35;
         }
         // 仮定形→助詞「ば」
         if (katsuyou == KATEI_KEI && other.IsJoshi()) {
@@ -820,15 +811,6 @@ INT LatticeNode::ConnectCost(const LatticeNode& other) const
     // 「でき」「出来」+「ます」
     if ((post == L"でき" || post == L"出来") && other.post == L"ます") {
         cost -= 100;
-    }
-
-    // タグに対応
-    if (other.katsuyou == RENYOU_KEI && HasTag(L"[連用形に連結]")) {
-        cost -= 80;
-    } else if (other.katsuyou == MIZEN_KEI && HasTag(L"[未然形に連結]")) {
-        cost -= 80;
-    } else if (other.katsuyou == SHUUSHI_KEI && HasTag(L"[終止形に連結]")) {
-        cost -= 80;
     }
 
     return cost;
@@ -1890,7 +1872,104 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
 
     WStrings fields, records;
     for (; index < length; ++index) {
-        BOOL bFound = FALSE;
+        // periods (。。。)
+        if (mz_is_period(m_pre[index])) {
+            size_t saved = index;
+            do {
+                ++index;
+            } while (mz_is_period(m_pre[index]));
+
+            fields.resize(NUM_FIELDS);
+            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
+            fields[I_FIELD_HINSHI].resize(1);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_PERIOD, 0);
+            switch (index - saved) {
+            case 2:
+                fields[I_FIELD_POST] += L'‥';
+                break;
+            case 3:
+                fields[I_FIELD_POST] += L'…';
+                break;
+            default:
+                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+                break;
+            }
+            DoFields(saved, fields);
+            --index;
+            continue;
+        }
+
+        // center dots (・・・)
+        if (m_pre[index] == L'・') {
+            size_t saved = index;
+            do {
+                ++index;
+            } while (m_pre[index] == L'・');
+
+            fields.resize(NUM_FIELDS);
+            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
+            fields[I_FIELD_HINSHI].resize(1);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            switch (index - saved) {
+            case 2:
+                fields[I_FIELD_POST] += L'‥';
+                break;
+            case 3:
+                fields[I_FIELD_POST] += L'…';
+                break;
+            default:
+                fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+                break;
+            }
+            DoFields(saved, fields);
+            --index;
+            continue;
+        }
+
+        // commas (、、、)
+        if (mz_is_comma(m_pre[index])) {
+            size_t saved = index;
+            do {
+                ++index;
+            } while (mz_is_comma(m_pre[index]));
+
+            fields.resize(NUM_FIELDS);
+            fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
+            fields[I_FIELD_HINSHI].resize(1);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_COMMA, 0);
+            fields[I_FIELD_POST] = fields[I_FIELD_PRE];
+            DoFields(saved, fields);
+            --index;
+            continue;
+        }
+
+        // arrow right (→)
+        if (mz_is_hyphen(m_pre[index]) && (m_pre[index + 1] == L'>' || m_pre[index + 1] == L'＞'))
+        {
+            fields.resize(NUM_FIELDS);
+            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
+            fields[I_FIELD_HINSHI].resize(1);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            fields[I_FIELD_POST].resize(1);
+            fields[I_FIELD_POST][0] = L'→';
+            DoFields(index, fields);
+            ++index;
+            continue;
+        }
+
+        // arrow left (←)
+        if ((m_pre[index] == L'<' || m_pre[index] == L'＜') && mz_is_hyphen(m_pre[index + 1]))
+        {
+            fields.resize(NUM_FIELDS);
+            fields[I_FIELD_PRE] = m_pre.substr(index, 2);
+            fields[I_FIELD_HINSHI].resize(1);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            fields[I_FIELD_POST].resize(1);
+            fields[I_FIELD_POST][0] = L'←';
+            DoFields(index, fields);
+            ++index;
+            continue;
+        }
 
         // arrows (zh, zj, zk, zl) and z. etc.
         WCHAR ch0 = mz_translate_char(m_pre[index], FALSE, TRUE);
@@ -1915,20 +1994,12 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
                 fields[I_FIELD_POST].resize(1);
                 fields[I_FIELD_POST][0] = ch2;
                 DoFields(index, fields, -100);
-                bFound = TRUE;
+                ++index;
+                continue;
             }
         }
 
-        // 基本辞書をスキャンする。
-        size_t count = ScanBasicDict(records, dict_data, m_pre[index]);
-        DPRINTW(L"ScanBasicDict(%c) count: %d\n", m_pre[index], count);
-
-        // ユーザー辞書をスキャンする。
-        count += ScanUserDict(records, m_pre[index], this);
-        DPRINTW(L"ScanUserDict(%c) count: %d\n", m_pre[index], count);
-
-        bFound = bFound || (count != 0);
-        if (!bFound && !mz_is_hiragana(m_pre[index])) {
+        if (!mz_is_hiragana(m_pre[index])) { // ひらがなではない？
             size_t saved = index;
             do {
                 ++index;
@@ -1937,15 +2008,15 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
             fields.resize(NUM_FIELDS);
             fields[I_FIELD_PRE] = m_pre.substr(saved, index - saved);
             fields[I_FIELD_HINSHI].resize(1);
-            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_SYMBOL, 0);
+            fields[I_FIELD_HINSHI][0] = MAKEWORD(HB_MEISHI, 0);
 
             std::wstring halfwidth = mz_fullwidth_ascii_to_halfwidth(fields[I_FIELD_PRE]);
             fields[I_FIELD_POST] = halfwidth;
-            DoFields(saved, fields);
+            DoMeishi(saved, fields);
 
             if (!Config_GetDWORD(L"bNoFullwidthAscii", FALSE)) { // 全角ASCIIを使う？
                 fields[I_FIELD_POST] = mz_halfwidth_ascii_to_fullwidth(halfwidth);
-                DoFields(saved, fields, +10);
+                DoMeishi(saved, fields, +10);
             }
 
             // 全部が数字なら特殊な変換を行う。
@@ -1972,9 +2043,17 @@ BOOL Lattice::AddNodesFromDict(size_t index, const WCHAR *dict_data)
                 }
             }
 
-            bFound = TRUE;
-            index = saved;
+            --index;
+            continue;
         }
+
+        // 基本辞書をスキャンする。
+        size_t count = ScanBasicDict(records, dict_data, m_pre[index]);
+        DPRINTW(L"ScanBasicDict(%c) count: %d\n", m_pre[index], count);
+
+        // ユーザー辞書をスキャンする。
+        count = ScanUserDict(records, m_pre[index], this);
+        DPRINTW(L"ScanUserDict(%c) count: %d\n", m_pre[index], count);
 
         // 各レコードをフィールドに分割し、処理する。
         for (size_t i = 0; i < records.size(); ++i) {
@@ -2182,10 +2261,10 @@ void Lattice::ResetLatticeInfo()
 void Lattice::AddComplement()
 {
     size_t lastIndex = GetLastLinkedIndex();
-    if (lastIndex >= m_pre.size())
+    if (lastIndex == m_pre.size())
         return;
 
-    lastIndex += ARRAY_AT_AT(m_chunks, lastIndex, 0)->pre.size();
+    lastIndex += ARRAY_AT(m_chunks, lastIndex)[0]->pre.size();
 
     LatticeNode node;
     node.bunrui = HB_UNKNOWN;
@@ -2618,7 +2697,6 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
     ASSERT(fields.size() == NUM_FIELDS);
     ASSERT(fields[I_FIELD_PRE].size());
     size_t length = fields[I_FIELD_PRE].size();
-
     // 区間チェック。
     if (index + length > m_pre.size()) {
         return;
@@ -2765,57 +2843,7 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
             node.pre = fields[I_FIELD_PRE] + ch2 + tail[1];
             node.post = fields[I_FIELD_POST] + ch2 + tail[1];
             AddNode(index, node);
-		} else {
-			if (tail.size() >= 5 && (tail.substr(1, 4) == L"ちゃった" || tail.substr(1, 4) == L"ちまった")) {
-				// 終止形「～ちゃった」「～ちまった」
-				node.katsuyou = SHUUSHI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 5 && (tail.substr(1, 4) == L"じゃった" || tail.substr(1, 4) == L"じまった")) {
-				// 終止形「～じゃった」「～じまった」
-				node.katsuyou = SHUUSHI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃう" || tail.substr(1, 3) == L"ちまう")) {
-				// 終止形「～ちゃう」「～ちまう」
-				node.katsuyou = SHUUSHI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃう" || tail.substr(1, 3) == L"じまう")) {
-				// 終止形「～じゃう」「～じまう」
-				node.katsuyou = SHUUSHI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃえ" || tail.substr(1, 3) == L"ちまえ")) {
-				// 命令形「～ちゃえ」「～ちまえ」
-				node.katsuyou = MEIREI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃえ" || tail.substr(1, 3) == L"じまえ")) {
-				// 命令形「～じゃえ」「～じまえ」
-				node.katsuyou = MEIREI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"ちゃい" || tail.substr(1, 3) == L"ちまい")) {
-				// 命令形「～ちゃい」「～ちまい」
-				node.katsuyou = MEIREI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			} else if (tail.size() >= 4 && (tail.substr(1, 3) == L"じゃい" || tail.substr(1, 3) == L"じまい")) {
-				// 命令形「～じゃい」「～じまい」
-				node.katsuyou = MEIREI_KEI;
-				node.pre = fields[I_FIELD_PRE] + ch2 + tail.substr(1, 4);
-				node.post = fields[I_FIELD_POST] + ch2 + tail.substr(1, 4);
-				AddNode(index, node);
-			}
-		}
+        }
     }
 
     // 五段動詞の終止形。「動く」「聞き取る」
@@ -2983,7 +3011,7 @@ void Lattice::DoGodanDoushi(size_t index, const WStrings& fields, INT deltaCost)
         WStrings new_fields = fields;
         new_fields[I_FIELD_PRE] += ch;
         new_fields[I_FIELD_POST] += ch;
-        DoIchidanDoushi(index, new_fields, deltaCost + 100);
+        DoIchidanDoushi(index, new_fields, deltaCost + 30);
     } while (0);
 } // Lattice::DoGodanDoushi
 
@@ -3088,44 +3116,19 @@ void Lattice::DoIchidanDoushi(size_t index, const WStrings& fields, INT deltaCos
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
         }
-        // 終止形「見ちゃう」「見ちまえ」
-        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃう" || tail.substr(0, 3) == L"ちまう")) {
+        // 終止形「見ちゃう」
+        if (tail.size() >= 3 && tail.substr(0, 3) == L"ちゃう") {
             HinshiBunrui old_bunrui = node.bunrui; // 保存
             node.bunrui = HB_GODAN_DOUSHI;
-            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
-            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
+            node.pre = fields[I_FIELD_PRE] + L"ちゃう";
+            node.post = fields[I_FIELD_POST] + L"ちゃう";
             node.katsuyou = SHUUSHI_KEI;
             AddNode(index, node);
-            node.bunrui = old_bunrui; // 元に戻す
-        }
-        // 命令形「見ちゃえ」「見ちまえ」
-        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃえ" || tail.substr(0, 3) == L"ちまえ")) {
-            HinshiBunrui old_bunrui = node.bunrui; // 保存
-            node.bunrui = HB_GODAN_DOUSHI;
-            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
-            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
-            node.katsuyou = MEIREI_KEI;
-            AddNode(index, node);
-            node.bunrui = old_bunrui; // 元に戻す
-        }
-        // 命令形「見ちゃい」「見ちまい」
-        if (tail.size() >= 3 && (tail.substr(0, 3) == L"ちゃい" || tail.substr(0, 3) == L"ちまい")) {
-            HinshiBunrui old_bunrui = node.bunrui; // 保存
-            node.bunrui = HB_GODAN_DOUSHI;
-            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 3);
-            node.post = fields[I_FIELD_POST] + tail.substr(0, 3);
-            node.katsuyou = MEIREI_KEI;
-            AddNode(index, node);
-            node.bunrui = old_bunrui; // 元に戻す
-        }
-        // 終止形「見ちゃった」「見ちまった」
-        if (tail.size() >= 4 && (tail.substr(0, 4) == L"ちゃった" || tail.substr(0, 4) == L"ちまった")) {
-            HinshiBunrui old_bunrui = node.bunrui; // 保存
-            node.bunrui = HB_GODAN_DOUSHI;
-            node.pre = fields[I_FIELD_PRE] + tail.substr(0, 4);
-            node.post = fields[I_FIELD_POST] + tail.substr(0, 4);
-            node.katsuyou = SHUUSHI_KEI;
-            AddNode(index, node);
+            if (tail.size() >= 4 && tail.substr(3, 1) == L"よ") {
+                node.pre += L"よ";
+                node.post += L"よ";
+                AddNode(index, node);
+            }
             node.bunrui = old_bunrui; // 元に戻す
         }
         // 終止形「見よう」「見ようね」「見ようや」「見ような」「見ようぞ」
