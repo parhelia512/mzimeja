@@ -135,6 +135,12 @@ public:
         costs_[HB_MEISHI][HB_FUKU_JOSHI] = 15;  // 名詞→副助詞
         costs_[HB_MEISHI][HB_SHUU_JOSHI] = 30;  // 名詞→終助詞
         costs_[HB_MEISHI][HB_JODOUSHI] = 45;  // 名詞→助動詞
+        costs_[HB_MEISHI][HB_MIZEN_JODOUSHI] = 45;  // 名詞→未然助動詞
+        costs_[HB_MEISHI][HB_RENYOU_JODOUSHI] = 45;  // 名詞→連用助動詞
+        costs_[HB_MEISHI][HB_SHUUSHI_JODOUSHI] = 45;  // 名詞→終止助動詞
+        costs_[HB_MEISHI][HB_RENTAI_JODOUSHI] = 45;  // 名詞→連体助動詞
+        costs_[HB_MEISHI][HB_KATEI_JODOUSHI] = 45;  // 名詞→仮定助動詞
+        costs_[HB_MEISHI][HB_MEIREI_JODOUSHI] = 45;  // 名詞→命令助動詞
         costs_[HB_MEISHI][HB_SETSUBIJI] = 30;  // 名詞→接尾辞
 
         // 接頭辞→名詞: 低コスト
