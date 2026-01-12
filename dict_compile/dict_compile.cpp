@@ -71,23 +71,6 @@ std::wstring lcmap(const std::wstring& str, DWORD dwFlags) {
     return szBuf;
 }
 
-template <typename T_STR_CONTAINER>
-void
-str_split_2(T_STR_CONTAINER& container,
-    const typename T_STR_CONTAINER::value_type& str,
-    const typename T_STR_CONTAINER::value_type& sep)
-{
-    container.clear();
-    size_t i = 0, k = str.find(sep);
-    while (k != T_STR_CONTAINER::value_type::npos)
-    {
-        container.push_back(str.substr(i, k - i));
-        i = k + sep.size();
-        k = str.find(sep, i);
-    }
-    container.push_back(str.substr(i));
-}
-
 // タグをチェックする
 BOOL CheckTags(const std::wstring& tags) {
     if (tags.empty())
@@ -96,7 +79,7 @@ BOOL CheckTags(const std::wstring& tags) {
         return false;
     std::wstring str = tags.substr(1, tags.size() - 2);
     std::vector<std::wstring> items;
-    str_split_2(items, str, L"][");
+    str_split(items, str, L"][");
     for (size_t iItem = 0; iItem < items.size(); ++iItem) {
         const std::wstring& item = items[iItem];
         if (item != L"非標準" &&

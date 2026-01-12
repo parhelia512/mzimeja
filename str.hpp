@@ -40,15 +40,15 @@ template <typename T_STR_CONTAINER>
 void
 str_split(T_STR_CONTAINER& container,
     const typename T_STR_CONTAINER::value_type& str,
-    const typename T_STR_CONTAINER::value_type& chars)
+    const typename T_STR_CONTAINER::value_type& sep)
 {
     container.clear();
-    size_t i = 0, k = str.find_first_of(chars);
+    size_t i = 0, k = str.find(sep);
     while (k != T_STR_CONTAINER::value_type::npos)
     {
         container.push_back(str.substr(i, k - i));
-        i = k + 1;
-        k = str.find_first_of(chars, i);
+        i = k + sep.size();
+        k = str.find(sep, i);
     }
     container.push_back(str.substr(i));
 }
