@@ -419,7 +419,7 @@ BOOL FindLocalFile(std::wstring& path, LPCWSTR filename) {
     }
 
     path.clear();
-    return NULL;
+    return FALSE;
 }
 
 LPWSTR GetKanjiDataPathName(LPWSTR pszPath) {

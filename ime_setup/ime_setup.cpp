@@ -210,7 +210,7 @@ BOOL SetImeHKL(HKL hKL)
     HKEY hKey;
     error = CreateRegKey(HKEY_CURRENT_USER, L"SOFTWARE\\Katayama Hirofumi MZ\\mzimeja", &hKey);
     if (error != ERROR_SUCCESS)
-        return NULL;
+        return FALSE;
 
     WCHAR szHKL[16];
     StringCchPrintfW(szHKL, _countof(szHKL), L"%08X", HandleToUlong(hKL));

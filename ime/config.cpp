@@ -173,7 +173,7 @@ BOOL FindLocalFile(std::wstring& path, LPCWSTR filename) {
     }
 
     path.clear();
-    return NULL;
+    return FALSE;
 }
 
 // アプリフォルダのファイルを探す
