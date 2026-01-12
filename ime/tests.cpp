@@ -157,7 +157,7 @@ struct INPUT_DATA {
 
 BOOL OnPsh1(HWND hwnd)
 {
-    INPUT_DATA* data = (INPUT_DATA*)GetWindowLongPtr(hwnd, DWL_USER);
+    INPUT_DATA* data = (INPUT_DATA*)GetWindowLongPtr(hwnd, DWLP_USER);
     GetDlgItemTextW(hwnd, edt1, data->text, _countof(data->text));
     StrTrimW(data->text, L" \t\r\n");
     if (data->text[0] == 0) {
@@ -172,7 +172,7 @@ InputDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg) {
     case WM_INITDIALOG:
-        SetWindowLongPtr(hwnd, DWL_USER, lParam);
+        SetWindowLongPtr(hwnd, DWLP_USER, lParam);
         SetDlgItemText(hwnd, edt1, L"かのじょはにほんごがおじょうずですね。");
         return TRUE;
     case WM_COMMAND:
