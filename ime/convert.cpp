@@ -2261,10 +2261,10 @@ void Lattice::ResetLatticeInfo()
 void Lattice::AddComplement()
 {
     size_t lastIndex = GetLastLinkedIndex();
-    if (lastIndex == m_pre.size())
+    if (lastIndex >= m_pre.size())
         return;
 
-    lastIndex += ARRAY_AT(m_chunks, lastIndex)[0]->pre.size();
+    lastIndex += ARRAY_AT_AT(m_chunks, lastIndex, 0)->pre.size();
 
     LatticeNode node;
     node.bunrui = HB_UNKNOWN;
