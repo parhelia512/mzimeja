@@ -93,10 +93,10 @@ BOOL MzIme::LoadDict()
 
     std::wstring name;
     if (!Config_GetDWORD(L"NameDictDisabled", FALSE)) {
-        if (FindLocalFile(basic, L"name.dat") ||
-            FindLocalFile(basic, L"res\\name.dat") ||
-            FindAppFile(basic, L"name.dic") ||
-            FindAppFile(basic, L"res\\name.dic") ||
+        if (FindLocalFile(name, L"name.dat") ||
+            FindLocalFile(name, L"res\\name.dat") ||
+            FindAppFile(name, L"name.dic") ||
+            FindAppFile(name, L"res\\name.dic") ||
             Config_GetSz(L"NameDictPathName", name))
         {
             if (!g_name_dict.Load(name.c_str(), L"NameDictObject")) {
