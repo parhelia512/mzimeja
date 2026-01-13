@@ -423,14 +423,12 @@ void LogCompStr::MakeHankaku()
 void LogCompStr::MakeZenEisuu()
 {
     std::wstring str = mz_lcmap(extra.typing_clauses[extra.iClause], LCMAP_FULLWIDTH);
-    BOOL bCommaPeriod = Config_GetDWORD(L"bCommaPeriod", FALSE);
-    if (bCommaPeriod) {
-        str_replace_all(str, L".", L"．");
-        str_replace_all(str, L",", L"，");
-    } else {
-        str_replace_all(str, L".", L"。");
-        str_replace_all(str, L",", L"、");
-    }
+    str_replace_all(str, L"。", L"．");
+    str_replace_all(str, L"、", L"，");
+    str_replace_all(str, L"｡", L"．");
+    str_replace_all(str, L"､", L"，");
+    str_replace_all(str, L".", L"．");
+    str_replace_all(str, L",", L"，");
     SetClauseCompString(extra.iClause, str);
     dwCursorPos = ClauseToCompChar(extra.iClause + 1);
 }
