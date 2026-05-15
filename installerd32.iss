@@ -2,7 +2,7 @@
 ; (Debug Version)
 
 #define MyAppName "MZ-IME“ú–{Œê“ü—Í"
-#define MyAppVersion "1.0.0.7"
+#define MyAppVersion "1.0.0.8"
 #define MyAppPublisher "•ÐŽR”Ž•¶MZ"
 
 [Setup]
